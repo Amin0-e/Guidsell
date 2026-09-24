@@ -1,0 +1,15 @@
+{
+  "name": "guidsell",
+  "version": "1.0.0",
+  "description": "AI-waardechecks + live Vinted-prijzen voor Vinted resellers",
+  "main": "vinted-proxy.mjs",
+  "type": "module",
+  "scripts": {
+    "start": "node vinted-proxy.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "UNLICENSED",
+  "private": true
+}
