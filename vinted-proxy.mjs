@@ -141,7 +141,16 @@ function readApiKey() {
   }
 }
 
-const AI_MODELS = ["gemini-3.8-flash", "gemini-3.5-flash-lite", "gemini-3.6-flash"];
+// Volgorde: meest capabel eerst, dan steeds lichtere/less-drukte varianten.
+// Bij "high demand"/overload (429/503) probeert hij automatisch het volgende model.
+const AI_MODELS = [
+  "gemini-3.8-flash",
+  "gemini-3.6-flash",
+  "gemini-3.5-flash",
+  "gemini-3.5-flash-lite",
+  "gemini-3.1-flash-lite"
+];
+const RETRYABLE_STATUS = new Set([429, 500, 503, 504]);
 
 async function callGeminiServer(prompt, imagesBase64) {
   const key = readApiKey();
@@ -170,6 +179,10 @@ async function callGeminiServer(prompt, imagesBase64) {
       if (!res.ok) {
         const errText = await res.text().catch(() => "");
         console.log(`[ai] ${model} geweigerd (${res.status}):`, errText.slice(0, 120));
+        // high demand / overload → korte wachttijd en volgend model proberen
+        if (RETRYABLE_STATUS.has(res.status) && model !== AI_MODELS[AI_MODELS.length - 1]) {
+          await new Promise(r => setTimeout(r, 1200));
+        }
         continue;
       }
       const j = await res.json();
