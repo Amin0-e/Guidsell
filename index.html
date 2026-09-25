@@ -822,7 +822,7 @@
     <p class="sub">Upload een foto — de AI herkent je item, vergelijkt het met live Vinted-prijzen en schrijft een beschrijving die verkoopt.</p>
     <div class="cta-row">              <button class="btn btn-white btn-lg" onclick="openAuth('register')">Begin gratis — 5 checks per week</button>
     </div>
-    <div class="hero-note">Gratis account · 5 AI-waardechecks per week · PRO: onbeperkt vanaf €7/maand</div>
+    <div class="hero-note">Gratis · 5 checks/week · PRO vanaf €3/week of €10/maand — maand is het voordeligst</div>
   </header>
 
   <section class="section" id="sec-how">
@@ -854,7 +854,7 @@
       <div class="feature"><div class="ico">📊</div><h3>Prijs per staat</h3><p>Live Vinted-vergelijking: zie wat jouw item in elke staat oplevert — van nieuw met label tot zichtbare slijtage.</p></div>
       <div class="feature"><div class="ico">✍️</div><h3>Verkoopklare beschrijving</h3><p>Titel, beschrijving en tags die klaar zijn om te plakken in Vinted.</p></div>
       <div class="feature"><div class="ico">📦</div><h3>Voorraadbeheer</h3><p>Bewaar je items, markeer ze als verkocht en houd je voorraad bij.</p></div>
-      <div class="feature"><div class="ico">📮</div><h3>Verzendkosten calculator</h3><p>Voer je items in — zie direct totaalgewicht, pakketvolume en een indicatie van de verzendkosten per land.</p></div>
+      <div class="feature"><div class="ico">📮</div><h3>Verzendkosten calculator <span class="pro-tag">PRO</span></h3><p>Plak je haul-link + kies je Chinese agent — direct totaalgewicht, pakketvolume en indicatieve verzendkosten. Alleen voor PRO.</p></div>
       <div class="feature"><div class="ico">🧾</div><h3>Kasboek &amp; winst</h3><p>Inkoopkosten en verkoopopbrengst automatisch bijgehouden. Jij ziet je echte winst.</p></div>
       <div class="feature"><div class="ico">🆓</div><h3>Gratis starten</h3><p>5 waardechecks per week, elke week opnieuw. Zonder creditcard.</p></div>
     </div>
@@ -863,29 +863,37 @@
   <section class="section" id="sec-pricing" style="padding-top:0">
     <h2 class="section-title">Eenvoudige prijzen</h2>
     <p class="section-sub">Begin gratis. Upgrade wanneer je klaar bent om te schalen.</p>
-    <div class="plans">
+    <div class="plans" style="grid-template-columns: repeat(3,1fr); max-width:980px">
       <div class="plan">
         <h3>FREE</h3>
         <div class="p-price">€0<span>/altijd</span></div>
         <ul>
           <li>5 waardechecks per week</li>
           <li>Tot 8 foto's per check</li>
-          <li>Voorraad &amp; kasboek</li>
           <li>Verkoopklare beschrijvingen</li>
         </ul>
         <button class="btn btn-outline" onclick="openAuth('register')">Begin gratis</button>
       </div>
-      <div class="plan hot">
-        <div class="hot-tag">MEEST GEBRUIKT</div>
-        <h3>PRO</h3>
-        <div class="p-price">€7<span>/maand</span></div>
+      <div class="plan" style="border:2px solid #e6e9f2">
+        <h3>PRO WEEK</h3>
+        <div class="p-price">€3<span>/week</span></div>
         <ul>
-          <li>Onbeperkt waardechecks</li>
-          <li>Onbeperkt foto's</li>
-          <li>Alles uit FREE</li>
-          <li>Prioritaire verwerking</li>
+          <li>Onbeperkt waardechecks &amp; foto's</li>
+          <li>Verzendcalculator + agent-vergelijk</li>
+          <li>Voorraad &amp; kasboek</li>
         </ul>
-        <button class="btn" onclick="openAuth('register')">Start met PRO</button>
+        <button class="btn btn-outline" onclick="openAuth('register')">Kies Weekly</button>
+      </div>
+      <div class="plan hot">
+        <div class="hot-tag">BESTE DEAL · BESPAAR 18%</div>
+        <h3>PRO MAAND</h3>
+        <div class="p-price">€10<span>/maand</span></div>
+        <ul>
+          <li>Alles uit WEEK</li>
+          <li>Haul → kasboek in 1 klik</li>
+          <li>Goedkoopst: ~€2,50/week</li>
+        </ul>
+        <button class="btn" onclick="openAuth('register')">Kies Maandelijks</button>
       </div>
     </div>
   </section>
@@ -956,7 +964,7 @@
     <div class="links" id="appLinks">
       <button class="navlink active" data-view="dashboard" onclick="switchView('dashboard')">Dashboard</button>
       <button class="navlink" data-view="check" onclick="switchView('check')">Waardecheck</button>
-      <button class="navlink" data-view="ship" onclick="switchView('ship')">Verzending</button>
+      <button class="navlink" data-view="ship" onclick="switchView('ship')">Verzending <span class="pro-tag">PRO</span></button>
       <button class="navlink" data-view="items" onclick="switchView('items')">Mijn items <span class="pro-tag">PRO</span></button>
       <button class="navlink" data-view="ledger" onclick="switchView('ledger')">Kasboek <span class="pro-tag">PRO</span></button>
       <button class="navlink" data-view="upgrade" onclick="switchView('upgrade')">Upgrade</button>
@@ -1136,6 +1144,21 @@
 
     <!-- ---------- VERZENDING ---------- -->
     <section class="view" id="view-ship">
+      <div id="shipLock" hidden>
+        <div class="pro-lock">
+          <div class="big-ico">📮🔒</div>
+          <h3>Verzending is PRO</h3>
+          <p>Plak je haul-links, kies je Chinese agent en reken voor je betaalt — gewicht, volume en verzendkosten in één overzicht.</p>
+          <ul>
+            <li>Product-link (Weidian/Taobao/1688) auto-invul</li>
+            <li>Agent-vergelijk: goedkoopst ↔ snelst</li>
+            <li>Rekengewicht, pakketadvies &amp; haul → kasboek</li>
+            <li>Valuta &amp; land/snelheid live meegerekend</li>
+          </ul>
+          <button class="btn btn-lg" onclick="switchView('upgrade')">Ontgrendel met PRO — vanaf €3/week</button>
+        </div>
+      </div>
+      <div id="shipContent" hidden>
       <h1 class="page-title">Verzendcalculator</h1>
       <p class="page-sub">Reken je haul door voordat je betaalt — plak een product-link of voer handmatig in.</p>
       <div class="ship-topbar">
@@ -1291,7 +1314,7 @@
             <li>Koppeling met je kasboek</li>
             <li>Listing opnieuw kopiëren wanneer je wilt</li>
           </ul>
-          <button class="btn btn-lg" onclick="switchView('upgrade')">Ontgrendel met PRO — €7/mnd</button>
+          <button class="btn btn-lg" onclick="switchView('upgrade')">Ontgrendel met PRO — vanaf €3/week</button>
         </div>
       </div>
       <div id="itemsContent" hidden>
@@ -1319,7 +1342,7 @@
             <li>Automatische boekingen bij verkoop</li>
             <li>Hét bewakingsmiddel voor je resellerwinst</li>
           </ul>
-          <button class="btn btn-lg" onclick="switchView('upgrade')">Ontgrendel met PRO — €7/mnd</button>
+          <button class="btn btn-lg" onclick="switchView('upgrade')">Ontgrendel met PRO — vanaf €3/week</button>
         </div>
       </div>
       <div id="ledgerContent" hidden>
@@ -1363,33 +1386,51 @@
     <!-- ---------- UPGRADE ---------- -->
     <section class="view" id="view-upgrade">
       <h1 class="page-title">Upgrade</h1>
-      <p class="page-sub">Onbeperkt checken, onbeperkt verkopen.</p>
-      <div class="plans">
+      <p class="page-sub">Onbeperkt checken, onbeperkt verkopen — kies je abonnement.</p>
+      <div style="display:flex;gap:8px;margin-bottom:14px;justify-content:center;flex-wrap:wrap">
+        <span style="font-size:11px;letter-spacing:1px;font-weight:700;color:var(--muted)">KIES JE PLAN</span>
+        <span style="font-size:11px;color:var(--green);font-weight:700">· Maand bespaart 18% vs 4× week</span>
+      </div>
+      <div class="plans" style="grid-template-columns: repeat(3,1fr); max-width:980px">
         <div class="plan" id="planFree">
           <h3>FREE</h3>
           <div class="p-price">€0<span>/altijd</span></div>
           <ul>
             <li>5 waardechecks per week</li>
             <li>Tot 8 foto's per check</li>
-            <li>Voorraad &amp; kasboek</li>
+            <li>Verkoopklare beschrijvingen</li>
           </ul>
           <button class="btn btn-outline" onclick="downgradeDemo()">Terug naar FREE (demo)</button>
         </div>
-        <div class="plan hot" id="planPro">
-          <div class="hot-tag">MEEST GEBRUIKT</div>
-          <div class="plan-current-tag" id="proCurrent" hidden>✓ JOUW HUIDIGE PLAN</div>
-          <h3>PRO</h3>
-          <div class="p-price">€7<span>/maand</span></div>
+        <div class="plan" id="planWeekly">
+          <div class="plan-current-tag" id="weeklyCurrent" hidden>✓ JOUW HUIDIGE PLAN</div>
+          <h3>PRO WEEK</h3>
+          <div class="p-price">€3<span>/week</span></div>
           <ul>
-            <li>Onbeperkt waardechecks</li>
-            <li>Onbeperkt foto's</li>
-            <li>Alles uit FREE</li>
+            <li>Onbeperkt checks &amp; foto's</li>
+            <li>Verzendcalculator + agent-vergelijk</li>
+            <li>Voorraad &amp; kasboek &amp; haul → kasboek</li>
+            <li>Elke week verlengd</li>
+          </ul>
+          <button class="btn btn-outline" id="weeklyBtn" onclick="startCheckout('weekly')">Kies Weekly — €3/week</button>
+          <p style="font-size:11px;color:var(--muted);margin-top:8px;text-align:center">Flexibel — op elk moment opzegbaar.</p>
+        </div>
+        <div class="plan hot" id="planMonthly">
+          <div class="hot-tag">BESTE DEAL · MEEST GEBRUIKT</div>
+          <div class="plan-current-tag" id="monthlyCurrent" hidden>✓ JOUW HUIDIGE PLAN</div>
+          <h3>PRO MAAND</h3>
+          <div class="p-price">€10<span>/maand</span></div>
+          <ul>
+            <li>Alles uit WEEK</li>
+            <li>~€2,50/week i.p.v. €3</li>
+            <li>Bespaar ~€2 elke maand</li>
             <li>Prioritaire verwerking</li>
           </ul>
-          <button class="btn" id="proBtn" onclick="startCheckout()">Upgrade naar PRO — €7/mnd</button>
-          <p class="demo-note" style="font-size:11px;color:var(--muted);margin-top:10px;text-align:center">Demo: activeert PRO zonder echte betaling.</p>
+          <button class="btn" id="monthlyBtn" onclick="startCheckout('monthly')">Kies Maand — €10/maand</button>
+          <p style="font-size:11px;color:var(--muted);margin-top:8px;text-align:center">Maandelijks — beste prijs.</p>
         </div>
       </div>
+      <div id="proMeta" style="text-align:center;font-size:12px;color:var(--muted);margin-top:14px" hidden></div>
     </section>
 
   </main>
@@ -1401,7 +1442,8 @@
     <h2>Wekelijkse limiet bereikt 🔒</h2>
     <p>Je hebt je 5 gratis waardechecks deze week gebruikt. Upgrade naar PRO voor onbeperkt checken.</p>
     <div class="modal-actions">
-      <button class="btn btn-lg" onclick="startCheckout()">Upgrade naar PRO — €7/mnd</button>
+      <button class="btn btn-lg" onclick="startCheckout('monthly')">Maand — €10/maand (beste deal)</button>
+      <button class="btn btn-outline" onclick="startCheckout('weekly')">Week — €3/week</button>
       <button class="btn-ghost" onclick="closePaywall()">Misschien later</button>
     </div>
     <p style="font-size:11px;margin-top:14px;margin-bottom:0">Demo: activeert PRO zonder echte betaling.</p>
@@ -1505,18 +1547,30 @@ let itemFilter = "all";
 let soldTargetId = null;
 let lastCover = null;
 
+const PLAN_FREE = "free";
+const PLAN_WEEKLY = "pro_weekly";
+const PLAN_MONTHLY = "pro_monthly";
 function saveUsers() { localStorage.setItem(LS_USERS, JSON.stringify(users)); }
 function dataKey() { return "guidsell_data_" + session; }
 function loadData() {
   try { data = JSON.parse(localStorage.getItem(dataKey()) || "null"); } catch (e) { data = null; }
-  if (!data) data = { items: [], ledger: [], weekStart: 0, usedThisWeek: 0, plan: "free" };
+  if (!data) data = { items: [], ledger: [], weekStart: 0, usedThisWeek: 0, plan: PLAN_FREE };
   ensureWeek();
+  checkProExpiry();
 }
 function saveData() {
   try {
     localStorage.setItem(dataKey(), JSON.stringify(data));
   } catch (e) {
     toast("Opslaan mislukt — opslag vol. Verwijder oude items.", true);
+  }
+}
+function checkProExpiry(){
+  if(!data) return;
+  if((data.plan===PLAN_WEEKLY || data.plan===PLAN_MONTHLY) && data.proUntil && Date.now() > data.proUntil){
+    data.plan = PLAN_FREE;
+    delete data.proUntil;
+    saveData();
   }
 }
 function ensureWeek() {
@@ -1526,8 +1580,29 @@ function ensureWeek() {
     data.usedThisWeek = 0;
     saveData();
   }
+  checkProExpiry();
 }
-function isPro() { return data.plan === "pro"; }
+function isPro() {
+  if(!data) return false;
+  if(data.plan==="pro") return true;
+  if(data.plan===PLAN_WEEKLY || data.plan===PLAN_MONTHLY){
+    if(data.proUntil && Date.now() > data.proUntil) return false;
+    return true;
+  }
+  return false;
+}
+function getProLabel(){
+  if(data.plan===PLAN_WEEKLY) return "PRO Week";
+  if(data.plan===PLAN_MONTHLY || data.plan==="pro") return "PRO Maand";
+  return "PRO";
+}
+function activatePro(kind){
+  const now = Date.now();
+  if(kind==="weekly"){ data.plan=PLAN_WEEKLY; data.proUntil = now + 7*24*60*60*1000; }
+  else { data.plan=PLAN_MONTHLY; data.proUntil = now + 30*24*60*60*1000; }
+  saveData(); renderAll(); closePaywall();
+  toast(kind==="weekly" ? "PRO Week geactiveerd — 7 dagen onbeperkt! 💎" : "PRO Maand geactiveerd — 30 dagen onbeperkt! 💎");
+}
 function remaining() { return Math.max(0, QUOTA - (data.usedThisWeek || 0)); }
 function uid() { return Date.now() + "" + Math.floor(Math.random() * 1000); }
 function fmt(n) {
@@ -1548,13 +1623,18 @@ function goLanding() { showPage("page-landing"); }
 
 function enterApp() {
   loadData();
-  // betaald via Payment Link? → PRO activeren bij deze account
-  if (localStorage.getItem("guidsell_pending_pro") === "1") {
-    data.plan = "pro";
+  // betaald via Payment Link? → PRO activeren (weekly/monthly) bij deze account
+  const pend = localStorage.getItem("guidsell_pending_pro");
+  if (pend === "weekly" || pend === "monthly" || pend === "1") {
+    const kind = pend==="weekly"?"weekly":"monthly";
+    data.plan = kind==="weekly" ? PLAN_WEEKLY : PLAN_MONTHLY;
+    data.proUntil = Date.now() + (kind==="weekly"?7:30)*24*60*60*1000;
     saveData();
     localStorage.removeItem("guidsell_pending_pro");
-    setTimeout(() => toast("PRO geactiveerd — veel plezier! 🎉"), 600);
+    setTimeout(() => toast(kind==="weekly"?"PRO Week geactiveerd — veel plezier! 🎉":"PRO Maand geactiveerd — veel plezier! 🎉"), 600);
   }
+  // migratie: oude "pro" zonder expiry → behandel als maandelijks, zet vervaldatum
+  if(data.plan==="pro" && !data.proUntil){ data.proUntil = Date.now()+30*24*60*60*1000; saveData(); }
   const user = users[session] || { name: "Gebruiker" };
   document.getElementById("userName").textContent = user.name;
   document.getElementById("avatar").textContent = (user.name[0] || "G").toUpperCase();
@@ -1638,12 +1718,16 @@ function seedDemoData() {
    APP VIEW NAVIGATION
 ===================================================== */
 function switchView(name) {
-  // PRO-poort: items + kasboek alleen voor PRO
-  if ((name === "items" || name === "ledger") && !isPro()) {
+  checkProExpiry();
+  const pro = isPro();
+  // PRO-poort: Verzending + items + kasboek alleen voor PRO
+  if (!pro && (name === "items" || name === "ledger" || name === "ship")) {
     document.getElementById("itemsLock").hidden = name !== "items";
     document.getElementById("itemsContent").hidden = name === "items";
     document.getElementById("ledgerLock").hidden = name !== "ledger";
     document.getElementById("ledgerContent").hidden = name === "ledger";
+    document.getElementById("shipLock").hidden = name !== "ship";
+    document.getElementById("shipContent").hidden = name === "ship";
     document.querySelectorAll("#appLinks .navlink").forEach(b =>
       b.classList.toggle("active", b.dataset.view === name));
     document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
@@ -1651,6 +1735,13 @@ function switchView(name) {
     window.scrollTo(0, 0);
     return;
   }
+  // normale navigatie — paywalled secties tonen als PRO
+  document.getElementById("itemsLock").hidden = pro;
+  document.getElementById("itemsContent").hidden = !pro;
+  document.getElementById("ledgerLock").hidden = pro;
+  document.getElementById("ledgerContent").hidden = !pro;
+  document.getElementById("shipLock").hidden = pro;
+  document.getElementById("shipContent").hidden = !pro;
   document.querySelectorAll("#appLinks .navlink").forEach(b =>
     b.classList.toggle("active", b.dataset.view === name));
   document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
@@ -1658,20 +1749,24 @@ function switchView(name) {
   window.scrollTo(0, 0);
   if (name === "items") renderItems();
   if (name === "ledger") renderLedger();
+  if (name === "ship") shipRender();
 }
 
 /* =====================================================
    QUOTA
 ===================================================== */
 function renderQuota() {
+  checkProExpiry();
   const chip = document.getElementById("quotaChip");
   const wbLabel = document.getElementById("wbLabel");
   const wbFill = document.getElementById("wbFill");
   const wbUpgrade = document.getElementById("wbUpgrade");
   if (isPro()) {
-    chip.textContent = "PRO · onbeperkt";
+    const label = getProLabel();
+    chip.textContent = label + " · onbeperkt";
     chip.classList.add("pro");
-    wbLabel.textContent = "PRO-account: onbeperkt waardechecks 💎";
+    const until = data.proUntil ? new Date(data.proUntil).toLocaleDateString("nl-NL") : "";
+    wbLabel.textContent = label + ": onbeperkt waardechecks 💎" + (until ? " · tot " + until : "");
     wbFill.style.width = "100%";
     wbFill.classList.remove("full");
     wbUpgrade.style.display = "none";
@@ -2333,6 +2428,7 @@ function renderLedger() {
    DASHBOARD
 ===================================================== */
 function renderDashboard() {
+  checkProExpiry();
   const items = data.items || [];
   const stock = items.filter(i => i.status === "stock");
   const sold = items.filter(i => i.status === "sold");
@@ -2370,27 +2466,41 @@ function renderDashboard() {
    UPGRADE / PAYWALL
 ===================================================== */
 function renderUpgrade() {
-  document.getElementById("proCurrent").hidden = !isPro();
-  document.getElementById("proBtn").disabled = isPro();
-  document.getElementById("proBtn").textContent = isPro() ? "✓ Je hebt PRO" : "Upgrade naar PRO — €7/mnd";
-  // lock-schermen direct bijwerken wanneer plan verandert
+  checkProExpiry();
   const pro = isPro();
+  const wkCur = pro && data.plan===PLAN_WEEKLY;
+  const moCur = pro && (data.plan===PLAN_MONTHLY || data.plan==="pro");
+  const wTag = document.getElementById("weeklyCurrent");
+  const mTag = document.getElementById("monthlyCurrent");
+  if(wTag) wTag.hidden = !wkCur;
+  if(mTag) mTag.hidden = !moCur;
+  const wBtn=document.getElementById("weeklyBtn"), mBtn=document.getElementById("monthlyBtn");
+  if(wBtn){ wBtn.disabled = wkCur; wBtn.textContent = wkCur ? "✓ Actief — PRO Week" : "Kies Weekly — €3/week"; }
+  if(mBtn){ mBtn.disabled = moCur; mBtn.textContent = moCur ? "✓ Actief — PRO Maand" : "Kies Maand — €10/maand"; }
+  const meta=document.getElementById("proMeta");
+  if(meta){
+    if(pro && data.proUntil){ meta.hidden=false; const d=new Date(data.proUntil).toLocaleDateString("nl-NL",{day:"2-digit",month:"long",year:"numeric"}); meta.textContent = getProLabel() + " actief tot " + d + " — demo: verloopt automatisch."; }
+    else if(pro && !data.proUntil){ meta.hidden=false; meta.textContent = "PRO actief (geen vervaldatum — oude demo-activering)."; }
+    else { meta.hidden=true; meta.textContent=""; }
+  }
+  const proLegacy = document.getElementById("proCurrent"); if(proLegacy) proLegacy.hidden = !pro;
+  const proBtnLegacy = document.getElementById("proBtn"); if(proBtnLegacy){ proBtnLegacy.disabled=pro; proBtnLegacy.textContent = pro?"✓ Je hebt "+getProLabel():"Upgrade — kies Weekly of Maand →"; }
   document.getElementById("itemsLock").hidden = pro;
   document.getElementById("itemsContent").hidden = !pro;
   document.getElementById("ledgerLock").hidden = pro;
   document.getElementById("ledgerContent").hidden = !pro;
+  document.getElementById("shipLock").hidden = pro;
+  document.getElementById("shipContent").hidden = !pro;
   const note = document.getElementById("saveProNote");
   if (note) note.hidden = pro;
+  // dashboard-cards tonen grijst wanneer FREE
+  const dash = document.getElementById("dashRecent");
+  if(dash && !pro && (data.items||[]).length>0){ /* blijft PRO-block in renderDashboard */ }
 }
-function doUpgrade() {
-  data.plan = "pro";
-  saveData();
-  renderAll();
-  closePaywall();
-  toast("Welkom bij PRO — onbeperkt! 💎");
-}
+function doUpgrade() { activatePro("monthly"); }
 function downgradeDemo() {
-  data.plan = "free";
+  data.plan = PLAN_FREE;
+  delete data.proUntil;
   saveData();
   renderAll();
   toast("Terug naar FREE");
@@ -2882,17 +2992,21 @@ function shipInitUI(){
 }
 
 /* =====================================================
-   BETALEN — plak hier je Stripe/Mollie payment link
+   BETALEN — vul hier je echte Stripe/Mollie Payment Links in
    (zie ONLINE-ZETTEN.md). Leeg = demo-activering.
 ===================================================== */
-const PAYMENT_LINK = ""; // bijv. "https://buy.stripe.com/xxxx"
+const PAYMENT_LINK = ""; // legacy fallback
+const PAYMENT_LINK_WEEKLY  = ""; // bv. "https://buy.stripe.com/xxxx_weekly"
+const PAYMENT_LINK_MONTHLY = ""; // bv. "https://buy.stripe.com/xxxx_monthly"
 
-function startCheckout() {
-  if (PAYMENT_LINK) {
-    localStorage.setItem("guidsell_pending_pro", "1");
-    location.href = PAYMENT_LINK;
+function startCheckout(kind) {
+  const k = (kind==="weekly")?"weekly":"monthly";
+  const link = k==="weekly" ? (PAYMENT_LINK_WEEKLY || PAYMENT_LINK) : (PAYMENT_LINK_MONTHLY || PAYMENT_LINK);
+  if (link) {
+    localStorage.setItem("guidsell_pending_pro", k);
+    location.href = link;
   } else {
-    doUpgrade(); // demo
+    activatePro(k); // demo zonder echte betaling
   }
 }
 
@@ -2913,21 +3027,23 @@ function toggleTheme() {
 applyTheme(localStorage.getItem("guidsell_theme") ||
   (window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
 
-/* init: betaal-redirect afhandelen */
+/* init: betaal-redirect afhandelen (?pro=success&plan=weekly|monthly) */
 (function handleProRedirect() {
   try {
     const p = new URLSearchParams(location.search);
     if (p.get("pro") === "success") {
+      const kind = p.get("plan") === "weekly" ? "weekly" : "monthly";
       if (session && users[session]) {
         enterApp();
-        data.plan = "pro";
+        data.plan = kind==="weekly" ? PLAN_WEEKLY : PLAN_MONTHLY;
+        data.proUntil = Date.now() + (kind==="weekly"?7:30)*24*60*60*1000;
         saveData();
         renderAll();
-        toast("Betaling gelukt — PRO geactiveerd 🎉");
+        toast(kind==="weekly"?"Betaling gelukt — PRO Week actief 🎉":"Betaling gelukt — PRO Maand actief 🎉");
       } else {
-        localStorage.setItem("guidsell_pending_pro", "1");
+        localStorage.setItem("guidsell_pending_pro", kind);
         openAuth("register");
-        toast("Betaald! Maak een account aan om PRO te activeren");
+        toast("Betaald! Maak een account aan om " + (kind==="weekly"?"PRO Week":"PRO Maand") + " te activeren");
       }
       history.replaceState(null, "", location.pathname);
     }
