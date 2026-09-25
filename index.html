@@ -692,6 +692,110 @@
   }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
   .toast.error { background: var(--red); }
+
+  /* ============ SHIPPING CALCULATOR ============ */
+  .ship-layout { display:grid; grid-template-columns: 1.15fr .85fr; gap:22px; align-items:start; }
+  @media(max-width:940px){ .ship-layout{ grid-template-columns:1fr; } }
+  .ship-add-row { display:grid; grid-template-columns: 1.4fr 70px 90px 1fr auto; gap:8px; align-items:end; }
+  @media(max-width:700px){ .ship-add-row{ grid-template-columns:1fr 1fr; } .ship-add-row .field:last-of-type{ grid-column:1/-1; } }
+  .dims-row { display:grid; grid-template-columns: 1fr 1fr 1fr; gap:6px; }
+  .dims-row input{ text-align:center; }
+  .country-grid { display:grid; grid-template-columns: repeat(3,1fr); gap:8px; }
+  @media(max-width:600px){ .country-grid{ grid-template-columns: repeat(2,1fr); } }
+  .country-btn{
+    background:var(--card); border:1.5px solid var(--line); border-radius:12px; padding:10px 8px;
+    text-align:center; font-size:13px; font-weight:600; color:var(--text); display:flex; flex-direction:column; align-items:center; gap:4px;
+  }
+  .country-btn .flag{ font-size:18px; }
+  .country-btn .cname{ font-size:11px; color:var(--muted); font-weight:500; }
+  .country-btn.active{ border-color:var(--brand); background:#eef0ff; color:var(--brand-dark); }
+  body.dark .country-btn.active{ background:rgba(99,102,241,.15); }
+  .mode-list{ display:flex; flex-direction:column; gap:8px; }
+  .mode-opt{
+    display:flex; align-items:center; gap:12px; padding:12px 14px;
+    border:1.5px solid var(--line); border-radius:12px; background:var(--card); cursor:pointer;
+  }
+  .mode-opt.active{ border-color:var(--brand); background:#eef0ff; }
+  body.dark .mode-opt.active{ background:rgba(99,102,241,.15); }
+  .mode-opt input{ accent-color:var(--brand); }
+  .mode-opt .mode-name{ font-weight:700; font-size:14px; }
+  .mode-opt .mode-days{ font-size:12px; color:var(--muted); }
+  .mode-opt .mode-price{ margin-left:auto; font-weight:800; color:var(--green); font-size:14px; }
+  .ship-item-row{
+    display:flex; align-items:center; gap:10px; padding:10px 12px;
+    border-bottom:1px solid var(--line); font-size:13px;
+  }
+  .ship-item-row:last-child{ border-bottom:none; }
+  .ship-ico{ width:36px; height:36px; border-radius:9px; background:#f1f3fa; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
+  body.dark .ship-ico{ background:#1a1e26; }
+  .ship-item-main{ flex:1; min-width:0; }
+  .ship-item-main b{ font-size:13px; }
+  .ship-item-meta{ font-size:11px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .ship-qty-badge{ background:#eef0ff; color:var(--brand-dark); font-size:11px; font-weight:700; padding:3px 8px; border-radius:20px; }
+  body.dark .ship-qty-badge{ background:rgba(99,102,241,.15); }
+  .cost-hero{
+    background:linear-gradient(135deg,#eef0ff,#f5f0ff); border:1px solid #e0e2ff; border-radius:14px; padding:22px; text-align:center; margin-bottom:16px;
+  }
+  body.dark .cost-hero{ background:linear-gradient(135deg,rgba(99,102,241,.13),rgba(139,92,246,.13)); border-color:rgba(99,102,241,.28); }
+  .cost-hero .ch-label{ font-size:11px; letter-spacing:1px; color:var(--muted); font-weight:700; margin-bottom:4px; }
+  .cost-hero .ch-price{ font-size:38px; font-weight:800; letter-spacing:-1px; color:var(--brand-dark); }
+  .cost-hero .ch-sub{ font-size:12px; color:var(--muted); margin-top:4px; }
+  .cost-rows{ font-size:13px; }
+  .cost-row{ display:flex; justify-content:space-between; padding:7px 0; border-bottom:1px solid var(--line); }
+  .cost-row:last-child{ border-bottom:none; }
+  .cost-row b.green{ color:var(--green); }
+  .volumetric-note{ font-size:11px; color:var(--muted); margin-top:8px; line-height:1.45; }
+  .ship-preset-hint{ font-size:11px; color:var(--muted); margin-top:6px; }
+  .ship-topbar{ display:flex; align-items:flex-end; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:14px; }
+  .ship-selectors{ display:flex; gap:8px; align-items:center; }
+  .ship-sel{ position:relative; }
+  .ship-sel-pill{
+    display:flex; align-items:center; gap:8px; padding:8px 12px; border-radius:20px;
+    border:1.5px solid var(--line); background:var(--card); font-size:13px; font-weight:700; cursor:pointer;
+  }
+  .ship-sel-pill small{ font-size:9px; letter-spacing:.7px; color:var(--muted); font-weight:700; }
+  .ship-sel-pill .arrow{ font-size:10px; color:var(--muted); }
+  .ship-sel-dropdown{
+    position:absolute; top:calc(100% + 6px); right:0; min-width:190px;
+    background:var(--card); border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow);
+    padding:6px; z-index:20; display:none; max-height:320px; overflow:auto;
+  }
+  .ship-sel-dropdown.open{ display:block; }
+  .ship-sel-opt{
+    display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:10px;
+    font-size:13px; font-weight:600; cursor:pointer;
+  }
+  .ship-sel-opt:hover{ background:#f1f3fa; }
+  body.dark .ship-sel-opt:hover{ background:#1a1e26; }
+  .ship-sel-opt.active{ background:#eef0ff; color:var(--brand-dark); }
+  body.dark .ship-sel-opt.active{ background:rgba(99,102,241,.15); }
+  .ship-sel-opt .check{ margin-left:auto; color:var(--green); font-weight:800; }
+  .agent-dot{ width:22px; height:22px; border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; color:#fff; flex-shrink:0; }
+  .ship-tabs{ display:flex; gap:6px; margin-bottom:12px; background:#f1f3fa; padding:4px; border-radius:12px; width:fit-content; }
+  body.dark .ship-tabs{ background:#1a1e26; }
+  .ship-tab{ padding:7px 16px; border-radius:9px; font-size:13px; font-weight:600; border:none; background:none; color:var(--muted); }
+  .ship-tab.active{ background:var(--card); color:var(--text); box-shadow:0 1px 3px rgba(0,0,0,.08); }
+  .link-input-wrap{
+    display:flex; gap:8px; align-items:center; padding:6px; border:1.5px solid var(--line); border-radius:12px; background:var(--card); margin-bottom:8px;
+  }
+  .link-input-wrap input{ flex:1; border:none; outline:none; background:none; font-size:14px; color:var(--text); padding:8px; }
+  .link-input-wrap input::placeholder{ color:var(--muted); }
+  .link-hint{ font-size:11px; color:var(--muted); margin-bottom:14px; }
+  .link-hint a{ color:var(--brand-dark); font-weight:600; text-decoration:none; }
+  .compare-card{ border:1px dashed var(--line); border-radius:12px; padding:14px; text-align:center; margin-top:12px; }
+  .compare-card b{ font-size:14px; }
+  .ship-cart-price-row{ display:flex; gap:6px; align-items:center; margin-top:4px; }
+  .ship-cart-price-row input{ width:70px; text-align:center; padding:6px 6px; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--text); font-size:12px; }
+  .compare-controls{ display:flex; gap:6px; margin-bottom:10px; }
+  .compare-controls .filter-btn.active{ background:var(--brand); border-color:var(--brand); color:#fff; }
+  .compare-agent-row{ display:flex; align-items:center; justify-content:space-between; padding:8px 10px; border:1px solid var(--line); border-radius:10px; margin-bottom:6px; background:var(--card); }
+  .compare-agent-row.best{ border-color:var(--green); background:#eaf7ef; }
+  body.dark .compare-agent-row.best{ background:rgba(22,163,74,.14); }
+  .compare-agent-left{ display:flex; align-items:center; gap:8px; }
+  .compare-badge{ font-size:10px; font-weight:800; letter-spacing:.5px; color:var(--green); background:#eaf7ef; border:1px solid #d3eedd; padding:2px 7px; border-radius:20px; }
+  body.dark .compare-badge{ background:rgba(22,163,74,.14); border-color:rgba(22,163,74,.3); }
+  .compare-select-btn{ font-size:11px; padding:6px 10px; border-radius:20px; border:1px solid var(--line); background:var(--card); font-weight:700; }
+  .compare-select-btn:hover{ border-color:var(--brand); color:var(--brand-dark); background:#eef0ff; }
 </style>
 </head>
 <body>
@@ -750,9 +854,9 @@
       <div class="feature"><div class="ico">📊</div><h3>Prijs per staat</h3><p>Live Vinted-vergelijking: zie wat jouw item in elke staat oplevert — van nieuw met label tot zichtbare slijtage.</p></div>
       <div class="feature"><div class="ico">✍️</div><h3>Verkoopklare beschrijving</h3><p>Titel, beschrijving en tags die klaar zijn om te plakken in Vinted.</p></div>
       <div class="feature"><div class="ico">📦</div><h3>Voorraadbeheer</h3><p>Bewaar je items, markeer ze als verkocht en houd je voorraad bij.</p></div>
+      <div class="feature"><div class="ico">📮</div><h3>Verzendkosten calculator</h3><p>Voer je items in — zie direct totaalgewicht, pakketvolume en een indicatie van de verzendkosten per land.</p></div>
       <div class="feature"><div class="ico">🧾</div><h3>Kasboek &amp; winst</h3><p>Inkoopkosten en verkoopopbrengst automatisch bijgehouden. Jij ziet je echte winst.</p></div>
       <div class="feature"><div class="ico">🆓</div><h3>Gratis starten</h3><p>5 waardechecks per week, elke week opnieuw. Zonder creditcard.</p></div>
-      <div class="feature"><div class="ico">💎</div><h3>PRO: onbeperkt</h3><p>Onbeperkt checks, onbeperkt foto's. Ideaal als je wekelijks verkoopt.</p></div>
     </div>
   </section>
 
@@ -852,6 +956,7 @@
     <div class="links" id="appLinks">
       <button class="navlink active" data-view="dashboard" onclick="switchView('dashboard')">Dashboard</button>
       <button class="navlink" data-view="check" onclick="switchView('check')">Waardecheck</button>
+      <button class="navlink" data-view="ship" onclick="switchView('ship')">Verzending</button>
       <button class="navlink" data-view="items" onclick="switchView('items')">Mijn items <span class="pro-tag">PRO</span></button>
       <button class="navlink" data-view="ledger" onclick="switchView('ledger')">Kasboek <span class="pro-tag">PRO</span></button>
       <button class="navlink" data-view="upgrade" onclick="switchView('upgrade')">Upgrade</button>
@@ -1023,6 +1128,150 @@
               <button class="btn save-btn" id="saveItemBtn" onclick="saveItem()">💾 Opslaan in Mijn items</button>
               <div class="pro-note-under" id="saveProNote" hidden style="font-size:12px;color:var(--muted);text-align:center;margin-top:8px">📦 Opslaan in je voorraad is <b>PRO</b> — <a href="#" onclick="switchView('upgrade');return false" style="color:var(--brand-dark);font-weight:600">upgrade</a></div>
               <div class="gen-note" id="rNote"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- VERZENDING ---------- -->
+    <section class="view" id="view-ship">
+      <h1 class="page-title">Verzendcalculator</h1>
+      <p class="page-sub">Reken je haul door voordat je betaalt — plak een product-link of voer handmatig in.</p>
+      <div class="ship-topbar">
+        <div class="ship-selectors">
+          <div class="ship-sel" id="shipAgentSel">
+            <button class="ship-sel-pill" onclick="shipToggleDropdown('agent')" type="button">
+              <small>AGENT</small>
+              <span id="shipAgentIcon" class="agent-dot" style="background:#e94b9c">O</span>
+              <span id="shipAgentName">Oopbuy</span>
+              <span class="arrow">▾</span>
+            </button>
+            <div class="ship-sel-dropdown" id="shipAgentDropdown"></div>
+          </div>
+          <div class="ship-sel" id="shipCurrSel">
+            <button class="ship-sel-pill" onclick="shipToggleDropdown('curr')" type="button">
+              <small>CURRENCY</small>
+              <span id="shipCurrName">€ EUR</span>
+              <span class="arrow">▾</span>
+            </button>
+            <div class="ship-sel-dropdown" id="shipCurrDropdown"></div>
+          </div>
+        </div>
+        <div style="font-size:11px;color:var(--muted)">Tariefbron: <b id="shipAgentFeeLabel">Oopbuy</b> · wisselkoers indicatief</div>
+      </div>
+      <div class="ship-tabs">
+        <button class="ship-tab active" id="shipTabLink" onclick="shipSetTab('link')">Product link</button>
+        <button class="ship-tab" id="shipTabManual" onclick="shipSetTab('manual')">Handmatig</button>
+      </div>
+      <div id="shipLinkPane">
+        <div class="link-input-wrap">
+          <input id="shipLinkInput" type="url" placeholder="Plak een product link..." onkeydown="if(event.key==='Enter') shipAddFromLink()">
+          <button class="btn" onclick="shipAddFromLink()">+ Product toevoegen</button>
+        </div>
+        <div class="link-hint">Tip: plak een link van je Chinese shop (Weidian/Taobao/1688) — gewicht &amp; prijs worden automatisch ingevuld. Handmatig aanpassen kan altijd.</div>
+      </div>
+
+      <div class="ship-layout">
+        <div>
+          <div class="card" id="shipManualPane">
+            <div class="card-head">➕ ITEM TOEVOEGEN — HANDMATIG</div>
+            <div class="card-body">
+              <div class="ship-add-row">
+                <div class="field" style="margin-bottom:0">
+                  <label>Item</label>
+                  <select id="shipType"></select>
+                </div>
+                <div class="field" style="margin-bottom:0">
+                  <label>Aantal</label>
+                  <input id="shipQty" type="number" min="1" max="99" value="1" style="text-align:center">
+                </div>
+                <div class="field" style="margin-bottom:0">
+                  <label>Gewicht (kg/stuk)</label>
+                  <input id="shipWgt" type="number" step="0.01" min="0.01" value="0.25">
+                </div>
+                <div class="field" style="margin-bottom:0">
+                  <label>Afmeting (L×B×H cm)</label>
+                  <div class="dims-row">
+                    <input id="shipL" type="number" min="1" placeholder="L">
+                    <input id="shipW" type="number" min="1" placeholder="B">
+                    <input id="shipH" type="number" min="1" placeholder="H">
+                  </div>
+                </div>
+                <button class="btn" onclick="shipAdd()" style="align-self:end;white-space:nowrap">+ Toevoegen</button>
+              </div>
+              <div style="display:grid;grid-template-columns:130px 1fr;gap:8px;margin-top:10px">
+                <div class="field" style="margin-bottom:0"><label>Prijs/stuk</label><input id="shipPriceManual" type="number" step="0.01" min="0" placeholder="€ 0,00"></div>
+                <div class="field" style="margin-bottom:0"><label>Link (optioneel)</label><input id="shipLinkManual" type="url" placeholder="https://..."></div>
+              </div>
+              <div class="ship-preset-hint">Kies een preset — gewicht &amp; maat worden automatisch ingevuld. Handmatig aanpassen kan altijd.</div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">
+                <button class="filter-btn" onclick="shipQuick('t-shirt')">👕 T-shirt</button>
+                <button class="filter-btn" onclick="shipQuick('hoodie')">🧥 Hoodie</button>
+                <button class="filter-btn" onclick="shipQuick('jeans')">👖 Jeans</button>
+                <button class="filter-btn" onclick="shipQuick('sneakers')">👟 Sneakers</button>
+                <button class="filter-btn" onclick="shipQuick('tas')">👜 Tas</button>
+                <button class="filter-btn" onclick="shipQuick('jas')">🧥 Jas</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">01 &nbsp; JOUW PAKKET <span id="shipCount" style="margin-left:auto;font-size:11px;color:var(--muted);letter-spacing:.5px">0 items</span></div>
+            <div id="shipCart" style="min-height:88px"></div>
+            <div id="shipEmpty" class="empty-state" style="padding:22px">Pakket is leeg — voeg items toe om je verzending te berekenen.</div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">02 &nbsp; VERZENDINSTELLINGEN</div>
+            <div class="card-body">
+              <div style="font-size:11px;letter-spacing:1px;font-weight:700;color:var(--muted);margin-bottom:8px">BESTEMMING</div>
+              <div class="country-grid" id="shipCountries"></div>
+              <div style="font-size:11px;letter-spacing:1px;font-weight:700;color:var(--muted);margin:16px 0 8px">VERZENDSNELHEID</div>
+              <div class="mode-list" id="shipModes"></div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="cost-hero" id="shipCostHero">
+            <div class="ch-label">GESCHATTE VERZENDKOSTEN</div>
+            <div class="ch-price" id="shipPrice">€ 0,00</div>
+            <div class="ch-sub" id="shipPriceSub">Voeg items toe voor een schatting</div>
+            <div class="volumetric-note" id="shipPriceCompare" style="margin-top:8px; text-align:center"></div>
+          </div>
+          <div class="card">
+            <div class="card-head">SAMENVATTING</div>
+            <div class="card-body cost-rows" id="shipSummary">
+              <div class="cost-row"><span>Items</span><span id="shipSItems">—</span></div>
+              <div class="cost-row"><span>Werkelijk gewicht</span><b id="shipSWeight">—</b></div>
+              <div class="cost-row"><span>Pakketvolume</span><b id="shipSVolume">—</b></div>
+              <div class="cost-row"><span>Volumetrisch gewicht</span><b id="shipSVolW">—</b></div>
+              <div class="cost-row"><span>Rekengewicht</span><b class="green" id="shipSCharge">—</b></div>
+              <div class="cost-row"><span>Producten (indien prijs bekend)</span><b id="shipSGoods">—</b></div>
+              <div class="cost-row"><span>Pakketadvies</span><b id="shipSPack">—</b></div>
+            </div>
+            <div class="card-body" style="padding-top:0">
+              <div class="volumetric-note">Rekengewicht = hoogste van werkelijk gewicht en volumetrisch gewicht (L×B×H / 5000 — PostNL/DHL-standaard). Pakketadvies telt 15% vulruimte. <b>Prijzen zijn indicatief</b> — agent-toeslag en wisselkoers al verrekend.</div>
+              <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+                <button class="btn btn-outline" style="flex:1;min-width:90px" onclick="shipClear()">Wissen</button>
+                <button class="btn" style="flex:1;min-width:140px" onclick="shipCopy()">📋 Kopieer samenvatting</button>
+              </div>
+              <button class="btn btn-green" style="width:100%;margin-top:8px" onclick="shipAddToLedger()" id="shipToLedgerBtn">🧾 Zet haul in kasboek (kosten)</button>
+              <div style="font-size:11px;color:var(--muted);text-align:center;margin-top:4px">Boekt producten + fee + verzending als één kosten-boeking · PRO vereist</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-body" style="font-size:13px;color:var(--muted);line-height:1.55">
+              <b style="color:var(--text)">💡 Tip voor resellers</b><br>
+              Vouw kleding plat voor lager volumetrisch gewicht. Sneakers altijd met doos rekenen. Combineer items in één pakket — tot ~2 kg is brievenbuspakje vaak het goedkoopst.
+            </div>
+          </div>
+          <div class="card" id="shipCompareCard" hidden>
+            <div class="card-head">AGENTS VERGELIJKEN</div>
+            <div class="card-body" id="shipCompareBody" style="font-size:13px;color:var(--muted)"></div>
+            <div class="card-body" style="padding-top:0">
+              <button class="btn btn-outline" style="width:100%" onclick="shipCompareAgents()">⇄ Vergelijk agents →</button>
             </div>
           </div>
         </div>
@@ -1621,7 +1870,7 @@ async function callGemini(photoUrls) {
     contents: [{ parts }],
     generationConfig: { temperature: 0.6, responseMimeType: "application/json" }
   };
-  for (const model of ["gemini-3.8-flash", "gemini-3.5-flash-lite", "gemini-3.6-flash"]) {
+  for (const model of ["gemini-3.8-flash", "gemini-3.6-flash", "gemini-3.5-flash", "gemini-3.5-flash-lite", "gemini-3.1-flash-lite"]) {
     try {
       const ctrl = new AbortController();
       const to = setTimeout(() => ctrl.abort(), 25000);
@@ -2224,6 +2473,415 @@ document.querySelectorAll(".modal-back").forEach(m => {
 });
 
 /* =====================================================
+   VERZENDCALCULATOR
+   Logica: werkelijk gewicht vs volumetrisch (L×B×H/5000),
+   rekengewicht = max(real, volumetric). Volume = som (L×B×H)
+   met 15% vulruimte. Prijzen indicatief o.b.v. NL-tarieven.
+===================================================== */
+const SHIP_PRESETS = {
+  "t-shirt":    { label:"T-shirt",    icon:"👕", w:0.20, d:[30,25,2] },
+  "hoodie":     { label:"Hoodie",     icon:"🧥", w:0.55, d:[35,30,6] },
+  "sweater":    { label:"Sweater",    icon:"🧶", w:0.50, d:[35,30,5] },
+  "jas":        { label:"Jas/parka",  icon:"🧥", w:1.10, d:[45,35,10] },
+  "broek":      { label:"Broek",      icon:"👖", w:0.45, d:[35,25,4] },
+  "jeans":      { label:"Jeans",      icon:"👖", w:0.65, d:[35,25,5] },
+  "jurk":       { label:"Jurk",       icon:"👗", w:0.35, d:[35,25,4] },
+  "sneakers":   { label:"Sneakers",   icon:"👟", w:1.05, d:[34,20,13] },
+  "schoenen":   { label:"Schoenen",   icon:"👞", w:0.90, d:[32,18,12] },
+  "tas":        { label:"Tas",        icon:"👜", w:0.60, d:[35,25,15] },
+  "accessoire": { label:"Accessoire", icon:"🧢", w:0.15, d:[25,20,8] },
+  "overig":     { label:"Overig",     icon:"📦", w:0.40, d:[30,20,10] }
+};
+const SHIP_AGENTS = [
+  { id:"oopbuy",    name:"Oopbuy",    bg:"#e94b9c", letter:"O", fee:0.03, shipMult:1.00 },
+  { id:"kakobuy",   name:"Kakobuy",   bg:"#e63946", letter:"K", fee:0.02, shipMult:0.98 },
+  { id:"usfans",    name:"Usfans",    bg:"#ff8c00", letter:"U", fee:0.03, shipMult:1.02 },
+  { id:"rizzitgo",  name:"RizzItGo",  bg:"#8bc34a", letter:"R", fee:0.04, shipMult:0.95 },
+  { id:"litbuy",    name:"Litbuy",    bg:"#ff6b35", letter:"L", fee:0.03, shipMult:1.05 },
+  { id:"hipobuy",   name:"HipoBuy",   bg:"#2c3e50", letter:"H", fee:0.03, shipMult:1.03 },
+  { id:"lovegobuy", name:"LoveGobuy", bg:"#1b5e20", letter:"♥", fee:0.02, shipMult:0.97 },
+];
+const SHIP_CURRENCIES = [
+  { code:"EUR", label:"€ EUR", symbol:"€", rate:1 },
+  { code:"USD", label:"$ USD", symbol:"$", rate:1.08 },
+  { code:"PLN", label:"zł PLN", symbol:"zł", rate:4.32 },
+  { code:"GBP", label:"£ GBP", symbol:"£", rate:0.86 },
+];
+const SHIP_COUNTRIES = [
+  { code:"NL", name:"Nederland",   flag:"🇳🇱", mult:1.00 },
+  { code:"BE", name:"België",      flag:"🇧🇪", mult:1.08 },
+  { code:"DE", name:"Duitsland",   flag:"🇩🇪", mult:1.12 },
+  { code:"FR", name:"Frankrijk",   flag:"🇫🇷", mult:1.18 },
+  { code:"PL", name:"Polen",       flag:"🇵🇱", mult:1.15 },
+  { code:"ES", name:"Spanje",      flag:"🇪🇸", mult:1.22 },
+  { code:"CZ", name:"Tsjechië",    flag:"🇨🇿", mult:1.15 },
+  { code:"SK", name:"Slowakije",   flag:"🇸🇰", mult:1.15 },
+  { code:"US", name:"Verenigde Staten", flag:"🇺🇸", mult:1.85 },
+  { code:"AU", name:"Australië",   flag:"🇦🇺", mult:1.95 },
+];
+const SHIP_SPEEDS = { economy:{ days:"7–15", fast:15 }, standard:{ days:"3–7", fast:7 }, express:{ days:"1–3", fast:3 } };
+// modes: prijsfactor t.o.v. basis (economy=1)
+const SHIP_MODES = [
+  { id:"economy",  label:"Economy",  days:"7–15 werkdagen", factor:1.00 },
+  { id:"standard", label:"Standard", days:"3–7 werkdagen",  factor:1.35 },
+  { id:"express",  label:"Express",  days:"1–3 werkdagen",  factor:1.80 },
+];
+// basis-tarieven NL (rekengewicht kg -> prijs), indicatief PostNL/Vinted Go tarieven
+function shipBasePrice(chargeKg){
+  if(chargeKg<=0.1) return 3.20;
+  if(chargeKg<=0.5) return 4.10;
+  if(chargeKg<=1)   return 5.25;
+  if(chargeKg<=2)   return 6.75;
+  if(chargeKg<=5)   return 8.95;
+  if(chargeKg<=10)  return 12.50;
+  if(chargeKg<=20)  return 17.90;
+  return 17.90 + Math.ceil(chargeKg-20)*0.85;
+}
+let shipCart = []; // [{typeKey, qty, w, l, w2, h, title, url, unitPrice}]
+let shipCountry = "NL";
+let shipMode = "economy";
+let shipAgent = "oopbuy";
+let shipCurrency = "EUR";
+let shipTab = "link";
+let shipLinkBusy = false;
+let shipCompareSort = "cheap"; // cheap | fast
+let shipCompareOpen = false;
+
+function shipLoadPreset(key){
+  const p = SHIP_PRESETS[key];
+  if(!p) return;
+  document.getElementById("shipType").value = key;
+  document.getElementById("shipWgt").value = p.w;
+  document.getElementById("shipL").value = p.d[0];
+  document.getElementById("shipW").value = p.d[1];
+  document.getElementById("shipH").value = p.d[2];
+}
+function shipQuick(key){ shipLoadPreset(key); }
+function shipInferTypeFromText(s){
+  const t=(s||"").toLowerCase();
+  if(/hoodie|hoody|zip|trui|sweat/.test(t)) return "hoodie";
+  if(/sneaker|shoe|trainer/.test(t)) return "sneakers";
+  if(/jeans|denim/.test(t)) return "jeans";
+  if(/coat|parka|jacket|jas/.test(t)) return "jas";
+  if(/bag|tas|backpack/.test(t)) return "tas";
+  if(/dress|jurk/.test(t)) return "jurk";
+  if(/pant|broek|trouser/.test(t)) return "broek";
+  if(/tee|t-shirt|shirt/.test(t)) return "t-shirt";
+  if(/cap|hat|beanie|accessoire/.test(t)) return "accessoire";
+  return "overig";
+}
+function shipToggleDropdown(which){
+  const a=document.getElementById("shipAgentDropdown"), c=document.getElementById("shipCurrDropdown");
+  if(which==="agent"){ a.classList.toggle("open"); c.classList.remove("open"); }
+  else { c.classList.toggle("open"); a.classList.remove("open"); }
+}
+function shipSetAgent(id){
+  const ag = SHIP_AGENTS.find(x=>x.id===id); if(!ag) return;
+  shipAgent=id;
+  document.getElementById("shipAgentName").textContent=ag.name;
+  const ic=document.getElementById("shipAgentIcon"); ic.textContent=ag.letter; ic.style.background=ag.bg;
+  document.getElementById("shipAgentFeeLabel").textContent=ag.name;
+  document.querySelectorAll("#shipAgentDropdown .ship-sel-opt").forEach(o=> o.classList.toggle("active", o.dataset.id===id));
+  document.getElementById("shipAgentDropdown").classList.remove("open");
+  shipRender();
+  // dropdown check marks
+  document.querySelectorAll("#shipAgentDropdown .check").forEach((el,i)=>{ el.hidden = SHIP_AGENTS[i].id!==id; });
+}
+function shipSetCurrency(code){
+  const cur=SHIP_CURRENCIES.find(x=>x.code===code); if(!cur) return;
+  shipCurrency=code;
+  document.getElementById("shipCurrName").textContent=cur.label;
+  document.querySelectorAll("#shipCurrDropdown .ship-sel-opt").forEach(o=> o.classList.toggle("active", o.dataset.code===code));
+  document.querySelectorAll("#shipCurrDropdown .check").forEach((el,i)=>{ el.hidden = SHIP_CURRENCIES[i].code!==code; });
+  document.getElementById("shipCurrDropdown").classList.remove("open");
+  shipRender();
+}
+function shipSetTab(tab){
+  shipTab=tab;
+  document.getElementById("shipTabLink").classList.toggle("active", tab==="link");
+  document.getElementById("shipTabManual").classList.toggle("active", tab==="manual");
+  document.getElementById("shipLinkPane").hidden = tab!=="link";
+  document.getElementById("shipManualPane").hidden = tab!=="manual";
+}
+async function shipAddFromLink(){
+  if(shipLinkBusy) return;
+  const raw=document.getElementById("shipLinkInput").value.trim();
+  if(!raw){ toast("Plak eerst een product link", true); return; }
+  try{ const u=new URL(raw); if(!["http:","https:"].includes(u.protocol)) throw 0; }catch{ toast("Ongeldige link — moet met https:// beginnen", true); return; }
+  const btn=document.querySelector("#shipLinkPane .btn");
+  const old=btn.textContent; btn.disabled=true; btn.textContent="⏳ Ophalen…"; shipLinkBusy=true;
+  let meta=null;
+  try{
+    const r=await fetch("/api/product?url="+encodeURIComponent(raw), { signal:AbortSignal.timeout(20000) });
+    meta = await r.json();
+  }catch(e){ meta={ ok:false, error:e.message }; }
+  btn.disabled=false; btn.textContent=old; shipLinkBusy=false;
+  if(!meta || !meta.ok){
+    // fallback: voeg alsnog toe met guess zodat flow niet blokkeert
+    const typeKey=shipInferTypeFromText(raw);
+    const p=SHIP_PRESETS[typeKey];
+    shipCart.push({ typeKey, qty:1, w:p.w, l:p.d[0], w2:p.d[1], h:p.d[2], title:"", url:raw, unitPrice:null });
+    shipRender();
+    document.getElementById("shipLinkInput").value="";
+    toast("Link toegevoegd (gegevens konden niet automatisch worden gelezen — pas gewicht/prijs aan) 📦");
+    return;
+  }
+  const typeKey=shipInferTypeFromText(meta.title+" "+meta.host);
+  const p=SHIP_PRESETS[typeKey];
+  const w = meta.weightKg && meta.weightKg>0 ? meta.weightKg : p.w;
+  shipCart.push({
+    typeKey, qty:1, w, l:p.d[0], w2:p.d[1], h:p.d[2],
+    title:(meta.title||"").slice(0,80), url:raw, unitPrice: meta.price||null
+  });
+  shipRender();
+  document.getElementById("shipLinkInput").value="";
+  toast((meta.title? meta.title.slice(0,40)+" — " : "") + "toegevoegd 📦" + (meta.price?" (€"+meta.price+")":"") + (meta.weightKg?" · "+meta.weightKg+"kg auto":""));
+  shipSetTab("link");
+}
+function shipPriceForAgent(agentId, s){
+  const a = SHIP_AGENTS.find(x=>x.id===agentId) || SHIP_AGENTS[0];
+  const ship = Math.round(shipBasePrice(s.chargeKg)*a.shipMult*100)/100;
+  const country=SHIP_COUNTRIES.find(c=>c.code===shipCountry);
+  const mode=SHIP_MODES.find(m=>m.id===shipMode);
+  const shipAdj=Math.round(ship*country.mult*mode.factor*100)/100;
+  const goods=s.goodsTotalEuro || shipCart.reduce((sum,r)=> sum + (r.unitPrice||0)*r.qty, 0);
+  const fee = goods? Math.round(goods*a.fee*100)/100 : 0;
+  const total = Math.round((shipAdj+fee)*100)/100;
+  const grand = Math.round((goods+fee+shipAdj)*100)/100;
+  return { shipAdj, fee, total, grand, goods, agent:a };
+}
+function shipCompareAgents(){
+  const s=shipStats(); if(s.count===0){ toast("Voeg eerst items toe", true); return; }
+  shipCompareOpen=true;
+  const card=document.getElementById("shipCompareCard");
+  card.hidden=false;
+  shipRenderCompare();
+  card.scrollIntoView({ behavior:"smooth", block:"nearest" });
+}
+function shipSetCompareSort(sort){
+  shipCompareSort = sort;
+  shipRenderCompare();
+}
+function shipRenderCompare(){
+  if(!shipCompareOpen) return;
+  const s=shipStats(); if(s.count===0) return;
+  const body=document.getElementById("shipCompareBody");
+  const goods=s.goodsTotalEuro || 0;
+  let rows = SHIP_AGENTS.map(a=>{
+    const p=shipPriceForAgent(a.id, s);
+    const fast = SHIP_SPEEDS[shipMode]?.fast ?? 15;
+    const agentFast = Math.max(1, Math.round(fast * (a.shipMult>1?1.05:0.95)));
+    return { ...p, fast:agentFast };
+  });
+  if(shipCompareSort==="cheap") rows.sort((a,b)=> a.total - b.total);
+  else rows.sort((a,b)=> a.fast - b.fast || a.total - b.total);
+  const isCheap = shipCompareSort==="cheap";
+  const bestTotal = Math.min(...rows.map(r=>r.total));
+  const bestFast = Math.min(...rows.map(r=>r.fast));
+  const cur = SHIP_CURRENCIES.find(c=>c.code===shipCurrency) || SHIP_CURRENCIES[0];
+  const toCurShort = (eur)=> cur.code==="EUR"? fmt(eur) : cur.symbol+" "+(eur*cur.rate).toFixed(2).replace(".",",") ;
+  body.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+      <b style="color:var(--text)">Alle agents — ${s.chargeKg.toFixed(2)} kg · ${SHIP_COUNTRIES.find(c=>c.code===shipCountry).name} · ${SHIP_MODES.find(m=>m.id===shipMode).label}</b>
+      <div class="compare-controls">
+        <button class="filter-btn ${isCheap?"active":""}" onclick="shipSetCompareSort('cheap')">💰 Goedkoopst</button>
+        <button class="filter-btn ${!isCheap?"active":""}" onclick="shipSetCompareSort('fast')">⚡ Snelst</button>
+      </div>
+    </div>
+    ${rows.map(r=>{
+      const isBest = isCheap ? r.total===bestTotal : r.fast===bestFast;
+      return `<div class="compare-agent-row ${isBest?"best":""}">
+        <div class="compare-agent-left">
+          <span class="agent-dot" style="background:${r.agent.bg}">${r.agent.letter}</span>
+          <div>
+            <div style="font-weight:700;font-size:13px">${r.agent.name} ${isBest?`<span class="compare-badge">${isCheap?"Beste prijs":"Snelste"}</span>`:""}</div>
+            <div style="font-size:11px;color:var(--muted)">${toCurShort(r.shipAdj)} verzending${r.fee?" + "+toCurShort(r.fee)+" fee":""} · ~${r.fast} dagen</div>
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-weight:800;font-size:13px">${toCurShort(r.total)} <span style="font-weight:500;color:var(--muted);font-size:11px">ship+fee</span></div>
+          <div style="font-size:11px;color:var(--muted)">${goods? toCurShort(r.grand)+" incl. producten":""}</div>
+        </div>
+        <button class="compare-select-btn" onclick="shipSetAgent('${r.agent.id}')">Kies</button>
+      </div>`;
+    }).join("")}
+    <div class="volumetric-note">Prijzen indicatief — shipMult per agent + fee ${SHIP_AGENTS.map(a=>a.name+" "+Math.round(a.fee*100)+"%").join(" · ")}. Snelst = geschatte dagen o.b.v. gekozen snelheid.</div>
+  `;
+}
+
+function shipAdd(){
+  const typeKey = document.getElementById("shipType").value;
+  const qty = Math.max(1, parseInt(document.getElementById("shipQty").value)||1);
+  const w = parseFloat(document.getElementById("shipWgt").value);
+  const l = parseFloat(document.getElementById("shipL").value);
+  const w2= parseFloat(document.getElementById("shipW").value);
+  const h = parseFloat(document.getElementById("shipH").value);
+  const unitPrice = parseFloat(document.getElementById("shipPriceManual").value);
+  const link = document.getElementById("shipLinkManual").value.trim();
+  if(!(w>0) || !(l>0) || !(w2>0) || !(h>0)){ toast("Vul gewicht en alle maten in", true); return; }
+  if(link){ try{ const u=new URL(link); if(!["http:","https:"].includes(u.protocol)) throw 0; }catch{ toast("Ongeldige link bij handmatig item", true); return; } }
+  const ex = shipCart.find(x=>x.typeKey===typeKey && x.w===w && x.l===l && x.w2===w2 && x.h===h && (x.url||"")===(link||"") && (x.unitPrice||null)===(isFinite(unitPrice)&&unitPrice>0?unitPrice:null));
+  if(ex) ex.qty += qty;
+  else shipCart.push({ typeKey, qty, w, l, w2, h, title:"", url:link||"", unitPrice: isFinite(unitPrice)&&unitPrice>0?unitPrice:null });
+  document.getElementById("shipPriceManual").value=""; document.getElementById("shipLinkManual").value="";
+  shipRender();
+  toast(SHIP_PRESETS[typeKey].label + " toegevoegd 📦");
+}
+function shipRemove(i){ shipCart.splice(i,1); shipRender(); }
+function shipClear(){ shipCart=[]; shipRender(); toast("Pakket geleegd"); }
+function shipAddToLedger(){
+  if(!session || !users[session]){ openAuth("register"); toast("Maak eerst een (gratis) account aan", true); return; }
+  if(!isPro()){ switchView("upgrade"); toast("Haul in kasboek boeken is PRO", true); return; }
+  const s = shipStats();
+  if(s.count===0){ toast("Pakket is leeg", true); return; }
+  const p = shipPriceForAgent(shipAgent, s);
+  const amount = Math.round(p.grand*100)/100;
+  if(!(amount>0)){ toast("Kon totaal niet berekenen — vul prijzen in", true); return; }
+  const countryName = (SHIP_COUNTRIES.find(c=>c.code===shipCountry)||{}).name || shipCountry;
+  const modeLabel = (SHIP_MODES.find(m=>m.id===shipMode)||{}).label || shipMode;
+  const shortItems = s.itemsLabel.length>64 ? s.itemsLabel.slice(0,64)+"…" : s.itemsLabel;
+  const label = `Haul ${p.agent.name}: ${shortItems} — ${p.goods>0? fmt(p.goods)+" producten"+(p.fee?" + "+fmt(p.fee)+" fee":"")+" + ":""}${fmt(p.shipAdj)} verzending (${modeLabel} → ${countryName}, ${s.chargeKg.toFixed(2)} kg)`;
+  data.ledger.unshift({ id: uid(), type: "out", label, amount, date: Date.now() });
+  saveData();
+  renderLedger();
+  renderDashboard();
+  toast(`Haul ${fmt(amount)} als kosten geboekt 🧾 — bekijk je Kasboek`);
+}
+function shipCopy(){
+  const s = shipStats();
+  if(s.count===0){ toast("Pakket is leeg", true); return; }
+  const fmtCur = (eur)=>{ const cur=SHIP_CURRENCIES.find(c=>c.code===shipCurrency)||SHIP_CURRENCIES[0]; const v=eur*cur.rate; if(cur.code==="EUR") return fmt(v); return cur.symbol+" "+v.toFixed(2).replace(".",","); };
+  const lines = [
+    "Verzending — Guidsell schatting","",
+    "Agent: " + (SHIP_AGENTS.find(a=>a.id===shipAgent)||{}).name,
+    "Valuta: " + shipCurrency,
+    "Items: " + s.itemsLabel,
+    "Werkelijk gewicht: " + s.realKg.toFixed(2) + " kg",
+    "Pakketvolume: " + s.volumeDm3.toFixed(1) + " dm³ ("+Math.round(s.volumeCm3).toLocaleString("nl-NL")+" cm³)",
+    "Volumetrisch gewicht: " + s.volKg.toFixed(2) + " kg (L×B×H/5000)",
+    "Rekengewicht: " + s.chargeKg.toFixed(2) + " kg",
+    "Pakket: " + s.packLabel,
+    "Bestemming: " + (SHIP_COUNTRIES.find(c=>c.code===shipCountry)||{}).name,
+    "Snelheid: " + (SHIP_MODES.find(m=>m.id===shipMode)||{}).label,
+    "Geschatte verzending: " + fmt(s.price) + " ("+fmtCur(s.price)+" in "+shipCurrency+")",
+    s.goodsTotalEuro? "Producten totaal: "+fmt(s.goodsTotalEuro) + " — geschat totaal haul: "+fmt(s.goodsTotalEuro+s.price):"",
+    "","Let op: indicatieve prijs (PostNL/DHL-standaard + bestemmingstoeslag)."
+  ].filter(Boolean);
+  navigator.clipboard.writeText(lines.join("\n")).then(()=>toast("Samenvatting gekopieerd 📋"));
+}
+function shipStats(){
+  let realKg=0, volumeCm3=0, goodsTotalEuro=0;
+  const parts=[];
+  shipCart.forEach(r=>{
+    realKg += r.w * r.qty;
+    const v = r.l * r.w2 * r.h * r.qty;
+    volumeCm3 += v;
+    if(r.unitPrice) goodsTotalEuro += r.unitPrice * r.qty;
+    parts.push(`${r.qty}× ${SHIP_PRESETS[r.typeKey].label}${r.title?" ("+r.title.slice(0,22)+")":""}`);
+  });
+  const count = shipCart.reduce((s,r)=>s+r.qty,0);
+  if(count===0) return { count:0, realKg:0, volumeCm3:0, volumeDm3:0, volKg:0, chargeKg:0, price:0, packLabel:"—", itemsLabel:"—", goodsTotalEuro:0 };
+  const packedCm3 = volumeCm3 * 1.15;
+  const volumeDm3 = packedCm3/1000;
+  const volKg = packedCm3/5000;
+  const chargeKg = Math.max(realKg, volKg);
+  const country = SHIP_COUNTRIES.find(c=>c.code===shipCountry) || SHIP_COUNTRIES[0];
+  const mode = SHIP_MODES.find(m=>m.id===shipMode) || SHIP_MODES[0];
+  const agent = SHIP_AGENTS.find(a=>a.id===shipAgent) || SHIP_AGENTS[0];
+  const baseShip = shipBasePrice(chargeKg);
+  const price = Math.round(baseShip * agent.shipMult * country.mult * mode.factor * 100)/100;
+  let packLabel="Brievenbuspakje";
+  if(chargeKg>2) packLabel="Pakket S";
+  if(chargeKg>5) packLabel="Pakket M";
+  if(chargeKg>10) packLabel="Pakket L";
+  if(count>6 || packedCm3>20000) packLabel += " (meerdere dozen overwegen)";
+  return { count, realKg, volumeCm3: packedCm3, volumeDm3, volKg, chargeKg, price, packLabel, itemsLabel: parts.join(", "), goodsTotalEuro };
+}
+function shipRender(){
+  const cartEl = document.getElementById("shipCart");
+  const emptyEl= document.getElementById("shipEmpty");
+  const countEl= document.getElementById("shipCount");
+  if(!cartEl) return;
+  const s = shipStats();
+  const totalQty = shipCart.reduce((a,r)=>a+r.qty,0);
+  countEl.textContent = totalQty + (totalQty===1?" item":" items");
+  if(shipCart.length===0){
+    cartEl.innerHTML=""; emptyEl.hidden=false;
+  } else {
+    emptyEl.hidden=true;
+    cartEl.innerHTML = shipCart.map((r,i)=>{
+      const p = SHIP_PRESETS[r.typeKey];
+      const vol = (r.l*r.w2*r.h).toLocaleString("nl-NL");
+      const price = r.unitPrice ? fmt(r.unitPrice)+"/st" : "";
+      const title = r.title ? esc(r.title.slice(0,38)) : "";
+      return `<div class="ship-item-row">
+        <div class="ship-ico">${p.icon}</div>
+        <div class="ship-item-main"><b>${p.label}</b> <span class="ship-qty-badge">×${r.qty}</span> ${price?`<span style="font-size:11px;color:var(--muted)">${price}</span>`:""}
+          <div class="ship-item-meta">${title? title+" · " : ""}${r.w} kg/st · ${r.l}×${r.w2}×${r.h} cm · vol. ${vol} cm³/st${r.url?` · <a href="${esc(r.url)}" target="_blank" rel="noopener" style="color:var(--brand-dark)">link</a>`:""}</div>
+          <div class="ship-cart-price-row"><input type="number" step="0.01" min="0" value="${r.unitPrice!=null?r.unitPrice:""}" placeholder="€/st" oninput="shipCart[${i}].unitPrice=parseFloat(this.value)||null;shipRender()" title="Prijs per stuk"><input type="number" step="0.01" min="0" value="${r.w}" oninput="shipCart[${i}].w=parseFloat(this.value)||0.2;shipRender()" title="Gewicht kg/st" style="width:72px"></div>
+        </div>
+        <button class="btn-ghost" onclick="shipRemove(${i})" title="Verwijderen">🗑</button>
+      </div>`;
+    }).join("");
+  }
+  const cur = SHIP_CURRENCIES.find(c=>c.code===shipCurrency) || SHIP_CURRENCIES[0];
+  const toCur = (eur)=> cur.code==="EUR"? fmt(eur) : cur.symbol+" "+(eur*cur.rate).toFixed(2).replace(".",",")+ " ("+fmt(eur)+")";
+  if(s.count===0){
+    document.getElementById("shipSItems").textContent="—";
+    document.getElementById("shipSWeight").textContent="—";
+    document.getElementById("shipSVolume").textContent="—";
+    document.getElementById("shipSVolW").textContent="—";
+    document.getElementById("shipSCharge").textContent="—";
+    const gEl=document.getElementById("shipSGoods"); if(gEl) gEl.textContent="—";
+    document.getElementById("shipSPack").textContent="—";
+    document.getElementById("shipPrice").textContent=cur.code==="EUR"?"€ 0,00":cur.symbol+" 0,00";
+    document.getElementById("shipPriceSub").textContent="Voeg items toe voor een schatting";
+    const cr=document.getElementById("shipPriceCompare"); if(cr) cr.textContent="";
+  } else {
+    document.getElementById("shipSItems").textContent = s.itemsLabel;
+    document.getElementById("shipSWeight").textContent = s.realKg.toFixed(2)+" kg";
+    document.getElementById("shipSVolume").textContent = s.volumeDm3.toFixed(1)+" dm³";
+    document.getElementById("shipSVolW").textContent = s.volKg.toFixed(2)+" kg";
+    document.getElementById("shipSCharge").textContent = s.chargeKg.toFixed(2)+" kg";
+    const gEl2=document.getElementById("shipSGoods"); if(gEl2) gEl2.textContent = s.goodsTotalEuro>0 ? fmt(s.goodsTotalEuro) : "—";
+    document.getElementById("shipSPack").textContent = s.packLabel;
+    document.getElementById("shipPrice").textContent = toCur(s.price);
+    const country = SHIP_COUNTRIES.find(c=>c.code===shipCountry);
+    const mode = SHIP_MODES.find(m=>m.id===shipMode);
+    const ag = SHIP_AGENTS.find(a=>a.id===shipAgent);
+    document.getElementById("shipPriceSub").textContent = `Rekengewicht ${s.chargeKg.toFixed(2)} kg · ${country.name} · ${mode.label} · ${ag.name}`;
+    const cr=document.getElementById("shipPriceCompare"); if(cr){
+      if(s.goodsTotalEuro>0){ const fee=s.goodsTotalEuro*(ag.fee||0); cr.textContent=`Producten ${fmt(s.goodsTotalEuro)} + fee ${fmt(fee)} (${Math.round((ag.fee||0)*100)}%) + verzending ${fmt(s.price)} ≈ ${fmt(s.goodsTotalEuro+fee+s.price)} totaal`;
+      } else cr.textContent="Productprijs onbekend — verzending is indicatief zonder service fee.";
+    }
+  }
+  // countries + modes active state
+  document.querySelectorAll(".country-btn").forEach(b=> b.classList.toggle("active", b.dataset.code===shipCountry));
+  document.querySelectorAll(".mode-opt").forEach(b=> b.classList.toggle("active", b.dataset.mode===shipMode));
+  if(shipCompareOpen) shipRenderCompare();
+}
+function shipInitUI(){
+  const sel=document.getElementById("shipType");
+  if(sel) sel.innerHTML = Object.entries(SHIP_PRESETS).map(([k,v])=>`<option value="${k}">${v.icon} ${v.label}</option>`).join("");
+  shipLoadPreset("t-shirt");
+  const cEl=document.getElementById("shipCountries");
+  if(cEl) cEl.innerHTML = SHIP_COUNTRIES.map(c=>`<button class="country-btn" data-code="${c.code}" onclick="shipCountry='${c.code}';shipRender()"><span class="flag">${c.flag}</span>${c.name}<span class="cname">${c.code}</span></button>`).join("");
+  const mEl=document.getElementById("shipModes");
+  if(mEl) mEl.innerHTML = SHIP_MODES.map(m=>`<label class="mode-opt" data-mode="${m.id}" onclick="shipMode='${m.id}';shipRender()"><input type="radio" name="shipMode" value="${m.id}" ${m.id===shipMode?"checked":""}><div><div class="mode-name">${m.label}</div><div class="mode-days">${m.days}</div></div><div class="mode-price"></div></label>`).join("");
+  const ad=document.getElementById("shipAgentDropdown");
+  if(ad) ad.innerHTML = SHIP_AGENTS.map(a=>`<div class="ship-sel-opt ${a.id===shipAgent?"active":""}" data-id="${a.id}" onclick="shipSetAgent('${a.id}')"><span class="agent-dot" style="background:${a.bg}">${a.letter}</span>${a.name} <span class="check" ${a.id===shipAgent?"":"hidden"}>✓</span></div>`).join("");
+  const cd=document.getElementById("shipCurrDropdown");
+  if(cd) cd.innerHTML = SHIP_CURRENCIES.map(c=>`<div class="ship-sel-opt ${c.code===shipCurrency?"active":""}" data-code="${c.code}" onclick="shipSetCurrency('${c.code}')">${c.label} <span class="check" ${c.code===shipCurrency?"":"hidden"}>✓</span></div>`).join("");
+  shipSetTab(shipTab);
+  // sluit dropdowns bij klik buiten
+  document.addEventListener("click", e=>{
+    if(!e.target.closest("#shipAgentSel")) document.getElementById("shipAgentDropdown")?.classList.remove("open");
+    if(!e.target.closest("#shipCurrSel")) document.getElementById("shipCurrDropdown")?.classList.remove("open");
+  });
+  shipRender();
+}
+
+/* =====================================================
    BETALEN — plak hier je Stripe/Mollie payment link
    (zie ONLINE-ZETTEN.md). Leeg = demo-activering.
 ===================================================== */
@@ -2276,6 +2934,7 @@ applyTheme(localStorage.getItem("guidsell_theme") ||
   } catch (e) {}
 })();
 
+shipInitUI();
 /* init: ingelogd? → app, anders landing */
 if (session && users[session]) {
   enterApp();

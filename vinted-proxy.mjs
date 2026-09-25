@@ -314,6 +314,52 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
+  // ---- Product-link (Chinese shops) — haalt titel/prijs/gewicht op voor verzendcalculator ----
+  if (u.pathname === "/api/product") {
+    const rawUrl = (u.searchParams.get("url") || "").trim();
+    if (!rawUrl) return sendJson(res, 400, { error: "param 'url' ontbreekt" });
+    let parsed;
+    try { parsed = new URL(rawUrl); } catch { return sendJson(res, 400, { error: "ongeldige url" }); }
+    if (!["http:", "https:"].includes(parsed.protocol)) return sendJson(res, 400, { error: "alleen http(s)" });
+    const pKey = rawUrl.toLowerCase();
+    const pHit = cache.get("product:" + pKey);
+    if (pHit && Date.now() - pHit.at < CACHE_TTL) return sendJson(res, 200, { ...pHit.body, cached: true });
+    try {
+      // product-pagina's niet via de Vinted cookie-jar (voorkomt vervuiling van Vinted-sessie)
+      const html = curl([
+        "-L",
+        "-A", UA,
+        "-H", "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "-H", "Accept-Language: nl-NL,nl;q=0.9,en;q=0.8",
+        rawUrl,
+      ], 20000).toString("utf8");
+      const title = (html.match(/<meta[^>]+property=["']og:title["'][^>]*content=["']([^"']+)["']/i) || html.match(/<title[^>]*>([^<]+)<\/title>/i) || [])[1] || "";
+      const ogPrice = html.match(/<meta[^>]+property=["'](?:og:price:amount|product:price:amount)["'][^>]*content=["']([0-9.,]+)["']/i);
+      const priceText = html.match(/(?:¥|CNY|\$)\s*([0-9]+(?:[.,][0-9]+)?)/);
+      const weightM = html.match(/([0-9]+(?:[.,][0-9]+)?)\s*(kg|g)\b/i);
+      let weightKg = null;
+      if (weightM) {
+        const v = parseFloat(weightM[1].replace(",", "."));
+        weightKg = /g/i.test(weightM[2]) && v > 5 ? v / 1000 : v;
+      }
+      const price = ogPrice ? parseFloat(ogPrice[1].replace(",", ".")) : (priceText ? parseFloat(priceText[1].replace(",", ".")) : null);
+      const image = (html.match(/<meta[^>]+property=["']og:image["'][^>]*content=["']([^"']+)["']/i) || [])[1] || "";
+      const body = {
+        ok: true,
+        url: rawUrl,
+        host: parsed.hostname,
+        title: title.trim().slice(0, 120).replace(/\s+/g, " "),
+        price: price && isFinite(price) && price > 0 && price < 5000 ? price : null,
+        weightKg: weightKg && isFinite(weightKg) && weightKg > 0 && weightKg < 50 ? Math.round(weightKg * 100) / 100 : null,
+        image: image.slice(0, 300),
+      };
+      cache.set("product:" + pKey, { at: Date.now(), body });
+      return sendJson(res, 200, body);
+    } catch (e) {
+      return sendJson(res, 200, { ok: false, reason: "onbereikbaar", error: e.message, host: parsed.hostname });
+    }
+  }
+
   // ---- Statische bestanden ----
   let file = u.pathname === "/" ? "/index.html" : u.pathname;
   file = path.normalize(file).replace(/^(\.\.[\/\\])+/, "");
