@@ -513,7 +513,7 @@ const server = http.createServer(async (req, res) => {
       const catHtml = curl(["-L","-A",UA,"-H","Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8","-H","Accept-Language: nl-NL,nl;q=0.9,en;q=0.8","-H",`Referer: ${VINTED_HOST}/`,catUrl],25000).toString("utf8");
       let comps = parseCatalogHtml(catHtml);
       // beperk tot items die echt bij dit account lijken te horen: filter op username in titel is niet betrouwbaar,
-      // Vinted toont via search_text=username alleen closet-items van die user (getest: hugov742 → 3/3 eigen items)
+      // Vinted toont via search_text=username alleen closet-items van die user
       // maar als zoekterm generiek is (bv. "shop123"), vallen er ruis-items tussen — extra guard: bewaar max 24.
       const body = {
         ok: true,
