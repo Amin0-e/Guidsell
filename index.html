@@ -69,6 +69,35 @@
   body.dark .comp-item:hover { background: rgba(99,102,241,.08); }
   body.dark .tagchip { background: rgba(22,163,74,.12); }
   body.dark .toast { background: #e8eaf0; color: #111827; }
+  /* shipping readability — dark/light contrast fix */
+  body.dark .ship-preset-hint,
+  body.dark .volumetric-note,
+  body.dark .link-hint,
+  body.dark .ship-item-meta,
+  body.dark .cost-row span,
+  body.dark .cost-row .volumetric-note { color: #a0a8b8; }
+  body.dark .cost-row b { color: #e8eaf0; }
+  body.dark .cost-hero .ch-label { color: #a0a8b8; }
+  body.dark .cost-hero .ch-price { color: #c7d2fe; }
+  body.dark .cost-hero .ch-sub { color: #a0a8b8; }
+  body.dark .link-input-wrap { background: #1a1e26; border-color: #2a3040; }
+  body.dark .link-input-wrap input { color: var(--text); }
+  body.dark .link-input-wrap input::placeholder { color: #6b7588; }
+  body.dark .ship-tabs { background: #0f1117; border: 1px solid var(--line); }
+  body.dark .ship-tab { color: #a0a8b8; }
+  body.dark .ship-tab.active { background: #262b36; color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.4); }
+  body.dark .ship-sel-pill { background: #1a1e26; border-color: #2a3040; color: var(--text); }
+  body.dark .ship-sel-pill small { color: #a0a8b8; }
+  body.dark .ship-sel-dropdown { background: #1a1e26; border-color: #2a3040; }
+  body.dark .compare-agent-row { border-color: var(--line); }
+  /* volume summary — always high contrast */
+  #shipSVolume, #shipSVolW, #shipSCharge, #shipSWeight, #shipSGoods, #shipSPack, #shipSItems { color: var(--text); font-weight: 800; }
+  body.dark #shipSVolume, body.dark #shipSVolW, body.dark #shipSCharge, body.dark #shipSWeight, body.dark #shipSGoods, body.dark #shipSPack, body.dark #shipSItems { color: #e8eaf0; }
+  /* shipping inputs — ensure readability in both themes */
+  .ship-cart-price-row input { color: var(--text); background: var(--card); border-color: var(--line); }
+  body.dark .ship-cart-price-row input { background: #1a1e26; border-color: #2a3040; color: #e8eaf0; }
+  .cost-row span { color: var(--muted); }
+  body.dark .cost-row span { color: #a0a8b8; }
 
   .theme-toggle { font-size: 17px; line-height: 1; }
   [hidden] { display: none !important; }
@@ -1192,7 +1221,7 @@
           <input id="shipLinkInput" type="url" placeholder="Plak een product link..." onkeydown="if(event.key==='Enter') shipAddFromLink()">
           <button class="btn" onclick="shipAddFromLink()">+ Product toevoegen</button>
         </div>
-        <div class="link-hint">Tip: plak een link van je Chinese shop (Weidian/Taobao/1688) — gewicht &amp; prijs worden automatisch ingevuld. Handmatig aanpassen kan altijd.</div>
+        <div class="link-hint" id="shipLinkHint">Tip: plak een link van je Chinese shop (Weidian/Taobao/1688) — AI schat automatisch gewicht &amp; afmeting in. Handmatig aanpassen kan altijd.</div>
       </div>
 
       <div class="ship-layout">
@@ -2715,37 +2744,67 @@ function shipSetTab(tab){
 }
 async function shipAddFromLink(){
   if(shipLinkBusy) return;
-  const raw=document.getElementById("shipLinkInput").value.trim();
+  const input=document.getElementById("shipLinkInput");
+  const raw=(input?input.value:"").trim();
   if(!raw){ toast("Plak eerst een product link", true); return; }
-  try{ const u=new URL(raw); if(!["http:","https:"].includes(u.protocol)) throw 0; }catch{ toast("Ongeldige link — moet met https:// beginnen", true); return; }
+  let parsedUrl;
+  try{ parsedUrl=new URL(raw); if(!["http:","https:"].includes(parsedUrl.protocol)) throw 0; }catch{ toast("Ongeldige link — moet met https:// beginnen", true); return; }
   const btn=document.querySelector("#shipLinkPane .btn");
-  const old=btn.textContent; btn.disabled=true; btn.textContent="⏳ Ophalen…"; shipLinkBusy=true;
+  const old = btn? btn.textContent : "";
+  if(btn){ btn.disabled=true; btn.textContent="⏳ AI schat…"; }
+  shipLinkBusy=true;
+  const hintEl=document.getElementById("shipLinkHint");
+  if(hintEl) hintEl.textContent="⏳ AI bekijkt de link en schat gewicht & volume…";
+  // 1) product-meta ophalen (titel/host/prijs hint)
   let meta=null;
   try{
-    const r=await fetch("/api/product?url="+encodeURIComponent(raw), { signal:AbortSignal.timeout(20000) });
+    const r=await fetch("/api/product?url="+encodeURIComponent(raw), { signal:AbortSignal.timeout(15000) });
     meta = await r.json();
-  }catch(e){ meta={ ok:false, error:e.message }; }
-  btn.disabled=false; btn.textContent=old; shipLinkBusy=false;
-  if(!meta || !meta.ok){
-    // fallback: voeg alsnog toe met guess zodat flow niet blokkeert
-    const typeKey=shipInferTypeFromText(raw);
-    const p=SHIP_PRESETS[typeKey];
-    shipCart.push({ typeKey, qty:1, w:p.w, l:p.d[0], w2:p.d[1], h:p.d[2], title:"", url:raw, unitPrice:null });
-    shipRender();
-    document.getElementById("shipLinkInput").value="";
-    toast("Link toegevoegd (gegevens konden niet automatisch worden gelezen — pas gewicht/prijs aan) 📦");
-    return;
+  }catch(e){ meta={ ok:false, error:String(e && e.message || e) }; }
+  let title = (meta && meta.ok && meta.title) ? String(meta.title).trim().slice(0,120) : "";
+  let host = (meta && meta.host) ? String(meta.host) : parsedUrl.hostname;
+  let priceHint = (meta && meta.ok && meta.price!=null) ? Number(meta.price) : null;
+  if(!(priceHint>0 && priceHint<5000)) priceHint=null;
+  let weightHint = (meta && meta.ok && meta.weightKg!=null) ? Number(meta.weightKg) : null;
+  if(!(weightHint>0 && weightHint<50)) weightHint=null;
+  // 2) AI-schatting via server (met fallback presets als geen sleutel / offline)
+  let est=null, estSource="";
+  try{
+    const r2=await fetch("/api/ship-estimate", {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ url: raw, title, host, price: priceHint, weightKg: weightHint }),
+      signal: AbortSignal.timeout(25000)
+    });
+    const j2=await r2.json();
+    if(j2 && j2.ok && j2.estimate){ est=j2.estimate; estSource=j2.source||"ai"; if(j2.title) title=j2.title; if(j2.host) host=j2.host; }
+  }catch(e){ est=null; }
+  // 3) fallback als AI faalt
+  if(!est){
+    const fbKey=shipInferTypeFromText((title+" "+host+" "+raw));
+    const p=SHIP_PRESETS[fbKey];
+    est={ item_type:fbKey, weight_kg:p.w, length_cm:p.d[0], width_cm:p.d[1], height_cm:p.d[2], price_eur: priceHint, confidence:"laag", reason:"fallback preset" };
+    estSource="preset_fallback";
   }
-  const typeKey=shipInferTypeFromText(meta.title+" "+meta.host);
-  const p=SHIP_PRESETS[typeKey];
-  const w = meta.weightKg && meta.weightKg>0 ? meta.weightKg : p.w;
-  shipCart.push({
-    typeKey, qty:1, w, l:p.d[0], w2:p.d[1], h:p.d[2],
-    title:(meta.title||"").slice(0,80), url:raw, unitPrice: meta.price||null
-  });
+  const typeKey = (est.item_type && SHIP_PRESETS[est.item_type]) ? est.item_type : shipInferTypeFromText(title+" "+host+" "+raw);
+  const p0 = SHIP_PRESETS[typeKey];
+  const w = Number(est.weight_kg)>0 ? Math.round(Number(est.weight_kg)*100)/100 : p0.w;
+  const l = Number(est.length_cm)>0 ? Math.round(Number(est.length_cm)) : p0.d[0];
+  const w2= Number(est.width_cm)>0 ? Math.round(Number(est.width_cm)) : p0.d[1];
+  const h = Number(est.height_cm)>0 ? Math.round(Number(est.height_cm)) : p0.d[2];
+  const unitPrice = est.price_eur!=null && isFinite(est.price_eur) && est.price_eur>0 ? Math.round(Number(est.price_eur)*100)/100 : priceHint;
+  const ex = shipCart.find(x=> x.typeKey===typeKey && x.w===w && x.l===l && x.w2===w2 && x.h===h && (x.url||"")===raw && (x.unitPrice||null)===(unitPrice||null));
+  if(ex) ex.qty += 1;
+  else shipCart.push({ typeKey, qty:1, w, l, w2, h, title: title.slice(0,80), url: raw, unitPrice: unitPrice||null });
   shipRender();
-  document.getElementById("shipLinkInput").value="";
-  toast((meta.title? meta.title.slice(0,40)+" — " : "") + "toegevoegd 📦" + (meta.price?" (€"+meta.price+")":"") + (meta.weightKg?" · "+meta.weightKg+"kg auto":""));
+  if(input) input.value="";
+  if(hintEl) hintEl.textContent="Tip: plak een link van je Chinese shop (Weidian/Taobao/1688) — gewicht & afmeting worden door AI geschat. Handmatig aanpassen kan altijd.";
+  if(btn){ btn.disabled=false; btn.textContent=old||"+ Product toevoegen"; }
+  shipLinkBusy=false;
+  const aiTag = estSource==="ai" ? ` · AI ${est.confidence||"schatting"}` : estSource==="preset" ? " · schatting (geen AI-sleutel)" : " · schatting";
+  const priceTag = unitPrice ? ` · €${String(unitPrice).replace(".",",")}` : "";
+  const prettyTitle = title ? title.slice(0,42) : host;
+  toast(`${prettyTitle} — ${SHIP_PRESETS[typeKey].label} toegevoegd 📦 · ${w}kg ${l}×${w2}×${h}cm${aiTag}${priceTag}`);
   shipSetTab("link");
 }
 function shipPriceForAgent(agentId, s){
@@ -2883,11 +2942,13 @@ function shipStats(){
   let realKg=0, volumeCm3=0, goodsTotalEuro=0;
   const parts=[];
   shipCart.forEach(r=>{
-    realKg += r.w * r.qty;
-    const v = r.l * r.w2 * r.h * r.qty;
-    volumeCm3 += v;
-    if(r.unitPrice) goodsTotalEuro += r.unitPrice * r.qty;
-    parts.push(`${r.qty}× ${SHIP_PRESETS[r.typeKey].label}${r.title?" ("+r.title.slice(0,22)+")":""}`);
+    const w = Number(r.w); const l = Number(r.l); const w2 = Number(r.w2); const h = Number(r.h); const q = Number(r.qty)||1;
+    if(isFinite(w) && w>0) realKg += w * q;
+    const v = (isFinite(l)?l:0) * (isFinite(w2)?w2:0) * (isFinite(h)?h:0) * q;
+    if(isFinite(v)) volumeCm3 += v;
+    if(r.unitPrice!=null && isFinite(r.unitPrice)) goodsTotalEuro += Number(r.unitPrice) * q;
+    const label = (SHIP_PRESETS[r.typeKey] && SHIP_PRESETS[r.typeKey].label) ? SHIP_PRESETS[r.typeKey].label : String(r.typeKey||"Overig");
+    parts.push(`${q}× ${label}${r.title?" ("+String(r.title).slice(0,22)+")":""}`);
   });
   const count = shipCart.reduce((s,r)=>s+r.qty,0);
   if(count===0) return { count:0, realKg:0, volumeCm3:0, volumeDm3:0, volKg:0, chargeKg:0, price:0, packLabel:"—", itemsLabel:"—", goodsTotalEuro:0 };
@@ -2908,11 +2969,18 @@ function shipStats(){
   return { count, realKg, volumeCm3: packedCm3, volumeDm3, volKg, chargeKg, price, packLabel, itemsLabel: parts.join(", "), goodsTotalEuro };
 }
 function shipRender(){
+  try{
   const cartEl = document.getElementById("shipCart");
   const emptyEl= document.getElementById("shipEmpty");
   const countEl= document.getElementById("shipCount");
-  if(!cartEl) return;
-  const s = shipStats();
+  if(!cartEl || !emptyEl || !countEl) return;
+  let s;
+  try{ s = shipStats(); }catch(e){ console.error("[ship] stats error", e); s = { count:0, realKg:0, volumeCm3:0, volumeDm3:0, volKg:0, chargeKg:0, price:0, packLabel:"—", itemsLabel:"—", goodsTotalEuro:0 }; }
+  // guard NaN from corrupt cart
+  if(!s || !isFinite(s.realKg)) s.realKg=0;
+  if(!isFinite(s.volumeDm3)) s.volumeDm3=0;
+  if(!isFinite(s.volKg)) s.volKg=0;
+  if(!isFinite(s.chargeKg)) s.chargeKg=0;
   const totalQty = shipCart.reduce((a,r)=>a+r.qty,0);
   countEl.textContent = totalQty + (totalQty===1?" item":" items");
   if(shipCart.length===0){
@@ -2969,6 +3037,7 @@ function shipRender(){
   document.querySelectorAll(".country-btn").forEach(b=> b.classList.toggle("active", b.dataset.code===shipCountry));
   document.querySelectorAll(".mode-opt").forEach(b=> b.classList.toggle("active", b.dataset.mode===shipMode));
   if(shipCompareOpen) shipRenderCompare();
+  }catch(e){ console.error("[ship] render error", e); }
 }
 function shipInitUI(){
   const sel=document.getElementById("shipType");

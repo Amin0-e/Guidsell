@@ -314,6 +314,114 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
+  // ---- AI gewicht/volume schatting voor verzendcalculator (link → AI) ----
+  if (u.pathname === "/api/ship-estimate" && req.method === "POST") {
+    let raw = "";
+    req.on("data", c => { raw += c; if (raw.length > 2 * 1024 * 1024) req.destroy(); });
+    req.on("end", async () => {
+      try {
+        const body = JSON.parse(raw || "{}");
+        const url = String(body.url || "").trim();
+        if (!url) return sendJson(res, 400, { error: "url ontbreekt" });
+        let parsed; try { parsed = new URL(url); } catch { return sendJson(res, 400, { error: "ongeldige url" }); }
+        if (!["http:", "https:"].includes(parsed.protocol)) return sendJson(res, 400, { error: "alleen http(s)" });
+        // cache
+        const key = "ship-est:" + url.toLowerCase();
+        const hit = cache.get(key);
+        if (hit && Date.now() - hit.at < CACHE_TTL) return sendJson(res, 200, { ...hit.body, cached: true });
+
+        // context voor AI: titel/host uit body of vers ophalen via /api/product-achtig
+        let title = String(body.title || "").trim().slice(0, 160);
+        let host = String(body.host || parsed.hostname).slice(0, 80);
+        let priceHint = body.price != null ? Number(body.price) : null;
+        let weightHint = body.weightKg != null ? Number(body.weightKg) : null;
+        // als geen titel, probeer OG-title te halen (kort, zonder jar-vervuiling)
+        if (!title) {
+          try {
+            const html = curl(["-L", "-A", UA, "-H", "Accept: text/html,application/xhtml+xml", "-H", "Accept-Language: nl-NL,nl;q=0.9,en;q=0.8", url], 12000).toString("utf8");
+            const og = (html.match(/<meta[^>]+property=["']og:title["'][^>]*content=["']([^"']+)["']/i) || html.match(/<title[^>]*>([^<]+)<\/title>/i) || [])[1] || "";
+            title = og.trim().slice(0, 160).replace(/\s+/g, " ");
+            if (!priceHint) {
+              const ogPrice = html.match(/<meta[^>]+property=["'](?:og:price:amount|product:price:amount)["'][^>]*content=["']([0-9.,]+)["']/i);
+              if (ogPrice) priceHint = parseFloat(ogPrice[1].replace(",", "."));
+            }
+          } catch {}
+        }
+
+        // presets voor fallback/validatie (server-kant)
+        const PRESETS = {
+          "t-shirt": [0.20, [30,25,2]], "hoodie": [0.55,[35,30,6]], "sweater": [0.50,[35,30,5]], "jas": [1.10,[45,35,10]],
+          "broek": [0.45,[35,25,4]], "jeans": [0.65,[35,25,5]], "jurk": [0.35,[35,25,4]], "sneakers": [1.05,[34,20,13]],
+          "schoenen": [0.90,[32,18,12]], "tas": [0.60,[35,25,15]], "accessoire": [0.15,[25,20,8]], "overig": [0.40,[30,20,10]]
+        };
+        function guessType(s){
+          const t=(s||"").toLowerCase();
+          if(/hoodie|hoody|zip\s*hood|sweat.*hood|trui/.test(t)) return "hoodie";
+          if(/sneaker|trainer|shoe.*sneak/.test(t)) return "sneakers";
+          if(/jeans|denim/.test(t)) return "jeans";
+          if(/coat|parka|jacket|jas\b|puffer|down/.test(t)) return "jas";
+          if(/\bbag\b|tas\b|backpack|handbag|crossbody/.test(t)) return "tas";
+          if(/dress|jurk\b/.test(t)) return "jurk";
+          if(/\bpant\b|broek|trouser|chino|cargo.*pant/.test(t)) return "broek";
+          if(/tee|t-shirt|tshirt|shirt/.test(t)) return "t-shirt";
+          if(/cap|hat|beanie|muts|pet\b|accessoire/.test(t)) return "accessoire";
+          if(/schoen|shoe/.test(t)) return "schoenen";
+          return "overig";
+        }
+        function clampEstimate(j){
+          const allowed=["t-shirt","hoodie","sweater","jas","broek","jeans","jurk","sneakers","schoenen","tas","accessoire","overig"];
+          let t = String(j.item_type||j.type||"").toLowerCase().trim();
+          if(!allowed.includes(t)) t = guessType(title+" "+host);
+          let w = Number(j.weight_kg ?? j.weightKg ?? j.w);
+          let L = Number(j.length_cm ?? j.l ?? j.length);
+          let W = Number(j.width_cm ?? j.w2 ?? j.width);
+          let H = Number(j.height_cm ?? j.h ?? j.height);
+          const fb = PRESETS[t] || PRESETS.overig;
+          if(!(w>0 && w<30)) w = fb[0];
+          if(!(L>0 && L<120)) L = fb[1][0];
+          if(!(W>0 && W<120)) W = fb[1][1];
+          if(!(H>0 && H<80)) H = fb[1][2];
+          w = Math.round(w*100)/100; L=Math.round(L); W=Math.round(W); H=Math.round(H);
+          let p = j.price_eur!=null?Number(j.price_eur): (j.price!=null?Number(j.price):priceHint);
+          if(!(p>0 && p<5000)) p=null; else p=Math.round(p*100)/100;
+          const conf = ["laag","gemiddeld","hoog"].includes(String(j.confidence))? String(j.confidence): "gemiddeld";
+          return { item_type:t, weight_kg:w, length_cm:L, width_cm:W, height_cm:H, price_eur:p, confidence:conf, reason:String(j.reason||"").slice(0,180) };
+        }
+
+        const k = readApiKey();
+        if (!k) {
+          const t = guessType(title+" "+host+" "+url);
+          const fb = PRESETS[t];
+          const est = { item_type:t, weight_kg:fb[0], length_cm:fb[1][0], width_cm:fb[1][1], height_cm:fb[1][2], price_eur: (priceHint&&isFinite(priceHint)?Math.round(priceHint*100)/100:null), confidence:"laag", reason:"Geen AI-sleutel — preset op basis van titel" };
+          const bodyOut = { ok:true, estimate:est, source:"preset", title, host };
+          cache.set(key,{at:Date.now(), body:bodyOut});
+          return sendJson(res,200, bodyOut);
+        }
+
+        const prompt = `Je bent verzend-expert voor Chinese shops (Weidian/Taobao/1688) → EU.\nGegeven PRODUCT_URL: ${url}\nHOST: ${host}\nTITEL: ${title||"(geen titel)"}\nPRICE_HINT: ${priceHint!=null? priceHint+" eur/¥":"onbekend"}\nWEIGHT_HINT: ${weightHint||"onbekend"}\nSchat: item_type (één van [t-shirt,hoodie,sweater,jas,broek,jeans,jurk,sneakers,schoenen,tas,accessoire,overig]), gewicht kg per stuk, afmetingen L×B×H cm gevouwen (realistisch pakket), prijs_eur indien afleidbaar.\nAntwoord ALLEEN geldige JSON: {"item_type":"t-shirt","weight_kg":0.20,"length_cm":30,"width_cm":25,"height_cm":2,"price_eur":null,"confidence":"laag|gemiddeld|hoog","reason":"kort"}\nRichtlijnen gewicht: t-shirt 0.18-0.25, hoodie 0.5-0.65, jeans 0.6-0.8, sneakers 0.9-1.2 incl doos, tas 0.4-0.9, jas 0.9-1.4, accessoire 0.1-0.2. Afmetingen gevouwen: t-shirt 30x25x2, hoodie 35x30x6, sneakers 34x20x13, etc. Wees conservatief.`;
+        try {
+          const j = await callGeminiServer(prompt, []);
+          const est = clampEstimate(j||{});
+          const bodyOut = { ok:true, estimate:est, source:"ai", title, host };
+          cache.set(key,{at:Date.now(), body:bodyOut});
+          console.log(`[ship-estimate] ${host} "${title.slice(0,40)}" → ${est.item_type} ${est.weight_kg}kg ${est.length_cm}x${est.width_cm}x${est.height_cm} (${est.confidence})`);
+          return sendJson(res,200, bodyOut);
+        } catch (e) {
+          console.log("[ship-estimate] AI mislukt:", e.message, "→ fallback preset");
+          const t = guessType(title+" "+host);
+          const fb = PRESETS[t];
+          const est = { item_type:t, weight_kg:fb[0], length_cm:fb[1][0], width_cm:fb[1][1], height_cm:fb[1][2], price_eur: (priceHint&&isFinite(priceHint)?Math.round(priceHint*100)/100:null), confidence:"laag", reason:"AI onbereikbaar — preset" };
+          const bodyOut = { ok:true, estimate:est, source:"preset_fallback", title, host, error:e.message };
+          cache.set(key,{at:Date.now(), body:bodyOut});
+          return sendJson(res,200, bodyOut);
+        }
+      } catch (e) {
+        return sendJson(res, 200, { ok:false, reason:"fout", error:e.message });
+      }
+    });
+    return;
+  }
+
   // ---- Product-link (Chinese shops) — haalt titel/prijs/gewicht op voor verzendcalculator ----
   if (u.pathname === "/api/product") {
     const rawUrl = (u.searchParams.get("url") || "").trim();
