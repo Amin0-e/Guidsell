@@ -825,6 +825,97 @@
   body.dark .compare-badge{ background:rgba(22,163,74,.14); border-color:rgba(22,163,74,.3); }
   .compare-select-btn{ font-size:11px; padding:6px 10px; border-radius:20px; border:1px solid var(--line); background:var(--card); font-weight:700; }
   .compare-select-btn:hover{ border-color:var(--brand); color:var(--brand-dark); background:#eef0ff; }
+
+  /* hamburger + app actions */
+  .nav-burger{ display:none; background:none; border:none; font-size:22px; line-height:1; padding:8px 10px; border-radius:9px; color:var(--text); }
+  .nav-burger:hover{ background:#f1f3fa; }
+  body.dark .nav-burger:hover{ background:#1a1e26; }
+  .app-actions{ display:flex; align-items:center; gap:6px; margin-left:8px; }
+  .app-actions .quota-chip{ max-width:140px; overflow:hidden; text-overflow:ellipsis; }
+  /* forgot modal helpers */
+  #forgotFoundMsg{ background:#eaf7ef; border:1px solid #d3eedd; border-radius:10px; padding:10px 14px; font-size:13px; color:#15803d; margin-bottom:14px; }
+  body.dark #forgotFoundMsg{ background:rgba(22,163,74,.12); border-color:rgba(22,163,74,.3); color:#86efac; }
+  .forgot-link{ background:none; border:none; color:var(--brand-dark); font-size:12.5px; font-weight:600; text-decoration:underline; padding:0; }
+  body.dark .forgot-link{ color:#a5b4fc; }
+  .forgot-link:hover{ color:var(--brand); }
+
+  /* ============ RESPONSIVE / MOBILE FRIENDLY ============ */
+  @media(max-width: 900px){
+    .topnav{ padding:0 12px; height:56px; gap:6px; }
+    .brand{ font-size:17px; margin-right:8px; }
+    .topnav .links{ display:none; }
+    .nav-burger{ display:block; }
+    body.nav-open #page-landing .topnav .links,
+    body.nav-open #page-app .topnav .links{
+      display:flex; flex-direction:column; position:absolute; top:56px; left:0; right:0;
+      background:var(--card); border-bottom:1px solid var(--line); padding:10px 12px 14px;
+      box-shadow:0 12px 32px rgba(17,24,39,.12); z-index:41; gap:4px; max-height:72vh; overflow:auto;
+    }
+    body.nav-open #page-landing .topnav .links .navlink,
+    body.nav-open #page-app .topnav .links .navlink{
+      text-align:left; padding:12px 14px; border-radius:10px; font-size:14px;
+    }
+    .topnav .navlink.active{ background:#eef0ff; }
+    body.dark .topnav .links{ background:#171a21; }
+    #page-landing .topnav .btn, #page-landing .topnav .btn-ghost{ font-size:13px; padding:8px 12px; }
+  }
+  @media(max-width: 640px){
+    .hero{ padding:42px 16px 48px; }
+    .hero h1{ font-size:28px; line-height:1.15; }
+    .hero p.sub{ font-size:14px; padding:0 4px; }
+    .hero .btn-lg{ width:100%; justify-content:center; }
+    .hero .cta-row{ flex-direction:column; align-items:stretch; max-width:360px; margin:0 auto; }
+    .section{ padding:32px 14px; }
+    .section-title{ font-size:22px; }
+    .app-main{ padding:18px 12px 64px; }
+    .page-title{ font-size:22px; }
+    .card-body{ padding:16px; }
+    .auth-card{ padding:22px 16px; margin:0 8px; }
+    .hero-badge{ font-size:11px; }
+    .plan .p-price{ font-size:28px; }
+    .plans{ gap:14px; }
+    .features{ gap:14px; }
+    .steps{ gap:14px; }
+    /* ledger / stats */
+    .ledger-form{ grid-template-columns:1fr; }
+    .ledger-form .btn{ width:100%; }
+    .ledger-row{ flex-wrap:wrap; gap:8px; }
+    .ledger-label{ flex-basis:100%; }
+    /* ship */
+    .ship-layout{ gap:14px; }
+    .ship-topbar{ flex-direction:column; align-items:stretch; }
+    .ship-selectors{ width:100%; }
+    .ship-sel{ flex:1; }
+    .ship-sel-pill{ width:100%; justify-content:center; }
+    .link-input-wrap{ flex-direction:column; align-items:stretch; }
+    .link-input-wrap .btn{ width:100%; }
+    .ship-add-row{ grid-template-columns:1fr; gap:10px; }
+    .ship-add-row .btn{ width:100%; }
+    .country-grid{ gap:6px; }
+    .country-btn{ padding:8px 4px; font-size:12px; }
+    .cost-hero .ch-price{ font-size:30px; }
+    .compare-agent-row{ flex-wrap:wrap; gap:8px; }
+    .compare-agent-left{ flex:1; min-width:160px; }
+    /* modals */
+    .modal{ padding:22px 16px; }
+    .modal-back{ padding:12px; align-items:flex-start; overflow:auto; padding-top:18px; }
+    /* two-col already 1fr below 940 */
+    .two-col{ gap:16px; }
+    .row2{ grid-template-columns:1fr; }
+    .dropzone{ padding:28px 14px; }
+    .price-hero .ph-price{ font-size:30px; }
+    /* topnav app extras */
+    .app-actions{ gap:4px; }
+    .app-actions .quota-chip{ font-size:11px; padding:5px 10px; }
+    .app-actions .user-chip span{ display:none; }
+    .toast{ bottom:14px; font-size:12.5px; padding:11px 16px; }
+  }
+  @media(max-width: 400px){
+    .hero h1{ font-size:24px; }
+    .stats{ gap:10px; }
+    .stat{ padding:14px; }
+    .stat .s-value{ font-size:20px; }
+  }
 </style>
 </head>
 <body>
@@ -836,10 +927,11 @@
   <nav class="topnav">
     <button class="brand" onclick="goLanding()"><span class="brand-mark">G</span> Guidsell</button>
     <div class="links">
-      <button class="navlink" onclick="document.getElementById('sec-how').scrollIntoView({behavior:'smooth'})">Hoe het werkt</button>
-      <button class="navlink" onclick="document.getElementById('sec-pricing').scrollIntoView({behavior:'smooth'})">Prijzen</button>
+      <button class="navlink" onclick="closeMobileNav();document.getElementById('sec-how').scrollIntoView({behavior:'smooth'})">Hoe het werkt</button>
+      <button class="navlink" onclick="closeMobileNav();document.getElementById('sec-pricing').scrollIntoView({behavior:'smooth'})">Prijzen</button>
     </div>
     <div class="nav-spacer"></div>
+    <button class="nav-burger" id="burgerLanding" onclick="toggleMobileNav()" aria-label="Menu" aria-expanded="false">☰</button>
     <button class="btn-ghost theme-toggle" onclick="toggleTheme()" title="Donker/licht">🌙</button>
     <button class="btn-ghost" onclick="openAuth('login')">Inloggen</button>
     <button class="btn" onclick="openAuth('register')">Begin gratis</button>
@@ -958,6 +1050,10 @@
           <label>Wachtwoord</label>
           <input id="loginPass" type="password" required placeholder="••••••••">
         </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin:2px 0 14px">
+          <button type="button" class="forgot-link" onclick="openForgotModal()">Wachtwoord vergeten?</button>
+          <span style="font-size:11px;color:var(--muted)">Beveiligd met beveiligingsvraag</span>
+        </div>
         <button class="btn btn-lg" style="width:100%" type="submit">Inloggen</button>
       </form>
 
@@ -974,6 +1070,23 @@
           <label>Wachtwoord</label>
           <input id="regPass" type="password" required minlength="4" placeholder="Minimaal 4 tekens">
         </div>
+        <div class="field">
+          <label>Beveiligingsvraag <span style="color:var(--muted);font-weight:500;font-size:11px">— voor wachtwoord herstel</span></label>
+          <select id="regSecQ" required>
+            <option value="" disabled selected>Kies een beveiligingsvraag…</option>
+            <option value="Wat is je favoriete eten?">Wat is je favoriete eten?</option>
+            <option value="Wie was je eerste basisschooldocent?">Wie was je eerste basisschooldocent?</option>
+            <option value="Wat is de naam van je eerste huisdier?">Wat is de naam van je eerste huisdier?</option>
+            <option value="In welke stad ben je geboren?">In welke stad ben je geboren?</option>
+            <option value="Wat is de naam van je beste vriend(in) uit je jeugd?">Wat is de naam van je beste vriend(in) uit je jeugd?</option>
+            <option value="Wat is je moeders meisjesnaam?">Wat is je moeders meisjesnaam?</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Antwoord op beveiligingsvraag</label>
+          <input id="regSecA" type="text" required placeholder="bijv. pizza of meester Jansen" autocomplete="off">
+        </div>
+        <p style="font-size:11px;color:var(--muted);margin:-8px 0 14px;line-height:1.4">🔒 Onthoud je antwoord goed — hiermee kun je later je wachtwoord resetten.</p>
         <button class="btn btn-lg" style="width:100%" type="submit">Account aanmaken</button>
       </form>
 
@@ -999,14 +1112,17 @@
       <button class="navlink" data-view="upgrade" onclick="switchView('upgrade')">Upgrade</button>
     </div>
     <div class="nav-spacer"></div>
-    <button class="btn-ghost theme-toggle" onclick="toggleTheme()" title="Donker/licht">🌙</button>
-    <button class="btn-ghost" onclick="openSettings()" title="Instellingen">⚙️</button>
-    <span class="quota-chip" id="quotaChip">5/5 deze week</span>
-    <div class="user-chip">
-      <div class="avatar" id="avatar">J</div>
-      <span id="userName">…</span>
+    <button class="nav-burger" id="burgerApp" onclick="toggleMobileNav()" aria-label="Menu" aria-expanded="false">☰</button>
+    <div class="app-actions">
+      <button class="btn-ghost theme-toggle" onclick="toggleTheme()" title="Donker/licht">🌙</button>
+      <button class="btn-ghost" onclick="openSettings()" title="Instellingen">⚙️</button>
+      <span class="quota-chip" id="quotaChip">5/5 deze week</span>
+      <div class="user-chip">
+        <div class="avatar" id="avatar">J</div>
+        <span id="userName">…</span>
+      </div>
+      <button class="btn-ghost" onclick="logout()" title="Uitloggen">⎋ Uitloggen</button>
     </div>
-    <button class="btn-ghost" onclick="logout()" title="Uitloggen">⎋ Uitloggen</button>
   </nav>
 
   <main class="app-main">
@@ -1495,6 +1611,40 @@
   </div>
 </div>
 
+<div class="modal-back" id="forgotModal">
+  <div class="modal" style="text-align:left;max-width:480px">
+    <h2>Wachtwoord opnieuw instellen</h2>
+    <p style="margin-bottom:12px">Vul je e-mailadres in en beantwoord je beveiligingsvraag. Alleen met het juiste antwoord kun je een nieuw wachtwoord instellen.</p>
+    <div class="auth-err" id="forgotErr" style="display:none"></div>
+    <div id="forgotStepEmail">
+      <div class="field"><label>E-mail</label><input id="forgotEmail" type="email" placeholder="jij@voorbeeld.nl" autocomplete="email"></div>
+      <div class="modal-actions">
+        <button class="btn btn-lg" onclick="forgotCheckEmail()">Account zoeken →</button>
+        <button class="btn-ghost" onclick="closeForgotModal()">Annuleren</button>
+      </div>
+    </div>
+    <div id="forgotStepQuestion" hidden>
+      <div id="forgotFoundMsg">Account gevonden: <b id="forgotFoundEmail">—</b></div>
+      <div style="background:#f1f3fa;border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin-bottom:12px"><div style="font-size:11px;letter-spacing:.6px;font-weight:700;color:var(--muted);margin-bottom:4px">BEVEILIGINGSVRAAG</div><div id="forgotQuestion" style="font-size:14px;font-weight:700;color:var(--text)">—</div></div>
+      <div class="field"><label>Antwoord</label><input id="forgotAnswer" type="text" placeholder="Je antwoord" autocomplete="off"></div>
+      <div id="forgotTries" style="font-size:11px;color:var(--muted);margin-bottom:12px"></div>
+      <div class="modal-actions">
+        <button class="btn btn-lg" onclick="forgotCheckAnswer()">Verifiëren →</button>
+        <button class="btn-ghost" onclick="closeForgotModal()">Annuleren</button>
+      </div>
+    </div>
+    <div id="forgotStepReset" hidden>
+      <div style="background:#eaf7ef;border:1px solid #d3eedd;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:13px;color:#15803d">✓ Beantwoord correct — kies nu een nieuw wachtwoord.</div>
+      <div class="field"><label>Nieuw wachtwoord</label><input id="forgotNewPass" type="password" placeholder="Minimaal 4 tekens" minlength="4"></div>
+      <div class="field"><label>Herhaal nieuw wachtwoord</label><input id="forgotNewPass2" type="password" placeholder="Herhaal wachtwoord"></div>
+      <div class="modal-actions">
+        <button class="btn btn-lg" onclick="forgotDoReset()">Wachtwoord opslaan &amp; inloggen</button>
+        <button class="btn-ghost" onclick="closeForgotModal()">Annuleren</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="modal-back" id="settingsModal">
   <div class="modal" style="text-align:left">
     <h2>⚙️ AI instellen</h2>
@@ -1643,6 +1793,7 @@ function fmt(n) {
    PAGE NAVIGATION
 ===================================================== */
 function showPage(id) {
+  try{ closeMobileNav(); }catch(e){}
   ["page-landing", "page-auth", "page-app"].forEach(p => {
     document.getElementById(p).hidden = (p !== id);
   });
@@ -1706,13 +1857,19 @@ function authError(msg) {
   el.textContent = msg;
   el.classList.add("show");
 }
+function normalizeSecAnswer(s){ return String(s||"").trim().toLowerCase().replace(/\s+/g," "); }
 function doRegister(ev) {
   ev.preventDefault();
   const name = document.getElementById("regName").value.trim();
   const email = document.getElementById("regEmail").value.trim().toLowerCase();
   const pass = document.getElementById("regPass").value;
+  const secQ = (document.getElementById("regSecQ")?.value||"").trim();
+  const secAraw = (document.getElementById("regSecA")?.value||"").trim();
+  const secA = normalizeSecAnswer(secAraw);
+  if(!secQ){ authError("Kies een beveiligingsvraag."); return; }
+  if(!secA || secA.length<2){ authError("Vul een antwoord in op je beveiligingsvraag (min. 2 tekens)."); return; }
   if (users[email]) { authError("Er bestaat al een account met dit e-mailadres."); return; }
-  users[email] = { name, pass };
+  users[email] = { name, pass, secQ, secA };
   saveUsers();
   session = email;
   localStorage.setItem(LS_SESSION, email);
@@ -1729,6 +1886,99 @@ function doLogin(ev) {
   localStorage.setItem(LS_SESSION, email);
   enterApp();
   toast("Welkom terug, " + user.name + "!");
+}
+/* ---------- WACHTWOORD VERGETEN — met beveiligingsvraag (3-staps) ---------- */
+let forgotEmailCache = "";
+let forgotVerified = false;
+let forgotAttempts = 0;
+function openForgotModal(){
+  const pre = (document.getElementById("loginEmail").value || "").trim().toLowerCase();
+  document.getElementById("forgotEmail").value = pre;
+  document.getElementById("forgotNewPass").value = "";
+  const np2=document.getElementById("forgotNewPass2"); if(np2) np2.value="";
+  const fa=document.getElementById("forgotAnswer"); if(fa) fa.value="";
+  document.getElementById("forgotErr").style.display="none";
+  document.getElementById("forgotErr").textContent="";
+  document.getElementById("forgotStepEmail").hidden=false;
+  const q=document.getElementById("forgotStepQuestion"); if(q) q.hidden=true;
+  document.getElementById("forgotStepReset").hidden=true;
+  forgotEmailCache=""; forgotVerified=false; forgotAttempts=0;
+  const tr=document.getElementById("forgotTries"); if(tr) tr.textContent="";
+  document.getElementById("forgotModal").classList.add("show");
+  setTimeout(()=>document.getElementById("forgotEmail").focus(), 60);
+}
+function closeForgotModal(){ document.getElementById("forgotModal").classList.remove("show"); }
+function forgotErr(msg){
+  const el=document.getElementById("forgotErr");
+  el.textContent=msg; el.style.display="block";
+  el.style.background="#fef2f2"; el.style.border="1px solid #fecaca"; el.style.color="#dc2626";
+  el.style.borderRadius="10px"; el.style.padding="10px 14px"; el.style.marginBottom="12px"; el.style.fontSize="13px";
+}
+function forgotCheckEmail(){
+  const email=(document.getElementById("forgotEmail").value||"").trim().toLowerCase();
+  if(!email || !email.includes("@")){ forgotErr("Vul een geldig e-mailadres in."); return; }
+  const u = users[email];
+  if(!u){
+    forgotErr("Geen account gevonden met dit e-mailadres op dit apparaat. Controleer je e-mail of maak een account aan.");
+    return;
+  }
+  // oud account zonder beveiligingsvraag → migratie: vraag alsnog aanmaken
+  if(!u.secQ || !u.secA){
+    forgotErr("Dit account heeft nog geen beveiligingsvraag (aangemaakt vóór deze update). Log in met je huidige wachtwoord of maak een nieuw account — bij registratie kies je nu wél een vraag.");
+    return;
+  }
+  forgotEmailCache=email; forgotVerified=false; forgotAttempts=0;
+  document.getElementById("forgotFoundEmail").textContent=email;
+  document.getElementById("forgotQuestion").textContent=u.secQ;
+  document.getElementById("forgotAnswer").value="";
+  document.getElementById("forgotErr").style.display="none";
+  const tr=document.getElementById("forgotTries"); if(tr) tr.textContent="";
+  document.getElementById("forgotStepEmail").hidden=true;
+  document.getElementById("forgotStepQuestion").hidden=false;
+  document.getElementById("forgotStepReset").hidden=true;
+  setTimeout(()=>document.getElementById("forgotAnswer").focus(), 60);
+}
+function forgotCheckAnswer(){
+  if(!forgotEmailCache || !users[forgotEmailCache]){ forgotErr("Sessie verlopen — zoek je account opnieuw."); document.getElementById("forgotStepEmail").hidden=false; document.getElementById("forgotStepQuestion").hidden=true; return; }
+  const given = normalizeSecAnswer(document.getElementById("forgotAnswer").value);
+  const expected = users[forgotEmailCache].secA;
+  if(!given){ forgotErr("Vul je antwoord in."); return; }
+  if(given !== expected){
+    forgotAttempts++;
+    const left = Math.max(0, 3 - forgotAttempts);
+    document.getElementById("forgotErr").style.display="none";
+    const tr=document.getElementById("forgotTries");
+    if(tr) tr.textContent = left>0 ? `Onjuist antwoord — nog ${left} poging${left===1?"":"en"} over.` : "";
+    if(forgotAttempts>=3){
+      forgotErr("Te vaak fout — begin opnieuw (3 pogingen bereikt).");
+      document.getElementById("forgotStepQuestion").hidden=true;
+      document.getElementById("forgotStepEmail").hidden=false;
+      forgotEmailCache=""; forgotVerified=false; forgotAttempts=0;
+      return;
+    }
+    forgotErr("Onjuist antwoord — probeer opnieuw.");
+    return;
+  }
+  forgotVerified=true;
+  document.getElementById("forgotErr").style.display="none";
+  document.getElementById("forgotStepQuestion").hidden=true;
+  document.getElementById("forgotStepReset").hidden=false;
+  setTimeout(()=>document.getElementById("forgotNewPass").focus(), 60);
+}
+function forgotDoReset(){
+  if(!forgotVerified){ forgotErr("Beantwoord eerst je beveiligingsvraag correct."); document.getElementById("forgotStepQuestion").hidden=false; document.getElementById("forgotStepReset").hidden=true; return; }
+  const a=(document.getElementById("forgotNewPass").value||"");
+  const b=(document.getElementById("forgotNewPass2").value||"");
+  if(a.length<4){ forgotErr("Kies een wachtwoord van minimaal 4 tekens."); return; }
+  if(a!==b){ forgotErr("Wachtwoorden komen niet overeen."); return; }
+  if(!forgotEmailCache || !users[forgotEmailCache]){ forgotErr("Sessie verlopen — zoek je account opnieuw."); document.getElementById("forgotStepEmail").hidden=false; document.getElementById("forgotStepReset").hidden=true; document.getElementById("forgotStepQuestion").hidden=true; return; }
+  users[forgotEmailCache].pass = a;
+  saveUsers();
+  session = forgotEmailCache;
+  localStorage.setItem(LS_SESSION, session);
+  closeForgotModal();
+  enterApp();
+  toast("Wachtwoord opnieuw ingesteld — welkom terug! 🔑");
 }
 function seedDemoData() {
   const c = placeholderImg("Nike hoodie", "#6366f1");
@@ -1747,6 +1997,7 @@ function seedDemoData() {
    APP VIEW NAVIGATION
 ===================================================== */
 function switchView(name) {
+  try{ closeMobileNav(); }catch(e){}
   checkProExpiry();
   const pro = isPro();
   // PRO-poort: Verzending + items + kasboek alleen voor PRO
@@ -2603,13 +2854,34 @@ document.getElementById("inBrand").addEventListener("input", e => {
 
 /* modal sluiten met Escape of klik buiten */
 document.addEventListener("keydown", e => {
-  if (e.key === "Escape") { closePaywall(); closeSoldModal(); }
+  if (e.key === "Escape") { closePaywall(); closeSoldModal(); closeForgotModal(); closeMobileNav(); }
 });
 document.querySelectorAll(".modal-back").forEach(m => {
   m.addEventListener("click", e => {
     if (e.target === m) { m.classList.remove("show"); }
   });
 });
+/* ---------- HAMBURGER / MOBILE NAV ---------- */
+function toggleMobileNav(){
+  const open = document.body.classList.toggle("nav-open");
+  document.querySelectorAll(".nav-burger").forEach(b=>{ b.setAttribute("aria-expanded", open?"true":"false"); b.textContent=open?"✕":"☰"; });
+}
+function closeMobileNav(){
+  document.body.classList.remove("nav-open");
+  document.querySelectorAll(".nav-burger").forEach(b=>{ b.setAttribute("aria-expanded","false"); b.textContent="☰"; });
+}
+// sluit menu bij nav-link klik of switchView
+document.addEventListener("click", e=>{
+  if(document.body.classList.contains("nav-open") && e.target.closest(".topnav .links .navlink")) closeMobileNav();
+});
+// Escape handled above; ook klik buiten topnav sluit overlay
+document.addEventListener("click", e=>{
+  if(!document.body.classList.contains("nav-open")) return;
+  if(e.target.closest(".topnav")) return;
+  closeMobileNav();
+});
+// bij resize naar desktop: overlay weg
+window.addEventListener("resize", ()=>{ if(window.innerWidth>900) closeMobileNav(); });
 
 /* =====================================================
    VERZENDCALCULATOR
