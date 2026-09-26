@@ -838,6 +838,23 @@
   .forgot-link{ background:none; border:none; color:var(--brand-dark); font-size:12.5px; font-weight:600; text-decoration:underline; padding:0; }
   body.dark .forgot-link{ color:#a5b4fc; }
   .forgot-link:hover{ color:var(--brand); }
+  /* vinted koppeling */
+  .vinted-card{ display:flex; align-items:center; gap:14px; padding:16px; border:1.5px solid var(--line); border-radius:16px; background:var(--card); box-shadow:var(--shadow); margin-bottom:18px; flex-wrap:wrap; }
+  .vinted-avatar{ width:56px; height:56px; border-radius:50%; object-fit:cover; border:2px solid var(--line); flex-shrink:0; background:#eef0f7; }
+  body.dark .vinted-avatar{ border-color:#2a3040; }
+  .vinted-main{ flex:1; min-width:160px; }
+  .vinted-name{ font-size:15px; font-weight:800; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .vinted-sub{ font-size:12.5px; color:var(--muted); margin-top:2px; line-height:1.4; }
+  .vinted-badge{ font-size:10.5px; font-weight:800; letter-spacing:.5px; background:#eaf7ef; color:var(--green); border:1px solid #d3eedd; padding:3px 8px; border-radius:20px; }
+  body.dark .vinted-badge{ background:rgba(22,163,74,.14); border-color:rgba(22,163,74,.3); }
+  .vinted-actions{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .vinted-link-input{ flex:1; min-width:200px; padding:11px 13px; border:1px solid var(--line); border-radius:10px; background:var(--card); color:var(--text); font-size:13px; }
+  body.dark .vinted-link-input{ background:#1a1e26; border-color:#2a3040; }
+  .vinted-closet-row{ display:flex; gap:10px; overflow:auto; padding:10px 0 4px; scrollbar-width:thin; }
+  .vinted-closet-item{ min-width:132px; max-width:132px; border:1px solid var(--line); border-radius:12px; overflow:hidden; background:var(--card); flex-shrink:0; }
+  .vinted-closet-item img{ width:100%; height:132px; object-fit:cover; display:block; background:#eef0f7; }
+  .vinted-closet-item .vc-title{ font-size:12px; font-weight:700; padding:8px 8px 2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .vinted-closet-item .vc-meta{ font-size:11px; color:var(--muted); padding:0 8px 8px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
   /* ============ RESPONSIVE / MOBILE FRIENDLY ============ */
   @media(max-width: 900px){
@@ -1131,6 +1148,31 @@
     <section class="view active" id="view-dashboard">
       <h1 class="page-title">Hé, <span id="dashName">daar</span> 👋</h1>
       <p class="page-sub">Jouw reseller-overzicht in één oogopslag.</p>
+      <div id="vintedConnectCard" class="vinted-card" style="margin-top:4px">
+        <div style="font-size:22px">👗</div>
+        <div class="vinted-main">
+          <div style="font-weight:800;font-size:14px">Koppel je Vinted-account</div>
+          <div style="font-size:12.5px;color:var(--muted);margin-top:2px;line-height:1.4">Plak je profiel-link (bijv. <span style="color:var(--text);font-weight:600">vinted.nl/member/3153050283</span>) en gebruik je echte kast door heel Guidsell.</div>
+          <div id="vintedStatus" style="font-size:12px;color:var(--muted);margin-top:6px;display:none"></div>
+        </div>
+        <div class="vinted-actions" style="flex:1;min-width:260px">
+          <input id="vintedLinkInput" class="vinted-link-input" type="url" placeholder="https://www.vinted.nl/member/..." autocomplete="off">
+          <button class="btn" onclick="vintedConnect()" id="vintedConnectBtn">Koppelen</button>
+        </div>
+      </div>
+      <div id="vintedProfileCard" class="vinted-card" hidden>
+        <img id="vintedAvatar" class="vinted-avatar" src="" alt="">
+        <div class="vinted-main">
+          <div class="vinted-name"><span id="vintedName">—</span> <span class="vinted-badge" id="vintedBadge">VINTED GEKOPPELD</span> <a id="vintedProfileLink" href="#" target="_blank" rel="noopener" style="font-size:12px;color:var(--brand-dark);font-weight:600">Bekijk profiel →</a></div>
+          <div class="vinted-sub" id="vintedSub">—</div>
+          <div id="vintedClosetStrip" class="vinted-closet-row" hidden></div>
+          <div id="vintedClosetActions" style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center" hidden>
+            <button class="btn btn-outline" style="font-size:12.5px;padding:7px 12px" onclick="vintedImportCloset()" id="vintedImportBtn">⬇ Importeer mijn kast naar voorraad (PRO)</button>
+            <span style="font-size:11px;color:var(--muted)">Zet je live items in Mijn items — handig voor waardecheck &amp; kasboek</span>
+          </div>
+        </div>
+        <div class="vinted-actions"><button class="btn-ghost" onclick="vintedDisconnect()" title="Ontkoppelen">Ontkoppelen</button></div>
+      </div>
 
       <div class="stats">
         <div class="stat"><div class="s-label">IN VOORRAAD</div><div class="s-value" id="stStock">0</div></div>
@@ -1465,6 +1507,11 @@
       <div id="itemsContent" hidden>
         <h1 class="page-title">Mijn items</h1>
         <p class="page-sub">Jouw voorraad — van check tot verkoop.</p>
+        <div id="itemsVintedBar" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px" hidden>
+          <span style="font-size:12.5px;color:var(--muted)">Kast: <b id="itemsVintedName" style="color:var(--text)">—</b></span>
+          <button class="btn btn-outline" style="font-size:12.5px;padding:7px 12px" onclick="vintedImportCloset()">⬇ Importeer Vinted-kast</button>
+          <a id="itemsVintedLink" href="#" target="_blank" rel="noopener" style="font-size:12.5px;color:var(--brand-dark);font-weight:600">Op Vinted →</a>
+        </div>
         <div class="filter-row">
           <button class="filter-btn active" data-f="all" onclick="setFilter('all')">Alle</button>
           <button class="filter-btn" data-f="stock" onclick="setFilter('stock')">In voorraad</button>
@@ -1734,6 +1781,7 @@ function dataKey() { return "guidsell_data_" + session; }
 function loadData() {
   try { data = JSON.parse(localStorage.getItem(dataKey()) || "null"); } catch (e) { data = null; }
   if (!data) data = { items: [], ledger: [], weekStart: 0, usedThisWeek: 0, plan: PLAN_FREE };
+  if(!('vinted' in data)) data.vinted = null;
   ensureWeek();
   checkProExpiry();
 }
@@ -1822,6 +1870,10 @@ function enterApp() {
   renderAll();
   showPage("page-app");
   switchView("dashboard");
+  setTimeout(()=>{ try{ renderVintedCard(); }catch(e){} }, 80);
+  if(data && data.vinted && data.vinted.memberId){
+    setTimeout(()=>{ refreshVintedQuiet(); }, 800);
+  }
 }
 
 function logout() {
@@ -2450,12 +2502,13 @@ async function runCheck(isDemo) {
       }
     }
 
-    // 2) Live Vinted-vergelijking (best effort)
+    // 2) Live Vinted-vergelijking (best effort) — als Vinted gekoppeld is: toon eigen kast snelkoppeling
     setStep("stepVinted", "active", "🟢 Vinted-prijzen zoeken…");
     const q = (ai && ai.search_query) || ((brand ? brand + " " : "") + itemLabel);
     comps = await fetchVintedComps(q);
     if (comps) setStep("stepVinted", "done", `🟢 Vinted: ${comps.length} items gevonden`);
     else setStep("stepVinted", "err", "🟢 Vinted onbereikbaar");
+    // hint: gekoppeld Vinted wordt als bron getoond in srcNote (zie hieronder)
   }
 
   setStep("stepOut", "active", "✍️ Listing opstellen…");
@@ -2497,10 +2550,15 @@ async function runCheck(isDemo) {
   };
   if (lastResult.cover) lastCover = lastResult.cover;
 
-  // UI vullen
+  // UI vullen — als Vinted gekoppeld is, voeg kast-badge toe aan srcNote
   const rSource = document.getElementById("rSource");
   rSource.hidden = false;
   rSource.className = "src-badge " + source;
+  const v=vintedStored();
+  if(v && v.username){
+    const vTag=" · gekoppeld @"+v.username;
+    if(source==="vinted") srcNote += vTag; else srcNote += " — "+vTag.slice(3);
+  }
   rSource.textContent = srcNote;
   document.getElementById("rPrice").textContent = fmt(price);
   document.getElementById("rRange").textContent = "meestal " + fmt(low) + " – " + fmt(high) + " bij verkopen zoals deze";
@@ -2604,9 +2662,10 @@ function renderItems() {
       <div class="item-photo">
         ${it.cover ? `<img src="${it.cover}" alt="">` : "📦"}
         <span class="status-badge ${it.status}">${it.status === "sold" ? "VERKOCHT" : "IN VOORRAAD"}</span>
+        ${it.vintedUrl? `<a href="${esc(it.vintedUrl)}" target="_blank" rel="noopener" title="Open op Vinted" style="position:absolute;top:10px;right:10px;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:4px 8px;font-size:10px;font-weight:700;color:var(--brand-dark);text-decoration:none">Vinted ↗</a>`:""}
       </div>
       <div class="item-body">
-        <div class="item-title">${esc(it.title)}</div>
+        <div class="item-title">${esc(it.title)} ${it.source==="vinted"?`<span style="font-size:10px;background:#eaf7ef;color:var(--green);border:1px solid #d3eedd;padding:2px 6px;border-radius:20px;vertical-align:middle">VINTED</span>`:""}</div>
         <div class="item-meta">${esc(it.brand || "geen merk")} · ${esc(it.cond || "")} · ${new Date(it.date).toLocaleDateString("nl-NL")}</div>
         <div class="item-price ${it.status === "sold" ? "green" : ""}">${it.status === "sold" ? fmt(it.soldPrice || 0) + " verkocht" : "schatting " + fmt(it.estPrice || 0)}</div>
         <div class="item-actions">
@@ -2830,10 +2889,184 @@ function renderAll() {
   renderQuota();
   renderKeyHint();
   renderDashboard();
+  try{ renderVintedCard(); }catch(e){}
   renderItems();
   renderLedger();
   renderUpgrade();
 }
+/* =====================================================
+   VINTED KOPPELEN — link → profiel + kast (van zelf sprekende extra's)
+===================================================== */
+function parseVintedMemberId(input){
+  const s=String(input||"").trim();
+  if(!s) return null;
+  if(/^\d{5,}$/.test(s)) return s;
+  try{ const u=new URL(s); const m=u.pathname.match(/\/member\/(\d{5,})/); if(m) return m[1]; }catch{}
+  const m2=s.match(/\/member\/(\d{5,})/); if(m2) return m2[1];
+  const m3=s.match(/\b(\d{8,})\b/); if(m3) return m3[1];
+  return null;
+}
+function vintedStored(){ return data && data.vinted ? data.vinted : null; }
+function renderVintedCard(){
+  const v = vintedStored();
+  const connect = document.getElementById("vintedConnectCard");
+  const profile = document.getElementById("vintedProfileCard");
+  const status = document.getElementById("vintedStatus");
+  const bar = document.getElementById("itemsVintedBar");
+  if(!connect || !profile) return;
+  if(!v || !v.memberId){
+    connect.hidden=false; profile.hidden=true;
+    if(status) status.style.display="none";
+    if(bar) bar.hidden=true;
+    return;
+  }
+  connect.hidden=true; profile.hidden=false;
+  const av=document.getElementById("vintedAvatar");
+  if(av) { av.src = v.avatar || ""; av.alt = v.username || "Vinted"; if(!v.avatar) av.style.background="#eef0f7"; }
+  const nm=document.getElementById("vintedName"); if(nm) nm.textContent = v.username ? "@"+v.username : "Vinted";
+  const link=document.getElementById("vintedProfileLink"); if(link) link.href = v.profileUrl || ("https://www.vinted.nl/member/"+v.memberId);
+  const sub=document.getElementById("vintedSub");
+  if(sub){
+    const parts=[];
+    if(v.rating!=null) parts.push("★ "+String(v.rating).replace(".",",")+ (v.reviews!=null?" · "+v.reviews+" reviews":""));
+    if(v.followers!=null) parts.push(v.followers+" volgers"+(v.following!=null?" · "+v.following+" volgend":""));
+    if(v.location) parts.push(v.location);
+    parts.push("ID "+v.memberId);
+    sub.textContent = parts.join(" · ");
+  }
+  if(status){ status.style.display="none"; }
+  // closet strip
+  const strip=document.getElementById("vintedClosetStrip");
+  const actions=document.getElementById("vintedClosetActions");
+  if(strip){
+    if(v.closet && Array.isArray(v.closet) && v.closet.length){
+      strip.hidden=false;
+      strip.innerHTML = v.closet.slice(0,12).map(it=>`
+        <a class="vinted-closet-item" href="${esc(it.url||"#")}" target="_blank" rel="noopener" title="${esc(it.title||"")}">
+          ${it.image?`<img src="${esc(it.image)}" alt="">`:`<div style="height:132px;display:flex;align-items:center;justify-content:center;font-size:22px">👜</div>`}
+          <div class="vc-title">${esc((it.title||"").slice(0,34))}</div>
+          <div class="vc-meta">${esc((it.brand||"")+ (it.size?" · "+it.size:""))} · ${it.price!=null?fmt(it.price):"—"}</div>
+        </a>`).join("");
+    } else {
+      strip.hidden=true; strip.innerHTML="";
+    }
+  }
+  if(actions) actions.hidden = !(v.closet && v.closet.length);
+  if(bar){
+    bar.hidden=false;
+    const bn=document.getElementById("itemsVintedName"); if(bn) bn.textContent = v.username?"@"+v.username: "@"+v.memberId;
+    const bl=document.getElementById("itemsVintedLink"); if(bl) bl.href = v.profileUrl||("https://www.vinted.nl/member/"+v.memberId);
+  }
+}
+async function vintedConnect(){
+  const inp=document.getElementById("vintedLinkInput");
+  const btn=document.getElementById("vintedConnectBtn");
+  const status=document.getElementById("vintedStatus");
+  const raw=(inp?inp.value:"").trim();
+  const id=parseVintedMemberId(raw);
+  if(!raw){ toast("Plak eerst je Vinted profiel-link", true); return; }
+  if(!id){ toast("Ongeldige link — plak iets als https://www.vinted.nl/member/3153050283", true); return; }
+  const url = raw.startsWith("http") ? raw : ("https://www.vinted.nl/member/"+id);
+  if(btn){ btn.disabled=true; btn.textContent="⏳ Koppelen…"; }
+  if(status){ status.style.display="block"; status.textContent="⏳ Profiel ophalen…"; }
+  try{
+    const r=await fetch("/api/vinted/profile?url="+encodeURIComponent(url), { signal:AbortSignal.timeout(20000)});
+    const j=await r.json();
+    if(!j || !j.ok){ throw new Error(j && j.error || "kon profiel niet lezen"); }
+    const v={ memberId:j.memberId, profileUrl:j.profileUrl, username:j.username, avatar:j.avatar, rating:j.rating, reviews:j.reviews, location:j.location, followers:j.followers, following:j.following, linkedAt:Date.now(), closet:[] };
+    data.vinted=v; saveData();
+    renderVintedCard();
+    toast("Vinted gekoppeld als @"+j.username+" ✅");
+    if(status) status.textContent="✓ Gekoppeld — kast ophalen…";
+    // meteen closet ophalen
+    await vintedFetchCloset(false);
+  }catch(e){
+    if(status) status.textContent="";
+    toast("Koppelen mislukt: "+String(e.message||e).slice(0,120), true);
+  }finally{
+    if(btn){ btn.disabled=false; btn.textContent="Koppelen"; }
+    if(status) setTimeout(()=>{ status.style.display="none"; }, 1800);
+  }
+}
+async function vintedFetchCloset(showToast){
+  const v=vintedStored(); if(!v || !v.memberId) return;
+  const status=document.getElementById("vintedStatus");
+  if(status){ status.style.display="block"; status.textContent="⏳ Kast ophalen…"; }
+  try{
+    const r=await fetch("/api/vinted/closet?id="+encodeURIComponent(v.memberId)+"&limit=18", { signal:AbortSignal.timeout(25000)});
+    const j=await r.json();
+    if(!j || !j.ok) throw new Error(j && j.error || j && j.reason || "kast niet bereikbaar");
+    data.vinted.closet = Array.isArray(j.items)? j.items:[];
+    data.vinted.closetAt = Date.now();
+    saveData(); renderVintedCard();
+    if(showToast!==false) toast(data.vinted.closet.length? (data.vinted.closet.length+" items uit je kast geladen 👗") : "Kast is leeg of nog niet zichtbaar");
+  }catch(e){
+    toast("Kast ophalen mislukt: "+String(e.message||e).slice(0,100), true);
+  }finally{
+    if(status) setTimeout(()=>{ status.style.display="none"; }, 1500);
+  }
+}
+async function refreshVintedQuiet(){
+  try{
+    const v=vintedStored(); if(!v || !v.memberId) return;
+    const r=await fetch("/api/vinted/profile?id="+encodeURIComponent(v.memberId), { signal:AbortSignal.timeout(15000)});
+    const j=await r.json();
+    if(j && j.ok){
+      const keepCloset = data.vinted.closet||[];
+      const keepAt = data.vinted.closetAt||0;
+      data.vinted={ memberId:j.memberId, profileUrl:j.profileUrl, username:j.username, avatar:j.avatar, rating:j.rating, reviews:j.reviews, location:j.location, followers:j.followers, following:j.following, linkedAt:data.vinted.linkedAt||Date.now(), closet:keepCloset, closetAt:keepAt };
+      saveData(); renderVintedCard();
+    }
+  }catch(e){}
+}
+function vintedDisconnect(){
+  if(!confirm("Vinted-ontkoppelen? Je kast blijft in Mijn items bewaard.")) return;
+  if(data) { data.vinted=null; saveData(); }
+  const inp=document.getElementById("vintedLinkInput"); if(inp) inp.value="";
+  renderVintedCard();
+  toast("Vinted ontkoppeld");
+}
+async function vintedImportCloset(){
+  if(!isPro()){ switchView("upgrade"); toast("Kast importeren is PRO", true); return; }
+  const v=vintedStored();
+  if(!v || !v.memberId){ toast("Koppel eerst je Vinted-account op het dashboard", true); switchView("dashboard"); return; }
+  if(!v.closet || !v.closet.length){
+    await vintedFetchCloset(false);
+    if(!data.vinted.closet || !data.vinted.closet.length){ toast("Geen items om te importeren", true); return; }
+  }
+  const existingUrls = new Set((data.items||[]).map(it=> String(it.vintedUrl||it.url||"").toLowerCase()).filter(Boolean));
+  const existingIds = new Set((data.items||[]).map(it=> String(it.vintedId||"")).filter(Boolean));
+  let added=0, skipped=0;
+  for(const it of data.vinted.closet){
+    const url=(it.url||"").toLowerCase();
+    if((url && existingUrls.has(url)) || (it.id && existingIds.has(String(it.id)))){ skipped++; continue; }
+    const condLabel = it.status || "Goed";
+    const condKey = CONDITIONS.find(c=> c[1].toLowerCase()===String(condLabel).toLowerCase()) ? CONDITIONS.find(c=> c[1].toLowerCase()===String(condLabel).toLowerCase())[0] : "goed";
+    const itemType = (function guess(t){
+      const s=String(t||"").toLowerCase();
+      if(/blouse|shirt|top/.test(s)) return "t-shirt";
+      if(/jas|coat|parka/.test(s)) return "jas";
+      if(/jurk|dress/.test(s)) return "jurk";
+      if(/broek|jeans|pant/.test(s)) return /jeans/.test(s)?"jeans":"broek";
+      return "overig";
+    })(it.title);
+    data.items.unshift({
+      id: uid(), vintedId: String(it.id||""), vintedUrl: it.url||"", title: (it.title||"").slice(0,80), desc: ((it.title||"")+"\n\nGeïmporteerd uit je Vinted-kast.\nMerk: "+(it.brand||"?")+" · Maat: "+(it.size||"?")+" · Staat: "+(it.status||"?")).slice(0,600),
+      tags: [it.brand, it.size, it.title].filter(Boolean).join(", ").toLowerCase().slice(0,120),
+      itemLabel: ITEM_TYPES.find(t=>t[0]===itemType)?.[1]?.replace(/^\S+\s/,"")||"Overig", brand: it.brand||"", size: it.size||"", cond: condLabel, condKey,
+      estPrice: isFinite(it.price)? Number(it.price):0,
+      source: "vinted",
+      soldPrice:null, status:"stock",
+      cover: it.image||"",
+      date: Date.now() - added*1000,
+    });
+    added++;
+  }
+  if(added>0){ saveData(); renderItems(); renderDashboard(); }
+  toast(added? (added+" items geïmporteerd naar Mijn items ✅"+(skipped?" ("+skipped+" al aanwezig)":"")) : "Niets nieuws — alles al in je voorraad", !added);
+  if(added) switchView("items");
+}
+
 
 /* vul selects */
 (function initSelects() {

@@ -422,6 +422,129 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  // ---- Vinted profiel koppelen: /api/vinted/profile?url=... of ?id=... ----
+  if (u.pathname === "/api/vinted/profile") {
+    const rawUrl = (u.searchParams.get("url") || "").trim();
+    const rawId = (u.searchParams.get("id") || "").trim();
+    let memberId = rawId;
+    let profileUrl = rawUrl;
+    if (!memberId && rawUrl) {
+      try {
+        const m = rawUrl.match(/\/member\/(\d{5,})/);
+        if (m) memberId = m[1];
+        else if (/^\d{5,}$/.test(rawUrl)) memberId = rawUrl.trim();
+      } catch {}
+    }
+    if (!memberId) return sendJson(res, 400, { error: "Geef ?url=https://www.vinted.nl/member/… of ?id=… op" });
+    if (!profileUrl) profileUrl = `https://www.vinted.nl/member/${memberId}`;
+    // accepteer ook vinted.com/.fr etc — normaliseer naar .nl voor fetch maar bewaar origineel
+    try { new URL(profileUrl); } catch { profileUrl = `https://www.vinted.nl/member/${memberId}`; }
+    const cKey = "vinted-profile:" + memberId;
+    const cHit = cache.get(cKey);
+    if (cHit && Date.now() - cHit.at < CACHE_TTL) return sendJson(res, 200, { ...cHit.body, cached: true });
+    try {
+      // profiel als "gewone" GET — geen Vinted-jar (verse DataDome, anders session-refresh loop)
+      // We gebruiken een aparte jar via -L zonder -b main JAR
+      const html = curl(["-L","-A",UA,"-H","Accept: text/html,application/xhtml+xml","-H","Accept-Language: nl-NL,nl;q=0.9,en;q=0.8",profileUrl],20000).toString("utf8");
+      const ogTitle = (html.match(/<meta[^>]+property=["']og:title["'][^>]*content=["']([^"']+)["']/i)||[])[1] || "";
+      const ogImage = (html.match(/<meta[^>]+property=["']og:image["'][^>]*content=["']([^"']+)["']/i)||[])[1] || "";
+      // username uit <h1 data-testid="profile-username">
+      const userM = html.match(/data-testid="profile-username"[^>]*>([^<]+)<\/h1>/);
+      const username = (userM ? userM[1].trim() : ogTitle.trim()) || "";
+      if (!username && html.length < 50000) throw new Error("profiel niet bereikbaar");
+      // rating uit aria-label op rating-button
+      const ratingM = html.match(/aria-label="Lid is beoordeeld met een\s*([0-9]+[.,][0-9]+)/);
+      const rating = ratingM ? parseFloat(ratingM[1].replace(",",".")) : null;
+      const reviewsM = html.match(/>(\d+)\s*reviews</);
+      const reviews = reviewsM ? parseInt(reviewsM[1],10) : null;
+      const locationM = html.match(/data-testid="profile-location-info--content"[^>]*>([^<]+)</);
+      const location = locationM ? locationM[1].trim() : "";
+      // volgers/volgend uit aria-label
+      const followersM = html.match(/aria-label="(\d+)\s*Volgers"/);
+      const followingM = html.match(/aria-label="(\d+)\s*Volgend"/);
+      const followers = followersM ? parseInt(followersM[1],10) : null;
+      const following = followingM ? parseInt(followingM[1],10) : null;
+      // avatar — kies de vinted image met largest f800/f310 etc die bij profiel hoort (eerste images1)
+      let avatar = ogImage;
+      const avatarM = html.match(/<img[^>]+src="(https:\/\/images[^"']*vinted\.net[^"']+)"[^>]*alt=""/);
+      if (avatarM && !avatar) avatar = avatarM[1];
+      const body = {
+        ok: true,
+        memberId,
+        profileUrl: `https://www.vinted.nl/member/${memberId}`,
+        username,
+        avatar: avatar.slice(0,500),
+        rating: rating && isFinite(rating) ? rating : null,
+        reviews: reviews!=null?reviews:null,
+        location,
+        followers, following,
+      };
+      cache.set(cKey,{at:Date.now(), body});
+      console.log(`[vinted-profile] ${memberId} → @${username} ★${rating||"?"} · ${followers||0} volgers`);
+      return sendJson(res,200, body);
+    } catch(e){
+      return sendJson(res,200,{ ok:false, reason:"onbereikbaar", error:e.message, memberId });
+    }
+  }
+
+  // ---- Vinted closet: /api/vinted/closet?id=… of ?url=…  (zoek via catalog?search_text=username) ----
+  if (u.pathname === "/api/vinted/closet") {
+    const rawUrl = (u.searchParams.get("url") || "").trim();
+    const rawId = (u.searchParams.get("id") || "").trim();
+    const limit = Math.min(24, Math.max(1, parseInt(u.searchParams.get("limit")||"12",10)||12));
+    let memberId = rawId;
+    let profileUrl = rawUrl;
+    if (!memberId && rawUrl) { const m=rawUrl.match(/\/member\/(\d{5,})/); if(m) memberId=m[1]; }
+    if (!memberId) return sendJson(res,400,{error:"Geef ?url=… (member-link) of ?id=… op"});
+    if (!profileUrl) profileUrl = `https://www.vinted.nl/member/${memberId}`;
+    const cKey = `vinted-closet:${memberId}:${limit}`;
+    const cHit = cache.get(cKey);
+    if (cHit && Date.now()-cHit.at < CACHE_TTL) return sendJson(res,200,{...cHit.body, cached:true});
+    try{
+      // eerst profiel ophalen om username te kennen (vereist voor catalog zoek)
+      const profHtml = curl(["-L","-A",UA,"-H","Accept: text/html,application/xhtml+xml","-H","Accept-Language: nl-NL,nl;q=0.9,en;q=0.8",profileUrl],20000).toString("utf8");
+      const ogTitle = (profHtml.match(/<meta[^>]+property=["']og:title["'][^>]*content=["']([^"']+)["']/i)||[])[1] || "";
+      const userM = profHtml.match(/data-testid="profile-username"[^>]*>([^<]+)<\/h1>/);
+      const username = (userM ? userM[1].trim() : ogTitle.trim()) || "";
+      if (!username) throw new Error("kon gebruikersnaam niet bepalen");
+      // throttling voor catalog
+      const wait = 1200 - (Date.now() - lastFetchAt); if(wait>0) Atomics.wait(new Int32Array(new SharedArrayBuffer(4)),0,0,wait); lastFetchAt=Date.now();
+      const catUrl = `${VINTED_HOST}/catalog?search_text=${encodeURIComponent(username)}`;
+      const catHtml = curl(["-L","-A",UA,"-H","Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8","-H","Accept-Language: nl-NL,nl;q=0.9,en;q=0.8","-H",`Referer: ${VINTED_HOST}/`,catUrl],25000).toString("utf8");
+      let comps = parseCatalogHtml(catHtml);
+      // beperk tot items die echt bij dit account lijken te horen: filter op username in titel is niet betrouwbaar,
+      // Vinted toont via search_text=username alleen closet-items van die user (getest: hugov742 → 3/3 eigen items)
+      // maar als zoekterm generiek is (bv. "shop123"), vallen er ruis-items tussen — extra guard: bewaar max 24.
+      const body = {
+        ok: true,
+        memberId, username,
+        count: comps.length,
+        items: comps.slice(0, limit).map(c=>({
+          id: c.id, title: c.title, brand: c.brand, status: c.status, size: c.size,
+          price: c.price, priceWithProtection: c.priceWithProtection, url: c.url,
+          // probeer image uit catalog html te halen (data-testid per id)
+        })),
+      };
+      // verrijk met images: parse src bij elk product-item-id (robust: ook --image--img variant)
+      const imgById = new Map();
+      // variant 1: --image--img
+      for(const m of catHtml.matchAll(/product-item-id-(\d+)--image--img[^>]*src="(https:[^"]+)"/g)){
+        if(!imgById.has(m[1])) imgById.set(m[1], m[2]);
+      }
+      // variant 2: direct img onder product-item-id container
+      const imgRe = /data-testid="product-item-id-(\d+)[^"]*"[^>]*>[\s\S]{0,800}?<img[^>]+src="(https:[^"]+vinted\.net[^"]+)"/g;
+      let im;
+      while((im=imgRe.exec(catHtml))!==null){ if(!imgById.has(im[1])) imgById.set(im[1], im[2]); }
+      body.items = body.items.map(it=> ({...it, image: (imgById.get(it.id)||"").slice(0,500)}));
+      cache.set(cKey,{at:Date.now(), body});
+      console.log(`[vinted-closet] ${memberId} @${username} → ${body.items.length}/${comps.length} items`);
+      return sendJson(res,200, body);
+    }catch(e){
+      console.log(`[vinted-closet] ${memberId} mislukt:`, e.message);
+      return sendJson(res,200,{ ok:false, reason:e.blocked?"geblokkeerd_door_vinted":"onbereikbaar", error:e.message, memberId });
+    }
+  }
+
   // ---- Product-link (Chinese shops) — haalt titel/prijs/gewicht op voor verzendcalculator ----
   if (u.pathname === "/api/product") {
     const rawUrl = (u.searchParams.get("url") || "").trim();
