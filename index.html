@@ -305,6 +305,16 @@
   .feature .ico { font-size: 24px; margin-bottom: 12px; }
   .feature h3 { font-size: 15px; margin-bottom: 6px; }
   .feature p { color: var(--muted); font-size: 13.5px; line-height: 1.55; }
+  /* What you get — dark grid from screenshot */
+  .what-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  @media(max-width:900px){ .what-grid{ grid-template-columns:repeat(2,1fr);} }
+  @media(max-width:560px){ .what-grid{ grid-template-columns:1fr;} }
+  .what-card{ background:#1a1a1a; border:1px solid #2a2a2a; border-radius:14px; padding:18px; }
+  .what-top{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
+  .what-ico{ width:34px;height:34px;border-radius:8px; background:rgba(16,185,129,.14); border:1px solid rgba(16,185,129,.28); color:#34d399; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; }
+  .what-badge{ font-size:9px; letter-spacing:.7px; font-weight:700; color:#a0a8b8; border:1px solid #333; padding:4px 8px; border-radius:20px; white-space:nowrap; }
+  .what-card h3{ color:#fff; font-size:14px; margin-bottom:6px; }
+  .what-card p{ color:#9aa0b2; font-size:12.5px; line-height:1.55; }
 
   .plans { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; max-width: 720px; margin: 0 auto; }
   @media (max-width: 680px) { .plans { grid-template-columns: 1fr; } }
@@ -418,7 +428,9 @@
   .auth-back { text-align: center; margin-top: 18px; }
 
   /* ============ APP ============ */
-  .app-main { max-width: 1080px; margin: 0 auto; padding: 30px 28px 70px; }
+  .app-main { padding: 22px 22px 60px; }
+  .app-main-wrap .app-main{ max-width:1100px; margin:0 auto; width:100%; }
+  #page-app .app-main{ max-width:1100px; margin:0 auto; width:100%; padding:22px 22px 60px; } /* fallback when not yet wrapped */
   .view { display: none; }
   .view.active { display: block; }
   .page-title { font-size: 26px; letter-spacing: -.5px; margin-bottom: 4px; }
@@ -836,6 +848,27 @@
   .user-chip:hover{ background:#f1f3fa; }
   body.dark .user-chip:hover{ background:#1a1e26; }
   .user-chip:focus-visible{ outline:2px solid var(--brand); outline-offset:2px; }
+  /* what-card clickable (frontpage → real features) */
+  .what-card[role="button"]{ cursor:pointer; transition: transform .12s, border-color .12s, box-shadow .12s; }
+  .what-card[role="button"]:hover{ transform: translateY(-2px); border-color:#3a3a3a; box-shadow: 0 8px 24px rgba(0,0,0,.25); }
+  .what-card[role="button"]:focus-visible{ outline:2px solid #10b981; outline-offset:2px; }
+  .what-card[role="button"] h3{ display:flex; align-items:center; gap:6px; }
+  /* APP SHELL — sidebar layout (functions on the side, not top) */
+  .app-shell{ display:flex; min-height:100vh; }
+  .app-sidebar{ width:240px; flex-shrink:0; background:var(--card); border-right:1px solid var(--line); display:flex; flex-direction:column; padding:16px 12px; gap:4px; position:sticky; top:0; height:100vh; overflow-y:auto; }
+  body.dark .app-sidebar{ background:#171a21; border-color:#262b36; }
+  .app-sidebar .brand{ margin:4px 4px 10px; }
+  .side-links{ display:flex; flex-direction:column; gap:4px; }
+  .side-links .navlink{ text-align:left; justify-content:flex-start; padding:10px 12px; border-radius:10px; display:flex; align-items:center; gap:10px; width:100%; font-size:14px; }
+  .side-links .nav-ico{ font-size:15px; width:18px; text-align:center; flex-shrink:0; }
+  .side-foot{ margin-top:12px; padding-top:12px; border-top:1px solid var(--line); display:flex; flex-direction:column; gap:4px; }
+  .side-foot-btn{ justify-content:flex-start; padding:10px 12px; border-radius:10px; text-align:left; }
+  .app-main-wrap{ flex:1; min-width:0; display:flex; flex-direction:column; }
+  .app-topbar{ height:56px; display:flex; align-items:center; gap:8px; padding:0 16px; border-bottom:1px solid var(--line); background: rgba(255,255,255,.92); backdrop-filter: blur(8px); position:sticky; top:0; z-index:10; }
+  body.dark .app-topbar{ background: rgba(15,17,23,.92); }
+  .app-topbar .brand{ display:none; }
+  .sidebar-overlay{ display:none; position:fixed; inset:0; background:rgba(0,0,0,.32); z-index:39; }
+  body.sidebar-open .sidebar-overlay{ display:block; }
   /* settings modal */
   .settings-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
   @media(max-width:640px){ .settings-grid{ grid-template-columns:1fr; } }
@@ -851,7 +884,39 @@
   .seg button{ padding:6px 12px; border-radius:8px; border:none; background:none; font-size:12.5px; font-weight:600; color:var(--muted); }
   .seg button.active{ background:var(--card); color:var(--text); box-shadow:0 1px 3px rgba(0,0,0,.08); }
   body.dark .seg button.active{ background:#262b36; }
-  .settings-modal{ max-width:640px; max-height:85vh; overflow:auto; }
+  .settings-modal{ max-width:720px; max-height:85vh; overflow:auto; }
+  .set-badge{ font-size:10px; font-weight:800; letter-spacing:.5px; padding:3px 8px; border-radius:20px; border:1px solid var(--line); color:var(--muted); background:var(--card); }
+  .set-badge.ok{ color:var(--green); border-color:#d3eedd; background:#eaf7ef; }
+  body.dark .set-badge.ok{ background:rgba(22,163,74,.14); border-color:rgba(22,163,74,.3); }
+  .set-field{ margin-bottom:10px; }
+  .set-field label{ display:block; font-size:11px; letter-spacing:.6px; font-weight:700; color:var(--muted); margin-bottom:6px; text-transform:uppercase; }
+  .set-field input, .set-field select, .set-field textarea{ width:100%; background:var(--card); border:1px solid var(--line); color:var(--text); border-radius:10px; padding:10px 12px; font-size:13px; outline:none; }
+  .set-field textarea{ min-height:72px; resize:vertical; }
+  .set-hint{ font-size:11px; color:var(--muted); margin-top:4px; line-height:1.4; }
+  .set-grid2{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  @media(max-width:640px){ .set-grid2{ grid-template-columns:1fr; } }
+  .set-conn-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+  @media(max-width:640px){ .set-conn-grid{ grid-template-columns:1fr; } }
+  .set-conn{ background:var(--card); border:1px solid var(--line); border-radius:12px; padding:12px; }
+  .set-conn-top{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:6px; }
+  .set-check{ display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600; margin-top:6px; }
+  .set-check input{ width:auto; accent-color:var(--brand); }
+  .storage-toolbar{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:14px; }
+  .storage-toolbar input, .storage-toolbar select{ padding:9px 12px; border:1px solid var(--line); border-radius:10px; background:var(--card); color:var(--text); font-size:13px; }
+  .storage-toolbar input{ flex:1; min-width:160px; }
+  .profit-chart{ width:100%; height:160px; display:block; }
+  .bundle-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:14px; }
+  @media(max-width:700px){ .bundle-grid{ grid-template-columns:1fr; } }
+  .bundle-card{ border:1px solid var(--line); border-radius:14px; padding:14px; background:var(--card); }
+  .reply-box{ border:1px solid var(--line); border-radius:12px; padding:12px; background:#fbfbfe; }
+  body.dark .reply-box{ background:#14171d; }
+  .value-verdict{ border-radius:12px; padding:14px; margin-top:12px; font-size:13px; line-height:1.5; }
+  .value-verdict.buy{ background:#eaf7ef; border:1px solid #d3eedd; color:#14532d; }
+  .value-verdict.pass{ background:#fef2f2; border:1px solid #fecaca; color:#7f1d1d; }
+  .value-verdict.maybe{ background:#fffbeb; border:1px solid #fde68a; color:#78350f; }
+  body.dark .value-verdict.buy{ background:rgba(22,163,74,.12); border-color:rgba(22,163,74,.3); color:#86efac; }
+  body.dark .value-verdict.pass{ background:rgba(220,38,38,.12); border-color:rgba(220,38,38,.3); color:#fca5a5; }
+  body.dark .value-verdict.maybe{ background:rgba(245,158,11,.12); border-color:rgba(245,158,11,.3); color:#fcd34d; }
   /* forgot modal helpers */
   #forgotFoundMsg{ background:#eaf7ef; border:1px solid #d3eedd; border-radius:10px; padding:10px 14px; font-size:13px; color:#15803d; margin-bottom:14px; }
   body.dark #forgotFoundMsg{ background:rgba(22,163,74,.12); border-color:rgba(22,163,74,.3); color:#86efac; }
@@ -877,24 +942,35 @@
   .vinted-closet-item .vc-meta{ font-size:11px; color:var(--muted); padding:0 8px 8px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
   /* ============ RESPONSIVE / MOBILE FRIENDLY ============ */
+  @media(min-width: 901px){
+    #page-app{ display:flex; flex-direction:column; }
+    #page-app[hidden]{ display:none !important; }
+    .app-topbar{ display:flex; }
+    #page-app .topnav{ display:none; } /* sidebar replaces topnav on desktop */
+  }
   @media(max-width: 900px){
     .topnav{ padding:0 12px; height:56px; gap:6px; }
     .brand{ font-size:17px; margin-right:8px; }
     .topnav .links{ display:none; }
     .nav-burger{ display:block; }
-    body.nav-open #page-landing .topnav .links,
-    body.nav-open #page-app .topnav .links{
+    body.nav-open #page-landing .topnav .links{
       display:flex; flex-direction:column; position:absolute; top:56px; left:0; right:0;
       background:var(--card); border-bottom:1px solid var(--line); padding:10px 12px 14px;
       box-shadow:0 12px 32px rgba(17,24,39,.12); z-index:41; gap:4px; max-height:72vh; overflow:auto;
     }
-    body.nav-open #page-landing .topnav .links .navlink,
-    body.nav-open #page-app .topnav .links .navlink{
+    body.nav-open #page-landing .topnav .links .navlink{
       text-align:left; padding:12px 14px; border-radius:10px; font-size:14px;
     }
     .topnav .navlink.active{ background:#eef0ff; }
     body.dark .topnav .links{ background:#171a21; }
     #page-landing .topnav .btn, #page-landing .topnav .btn-ghost{ font-size:13px; padding:8px 12px; }
+    /* app sidebar becomes off-canvas drawer on mobile */
+    .app-shell{ flex-direction:column; }
+    .app-sidebar{ position:fixed; left:0; top:0; bottom:0; width: min(78vw, 280px); height:100vh; transform: translateX(-100%); transition: transform .2s; z-index:40; box-shadow: 4px 0 24px rgba(0,0,0,.18); display:flex; }
+    body.sidebar-open .app-sidebar{ transform: translateX(0); }
+    .app-main-wrap{ min-width:0; }
+    #page-app .topnav{ display:flex; }
+    .app-topbar{ display:none; }
   }
   @media(max-width: 640px){
     .hero{ padding:42px 16px 48px; }
@@ -965,6 +1041,7 @@
     <button class="brand" onclick="goLanding()"><span class="brand-mark">G</span> Guidsell</button>
     <div class="links">
       <button class="navlink" onclick="closeMobileNav();document.getElementById('sec-how').scrollIntoView({behavior:'smooth'})">Hoe het werkt</button>
+      <button class="navlink" onclick="closeMobileNav();document.getElementById('sec-what').scrollIntoView({behavior:'smooth'})">What you get</button>
       <button class="navlink" onclick="closeMobileNav();document.getElementById('sec-pricing').scrollIntoView({behavior:'smooth'})">Prijzen</button>
     </div>
     <div class="nav-spacer"></div>
@@ -1005,16 +1082,21 @@
     </div>
   </section>
 
-  <section class="section" style="padding-top:0">
-    <h2 class="section-title">Alles voor de serieuze reseller</h2>
-    <p class="section-sub">Niet alleen prijzen — maar je hele verkoopproces.</p>
-    <div class="features">
-      <div class="feature"><div class="ico">📊</div><h3>Prijs per staat</h3><p>Live Vinted-vergelijking: zie wat jouw item in elke staat oplevert — van nieuw met label tot zichtbare slijtage.</p></div>
-      <div class="feature"><div class="ico">✍️</div><h3>Verkoopklare beschrijving</h3><p>Titel, beschrijving en tags die klaar zijn om te plakken in Vinted.</p></div>
-      <div class="feature"><div class="ico">📦</div><h3>Voorraadbeheer</h3><p>Bewaar je items, markeer ze als verkocht en houd je voorraad bij.</p></div>
-      <div class="feature"><div class="ico">📮</div><h3>Verzendkosten calculator <span class="pro-tag">PRO</span></h3><p>Plak je haul-link + kies je Chinese agent — direct totaalgewicht, pakketvolume en indicatieve verzendkosten. Alleen voor PRO.</p></div>
-      <div class="feature"><div class="ico">🧾</div><h3>Kasboek &amp; winst</h3><p>Inkoopkosten en verkoopopbrengst automatisch bijgehouden. Jij ziet je echte winst.</p></div>
-      <div class="feature"><div class="ico">🆓</div><h3>Gratis starten</h3><p>5 waardechecks per week, elke week opnieuw. Zonder creditcard.</p></div>
+  <section style="background:#0e0e0e;padding:54px 28px 64px;margin-top:0" id="sec-what">
+    <div style="max-width:1080px;margin:0 auto">
+      <h2 style="font-size:26px;letter-spacing:-.5px;color:#fff;margin-bottom:6px">What you get</h2>
+      <p style="color:#9aa0b2;font-size:13.5px;margin-bottom:18px;text-align:left;max-width:720px">Alles hieronder is live in de app — klik een kaart om direct naar die functie te gaan (log in als je nog niet ingelogd bent).</p>
+      <div class="what-grid">
+        <div class="what-card" role="button" tabindex="0" data-what="check" onclick="openWhat('check')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openWhat('check')}"><div class="what-top"><span class="what-ico">◧</span><span class="what-badge">STARTER AND UP</span></div><h3>Listing tool →</h3><p>Structured analysis, a fixed-format block, and a price call with a low, suggested and high range plus expected days to sell.</p></div>
+        <div class="what-card" role="button" tabindex="0" data-what="check" onclick="openWhat('check')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openWhat('check')}"><div class="what-top"><span class="what-ico">▭</span><span class="what-badge">STARTER AND UP</span></div><h3>Value check →</h3><p>At a flea market stall: a photo in, a clear buy-or-pass verdict out, with the most you should pay and a line to negotiate with.</p></div>
+        <div class="what-card" role="button" tabindex="0" data-what="items" onclick="openWhat('items')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openWhat('items')}"><div class="what-top"><span class="what-ico">⧉</span><span class="what-badge">STARTER AND UP</span></div><h3>Storage system →</h3><p>Every item with photo, price, platform — and the shelf it is actually on. Searchable, sortable like a watchlist, with margin and days online on every row.</p></div>
+        <div class="what-card" role="button" tabindex="0" data-what="dashboard" onclick="openWhat('dashboard')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openWhat('dashboard')}"><div class="what-top"><span class="what-ico">▅</span><span class="what-badge">STARTER AND UP</span></div><h3>Profit curve →</h3><p>Cumulative net profit charted like a price line, one step per sale, with peak and maximum drawdown so a losing run shows up before the month closes.</p></div>
+        <div class="what-card" role="button" tabindex="0" data-what="dashboard" onclick="openWhat('dashboard')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openWhat('dashboard')}"><div class="what-top"><span class="what-ico">▦</span><span class="what-badge">STARTER AND UP</span></div><h3>Real net profit →</h3><p>Purchase, shipping, platform fees and your own hourly rate, subtracted per item. The number you see is the number you keep.</p></div>
+        <div class="what-card" role="button" tabindex="0" data-what="bundles" onclick="openWhat('bundles')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openWhat('bundles')}"><div class="what-top"><span class="what-ico">⧉</span><span class="what-badge">STARTER AND UP</span></div><h3>Bundle suggestions →</h3><p>Groups slow-moving stock with a piece that actually sells, priced 10 to 20 percent under the sum, so items that would sit for months move together instead.</p></div>
+        <div class="what-card" role="button" tabindex="0" data-what="replies" onclick="openWhat('replies')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openWhat('replies')}"><div class="what-top"><span class="what-ico">◭</span><span class="what-badge">STARTER AND UP</span></div><h3>Buyer replies →</h3><p>Paste what a buyer wrote, get send-ready answers in their language. It knows your floor and will not accept below it.</p></div>
+        <div class="what-card" role="button" tabindex="0" data-what="ledger" onclick="openWhat('ledger')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openWhat('ledger')}"><div class="what-top"><span class="what-ico">▌▌</span><span class="what-badge">STARTER AND UP</span></div><h3>Cash book →</h3><p>Income and expenses in one ledger, fed automatically from your sales. Import the spreadsheet you already keep, export for your accountant.</p></div>
+      </div>
+      <div style="text-align:center;margin-top:18px"><button class="btn btn-lg" onclick="openAuth('register')" style="background:#10b981;border:none">Try the listing tool →</button></div>
     </div>
   </section>
 
@@ -1138,18 +1220,11 @@
      PAGE 3: APP
 ================================================== -->
 <div id="page-app" hidden>
-  <nav class="topnav">
-    <button class="brand" onclick="switchView('dashboard')"><span class="brand-mark">G</span> Guidsell</button>
-    <div class="links" id="appLinks">
-      <button class="navlink active" data-view="dashboard" onclick="switchView('dashboard')">Dashboard</button>
-      <button class="navlink" data-view="check" onclick="switchView('check')">Waardecheck</button>
-      <button class="navlink" data-view="ship" onclick="switchView('ship')">Verzending <span class="pro-tag">PRO</span></button>
-      <button class="navlink" data-view="items" onclick="switchView('items')">Mijn items <span class="pro-tag">PRO</span></button>
-      <button class="navlink" data-view="ledger" onclick="switchView('ledger')">Kasboek <span class="pro-tag">PRO</span></button>
-      <button class="navlink" data-view="upgrade" onclick="switchView('upgrade')">Upgrade</button>
-    </div>
-    <div class="nav-spacer"></div>
+  <!-- desktop + mobile topbar (burger/brand/actions) -->
+  <nav class="topnav" id="appTopnav">
     <button class="nav-burger" id="burgerApp" onclick="toggleMobileNav()" aria-label="Menu" aria-expanded="false">☰</button>
+    <button class="brand" onclick="switchView('dashboard')"><span class="brand-mark">G</span> Guidsell</button>
+    <div class="nav-spacer"></div>
     <div class="app-actions">
       <button class="btn-ghost theme-toggle" onclick="toggleTheme()" title="Donker/licht">🌙</button>
       <span class="quota-chip" id="quotaChip">5/5 deze week</span>
@@ -1161,7 +1236,32 @@
       <button class="btn-ghost" onclick="logout()" title="Uitloggen">⎋ Uitloggen</button>
     </div>
   </nav>
-
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleMobileNav()" aria-hidden="true"></div>
+  <div class="app-shell">
+  <aside class="app-sidebar" id="appSidebar" aria-label="Navigatie">
+    <button class="brand" onclick="switchView('dashboard')"><span class="brand-mark">G</span> Guidsell</button>
+    <nav class="side-links" id="appLinks">
+      <button class="navlink active" data-view="dashboard" onclick="switchView('dashboard')"><span class="nav-ico">▦</span> Dashboard</button>
+      <button class="navlink" data-view="check" onclick="switchView('check')"><span class="nav-ico">◧</span> Waardecheck</button>
+      <button class="navlink" data-view="ship" onclick="switchView('ship')"><span class="nav-ico">📮</span> Verzending <span class="pro-tag">PRO</span></button>
+      <button class="navlink" data-view="items" onclick="switchView('items')"><span class="nav-ico">⧉</span> Mijn items <span class="pro-tag">PRO</span></button>
+      <button class="navlink" data-view="bundles" onclick="switchView('bundles')"><span class="nav-ico">⧉</span> Bundels <span class="pro-tag">PRO</span></button>
+      <button class="navlink" data-view="replies" onclick="switchView('replies')"><span class="nav-ico">◭</span> Reacties <span class="pro-tag">PRO</span></button>
+      <button class="navlink" data-view="ledger" onclick="switchView('ledger')"><span class="nav-ico">▌▌</span> Kasboek <span class="pro-tag">PRO</span></button>
+      <button class="navlink" data-view="upgrade" onclick="switchView('upgrade')"><span class="nav-ico">◆</span> Upgrade</button>
+    </nav>
+    <div class="side-foot">
+      <button class="btn-ghost side-foot-btn" onclick="openSettings()">⚙️ Instellingen</button>
+      <button class="btn-ghost side-foot-btn" onclick="logout()">⎋ Uitloggen</button>
+    </div>
+  </aside>
+  <div class="app-main-wrap">
+  <div class="app-topbar" id="appTopbar">
+    <button class="nav-burger" onclick="toggleMobileNav()" aria-label="Menu" aria-expanded="false">☰</button>
+    <button class="brand" onclick="switchView('dashboard')"><span class="brand-mark">G</span> Guidsell</button>
+    <div class="nav-spacer"></div>
+    <span class="quota-chip" id="quotaChipTop" style="display:none"></span>
+  </div>
   <main class="app-main">
 
     <!-- ---------- DASHBOARD ---------- -->
@@ -1217,6 +1317,22 @@
           <button class="btn btn-lg" onclick="switchView('check')">💰 Nieuwe waardecheck starten</button>
           <span style="margin-left:12px;color:var(--muted);font-size:13px">Foto erin, prijs + beschrijving eruit.</span>
         </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">PROFIT CURVE <span id="curveMeta" style="margin-left:auto;font-size:11px;color:var(--muted);font-weight:500;letter-spacing:0"></span></div>
+        <div class="card-body">
+          <canvas id="profitCanvas" class="profit-chart" width="720" height="160"></canvas>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;font-size:12px;color:var(--muted)">
+            <span id="curvePeak"></span><span id="curveDD"></span><span id="curveNet"></span>
+          </div>
+          <div id="curveEmpty" class="empty-state" style="padding:14px" hidden>Nog geen verkopen — curve verschijnt na je eerste verkoop (kasboek).</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">ECHTE NETTO-WINST <span style="margin-left:auto;font-size:10px;letter-spacing:.7px;color:var(--muted)">per verkoop na alle kosten</span></div>
+        <div class="card-body" id="realProfitTable" style="padding:0"></div>
       </div>
 
       <div class="card">
@@ -1333,7 +1449,22 @@
                 <label>Prijsadvies (€)</label>
                 <input id="rPriceInput" type="number" step="0.5">
               </div>
+              <div class="row2">
+                <div class="field"><label>Aankoopprijs (€)</label><input id="rPurchase" type="number" step="0.5" min="0" placeholder="bv. 8,00"></div>
+                <div class="field"><label>Verzendkosten (€)</label><input id="rShip" type="number" step="0.5" min="0" placeholder="auto"></div>
+              </div>
+              <div class="row2">
+                <div class="field"><label>Platform</label><select id="rPlatform"><option value="vinted">Vinted</option><option value="depop">Depop</option></select></div>
+                <div class="field"><label>Plank / vak</label><input id="rShelf" placeholder="bv. A3 of Kast 2"></div>
+              </div>
 
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:14px 0">
+                <div style="background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center"><div style="font-size:11px;letter-spacing:.6px;color:var(--muted);font-weight:700">LAAG</div><div style="font-size:16px;font-weight:800" id="rLowVal">€0</div></div>
+                <div style="background:linear-gradient(135deg,rgba(99,102,241,.12),rgba(139,92,246,.12));border:1.5px solid var(--brand);border-radius:12px;padding:10px;text-align:center"><div style="font-size:11px;letter-spacing:.6px;color:var(--brand-dark);font-weight:700">GEADVISEERD</div><div style="font-size:17px;font-weight:800;color:var(--brand-dark)" id="rMidVal">€0</div></div>
+                <div style="background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center"><div style="font-size:11px;letter-spacing:.6px;color:var(--muted);font-weight:700">HOOG</div><div style="font-size:16px;font-weight:800" id="rHighVal">€0</div></div>
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:12px;color:var(--muted);margin-bottom:8px"><span id="rDaysBadge" class="src-badge local" style="margin:0"></span><span id="rNetHint"></span></div>
+              <div id="rVerdict" class="value-verdict" hidden></div>
               <div class="copy-row">
                 <button class="copy-btn" onclick="copyField('rTitle')">📋 Titel</button>
                 <button class="copy-btn" onclick="copyField('rDesc')">📋 Beschrijving</button>
@@ -1546,7 +1677,76 @@
           <button class="filter-btn" data-f="stock" onclick="setFilter('stock')">In voorraad</button>
           <button class="filter-btn" data-f="sold" onclick="setFilter('sold')">Verkocht</button>
         </div>
+        <div id="itemStorageBar" class="storage-toolbar" hidden>
+          <input id="itemSearch" type="search" placeholder="Zoek op titel, merk, maat, plank…" oninput="renderItems()">
+          <select id="itemSort" onchange="renderItems()">
+            <option value="newest">Nieuwste eerst</option>
+            <option value="oldest">Oudste eerst</option>
+            <option value="priceHigh">Prijs hoog → laag</option>
+            <option value="priceLow">Prijs laag → hoog</option>
+            <option value="marginHigh">Marge hoog → laag</option>
+            <option value="daysHigh">Dagen online langst → kortst</option>
+          </select>
+        </div>
         <div class="item-grid" id="itemGrid"></div>
+      </div>
+    </section>
+
+    <!-- ---------- BUNDELS ---------- -->
+    <section class="view" id="view-bundles">
+      <div id="bundlesLock" hidden>
+        <div class="pro-lock">
+          <div class="big-ico">📦🔒</div>
+          <h3>Bundels is PRO</h3>
+          <p>Koppel trage voorraad met iets dat loopt — 10–20% onder de som, zodat maandenlange liggers eindelijk meeverkopen.</p>
+          <ul>
+            <li>Dead-stock (21+ dagen) × mover-combi's</li>
+            <li>Auto-prijs 10–20% onder som</li>
+            <li>1-klik bundel-tekst kopiëren</li>
+            <li>Echte netto-marge per bundel</li>
+          </ul>
+          <button class="btn btn-lg" onclick="switchView('upgrade')">Ontgrendel met PRO — vanaf €3/week</button>
+        </div>
+      </div>
+      <div id="bundlesContent" hidden>
+        <h1 class="page-title">Bundelsuggesties</h1>
+        <p class="page-sub">Groepen trage stock + een seller — 10–20% onder de som zodat liggers meebewegen.</p>
+        <div class="bundle-grid" id="bundleGrid"></div>
+        <div id="bundleEmpty" class="empty-state" hidden>Te weinig voorraad voor bundels — je hebt minstens 2 items nodig (1 traag, 1 verkopend).</div>
+      </div>
+    </section>
+
+    <!-- ---------- REACTIES ---------- -->
+    <section class="view" id="view-replies">
+      <div id="repliesLock" hidden>
+        <div class="pro-lock">
+          <div class="big-ico">💬🔒</div>
+          <h3>Reacties is PRO</h3>
+          <p>Plak wat een koper schreef — krijg kant-en-klare antwoorden in hun taal, met je vloerprijs in gedachten.</p>
+          <ul>
+            <li>Taal-detectie (NL/EN/DE/FR)</li>
+            <li>Vloer = kostprijs + min. netto (nooit eronder)</li>
+            <li>3 tonen: vriendelijk / stevig / best Bod</li>
+            <li>1-klik kopiëren</li>
+          </ul>
+          <button class="btn btn-lg" onclick="switchView('upgrade')">Ontgrendel met PRO — vanaf €3/week</button>
+        </div>
+      </div>
+      <div id="repliesContent" hidden>
+        <h1 class="page-title">Koperreacties</h1>
+        <p class="page-sub">Plak een bericht, krijg antwoorden in hun taal — je vloerprijs wordt nooit onderschreden.</p>
+        <div class="card">
+          <div class="card-head">💬 PLAK BERICHT + VLOERPRIJS</div>
+          <div class="card-body">
+            <div class="field"><label>Bericht van koper</label><textarea id="replyInput" rows="3" placeholder="bv. Is €12 ook goed?"></textarea></div>
+            <div class="row2">
+              <div class="field" style="margin-bottom:0"><label>Item / bundel kiezen</label><select id="replyItemSel"></select></div>
+              <div class="field" style="margin-bottom:0"><label>Vloer (auto = kost + min.net)</label><input id="replyFloor" type="number" step="0.5" min="0" placeholder="auto"></div>
+            </div>
+            <button class="btn" style="margin-top:12px" onclick="genReplies()">✨ Maak antwoorden</button>
+            <div id="replyOut" style="margin-top:14px;display:grid;gap:10px"></div>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -1655,6 +1855,8 @@
     </section>
 
   </main>
+  </div>
+  </div>
 </div>
 
 <!-- ================= MODALS ================= -->
@@ -1684,6 +1886,17 @@
       <button class="btn-ghost" onclick="closeSoldModal()">Annuleren</button>
     </div>
     <p style="font-size:11px;margin-top:12px;margin-bottom:0">De verkoop wordt automatisch in je kasboek geboekt.</p>
+  </div>
+</div>
+<div class="modal-back" id="itemEditModal">
+  <div class="modal" style="text-align:left;max-width:520px">
+    <h2>Item bewerken</h2>
+    <div class="field"><label>Titel</label><input id="editTitle"></div>
+    <div class="row2"><div class="field"><label>Merk</label><input id="editBrand"></div><div class="field"><label>Maat</label><input id="editSize"></div></div>
+    <div class="row2"><div class="field"><label>Prijs (€)</label><input id="editPrice" type="number" step="0.5"></div><div class="field"><label>Aankoop (€)</label><input id="editPurchase" type="number" step="0.5"></div></div>
+    <div class="row2"><div class="field"><label>Verzend (€)</label><input id="editShip" type="number" step="0.5"></div><div class="field"><label>Plank</label><input id="editShelf" placeholder="bv. A3"></div></div>
+    <div class="field"><label>Platform</label><select id="editPlatform"><option value="vinted">Vinted</option><option value="depop">Depop</option></select></div>
+    <div class="modal-actions"><button class="btn btn-green btn-lg" onclick="saveItemEdit()">Opslaan</button><button class="btn-ghost" onclick="closeItemEdit()">Annuleren</button></div>
   </div>
 </div>
 
@@ -1723,62 +1936,139 @@
 
 <div class="modal-back" id="settingsModal" onclick="if(event.target===this) closeSettings()">
   <div class="modal settings-modal" style="text-align:left">
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px">
-      <h2 style="margin:0">⚙️ Instellingen</h2>
-      <button class="btn-ghost" onclick="closeSettings()" aria-label="Sluiten">✕</button>
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:4px">
+      <div><h2 style="margin:0" id="setH2">Settings</h2><div id="settingsSub" style="font-size:12.5px;color:var(--muted);margin-top:2px"></div></div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn" id="setSaveAllBtn" style="background:#10b981" onclick="saveAllSettings()">Save</button>
+        <button class="btn-ghost" onclick="closeSettings()" aria-label="Sluiten">✕</button>
+      </div>
     </div>
-    <p style="margin-bottom:14px;font-size:13px">Klik op je naam/avatar om hier te komen. Taal wijzigt alles live — thema en je haul-defaults worden onthouden.</p>
 
-    <div class="settings-grid">
+    <!-- BILLING + THIS MONTH -->
+    <div class="settings-grid" style="margin-top:14px">
+      <div class="settings-section"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><h3 style="margin:0" id="lblBilling">BILLING</h3><span class="set-badge" id="billBadge">FREE</span></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px"><span id="billText" style="font-size:13px">You're on the Free plan.</span><button class="btn" style="background:#10b981;font-size:12.5px;padding:8px 12px" onclick="closeSettings();switchView('upgrade')" id="billBtn">See plans</button></div>
+      </div>
+      <div class="settings-section"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><h3 style="margin:0" id="lblThisMonth">THIS MONTH</h3><span class="set-badge" id="monthBadge">FREE</span></div>
+        <div style="font-size:10px;letter-spacing:.8px;color:var(--muted);font-weight:700" id="lblCredits">CREDITS USED</div>
+        <div style="font-size:22px;font-weight:800;letter-spacing:-.5px" id="creditUsed">0.0 / 5</div>
+        <div style="font-size:11px;color:var(--muted)" id="creditLeft">5.0 left</div>
+      </div>
+    </div>
+
+    <!-- GENERAL + ECONOMICS -->
+    <div class="settings-grid" style="margin-top:10px">
       <div class="settings-section">
-        <h3>👤 PROFIEL</h3>
-        <div class="field" style="margin-bottom:10px"><label>Naam</label><input id="setName" type="text" placeholder="Je naam" autocomplete="name"></div>
-        <div class="field" style="margin-bottom:6px"><label>E-mail</label><input id="setEmail" type="text" disabled style="opacity:.7"></div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" onclick="saveProfileName()">Naam opslaan</button><button class="btn btn-outline" style="font-size:12.5px" onclick="openChangePass()">Wachtwoord wijzigen</button></div>
-        <div id="changePassBox" hidden style="margin-top:12px;border-top:1px solid var(--line);padding-top:12px">
-          <div class="field"><label>Nieuw wachtwoord</label><input id="setPass1" type="password" placeholder="Minimaal 4 tekens" minlength="4"></div>
-          <div class="field"><label>Herhaal nieuw wachtwoord</label><input id="setPass2" type="password" placeholder="Herhalen"></div>
-          <div style="display:flex;gap:8px"><button class="btn" onclick="saveNewPassword()">Opslaan</button><button class="btn-ghost" onclick="closeChangePass()">Annuleren</button></div>
+        <h3 id="lblGeneral">GENERAL</h3>
+        <div class="set-field"><label id="lblLang">Interface Language</label>
+          <div class="seg" role="group"><button id="segLangNL" onclick="setLang('nl')">NL</button><button id="segLangEN" onclick="setLang('en')">EN</button><button id="segLangDE" onclick="setLang('de')">DE</button><button id="segLangFR" onclick="setLang('fr')">FR</button></div>
+          <div class="set-hint" id="lblLangHint"></div>
+        </div>
+        <div class="set-field"><label id="lblTheme">Appearance</label>
+          <div class="seg" role="group"><button id="segThemeLight" onclick="setThemePref('light')">☀️</button><button id="segThemeDark" onclick="setThemePref('dark')">🌙</button><button id="segThemeAuto" onclick="setThemePref('auto')">◐</button></div>
+        </div>
+        <div class="set-field"><label id="lblCurrency">Currency</label><select id="setCurrency" onchange="setPref('currency',this.value)"></select></div>
+        <div class="set-field"><label id="lblShipFrom">Ship From</label><input id="setShipFrom" type="text" placeholder="bv. Amsterdam of China" onchange="setPref('shipFrom',this.value)"></div>
+        <div class="set-field"><label id="lblCatMode">Category Mode</label><select id="setCategoryMode" onchange="setPref('categoryMode',this.value)"><option value="clothing">Clothing only</option><option value="all">All categories</option></select></div>
+        <div class="set-field"><label id="lblFixedLines">Fixed lines on every listing</label><textarea id="setFixedLines" rows="3" placeholder="bv. Verzending binnen 1 werkdag&#10;Vraag gerust om extra foto's" onchange="setPref('fixedLines',this.value)"></textarea><div class="set-hint" id="lblFixedLinesHint"></div></div>
+      </div>
+      <div class="settings-section">
+        <h3 id="lblEcon">ECONOMICS</h3>
+        <div class="set-grid2">
+          <div class="set-field"><label id="lblVF">VINTED FEE %</label><input id="setVintedFee" type="number" step="0.1" min="0"></div>
+          <div class="set-field"><label id="lblVFF">VINTED FIXED FEE</label><input id="setVintedFixed" type="number" step="0.01" min="0"></div>
+          <div class="set-field"><label id="lblDF">DEPOP FEE %</label><input id="setDepopFee" type="number" step="0.1" min="0"></div>
+          <div class="set-field"><label id="lblDFF">DEPOP FIXED FEE</label><input id="setDepopFixed" type="number" step="0.01" min="0"></div>
+          <div class="set-field"><label id="lblHour">YOUR HOURLY RATE</label><input id="setHourly" type="number" step="0.5" min="0"></div>
+          <div class="set-field"><label id="lblMin">MINUTES PER ITEM</label><input id="setMinutes" type="number" step="1" min="0"><div class="set-hint" id="lblMinHint"></div></div>
+          <div class="set-field"><label id="lblDead">DEAD STOCK AFTER (DAYS)</label><input id="setDeadStock" type="number" step="1" min="1"></div>
+          <div class="set-field"><label id="lblMinNet">MIN. NET</label><input id="setMinNet" type="number" step="0.5" min="0"><div class="set-hint" id="lblMinNetHint"></div></div>
+          <div class="set-field"><label id="lblDefShip">DEFAULT SHIPPING COST</label><input id="setDefShip" type="number" step="0.01" min="0"></div>
         </div>
       </div>
-      <div class="settings-section">
-        <h3>🌐 ALGEMEEN</h3>
-        <div class="settings-row"><div><b>Taal</b><br><small>NL / EN — live op de hele site</small></div><div class="seg" role="group" aria-label="Taal"><button id="segLangNL" onclick="setLang('nl')">NL</button><button id="segLangEN" onclick="setLang('en')">EN</button></div></div>
-        <div class="settings-row"><div><b>Thema</b><br><small>Donker of licht</small></div><div class="seg" role="group" aria-label="Thema"><button id="segThemeLight" onclick="applyTheme('light')">☀️ Licht</button><button id="segThemeDark" onclick="applyTheme('dark')">🌙 Donker</button></div></div>
-        <div class="settings-row"><div><b>Compacte kaarten</b><br><small>Minder witruimte (pro tip)</small></div><label style="display:flex;align-items:center;gap:6px"><input id="setCompact" type="checkbox" onchange="setPref('compact', this.checked)"> <span style="font-size:12.5px">Aan</span></label></div>
+    </div>
+
+    <!-- PLATFORMS -->
+    <div class="settings-section" style="margin-top:10px">
+      <h3 id="lblPlatforms">PLATFORMS</h3>
+      <div class="set-field"><label id="lblWhenSale">When a sale comes in</label>
+        <select id="setSaleAction"><option value="reserved">Flag as reserved</option><option value="remove">Mark as sold</option><option value="nothing">Do nothing</option></select>
+        <div class="set-hint" id="lblWhenSaleHint"></div>
+      </div>
+      <div class="set-field"><label id="lblPreSel">Pre-selected Platforms</label>
+        <label class="set-check"><input id="setPreVinted" type="checkbox"> Vinted</label>
+        <label class="set-check"><input id="setPreDepop" type="checkbox"> Depop</label>
+        <div class="set-hint" id="lblPreSelHint"></div>
       </div>
     </div>
 
+    <!-- LISTING EDITOR -->
     <div class="settings-section" style="margin-top:10px">
-      <h3>🤖 AI — GEMINI</h3>
-      <p style="font-size:12px;color:var(--muted);margin-bottom:10px;line-height:1.45">Sluit je <b>gratis Google Gemini sleutel</b> aan (aistudio.google.com/apikey) óf gebruik de server-sleutel als die draait. De sleutel blijft lokaal in deze browser.</p>
-      <div class="field" style="margin-bottom:8px"><label>Gemini API-sleutel</label><input id="setKey" type="password" placeholder="AIza..."></div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" onclick="saveSettings()">Sleutel opslaan</button><button class="btn btn-outline" style="font-size:12.5px" onclick="clearApiKey()">Wissen</button><span id="setKeyState" style="font-size:11px;color:var(--muted);align-self:center"></span></div>
+      <h3 id="lblListingEditor">LISTING EDITOR</h3>
+      <div class="set-field"><label id="lblTone">Tone</label><div class="seg" role="group" id="segTone"><button data-tone="clean" onclick="setTone('clean')">Clean</button><button data-tone="hype" onclick="setTone('hype')">Hype</button><button data-tone="luxury" onclick="setTone('luxury')">Luxury</button><button data-tone="minimal" onclick="setTone('minimal')">Minimal</button></div></div>
+      <div class="set-field"><label id="lblLength">Length</label><div class="seg" role="group" id="segLength"><button data-len="short" onclick="setLength('short')">Short</button><button data-len="standard" onclick="setLength('standard')">Standard</button><button data-len="detailed" onclick="setLen('detailed')">Detailed</button></div></div>
+    </div>
+
+    <!-- PLATFORM CONNECTIONS -->
+    <div class="settings-section" style="margin-top:10px">
+      <h3 id="lblConnections">PLATFORM CONNECTIONS</h3>
+      <div class="set-conn-grid">
+        <div class="set-conn"><div class="set-conn-top"><b id="lblVinted">Vinted</b><span class="set-badge" id="lblManual1">MANUAL</span></div><div class="set-hint" id="lblVintedDesc"></div></div>
+        <div class="set-conn"><div class="set-conn-top"><b id="lblDepop">Depop</b><span class="set-badge" id="lblManual2">MANUAL</span></div><div class="set-hint" id="lblDepopDesc"></div></div>
+        <div class="set-conn"><div class="set-conn-top"><b id="lblAi">AI analysis</b><span class="set-badge ok" id="connAiBadge">CONNECTED</span></div><div class="set-hint" id="lblAiDesc"></div></div>
+      </div>
+    </div>
+
+    <!-- PROFIEL -->
+    <div class="settings-section" style="margin-top:10px">
+      <h3 id="lblProfile">PROFIEL</h3>
+      <div class="set-grid2">
+        <div class="set-field"><label id="lblName">Naam</label><input id="setName" type="text" autocomplete="name"></div>
+        <div class="set-field"><label id="lblEmail">E-mail</label><input id="setEmail" type="text" disabled style="opacity:.7"></div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px"><button class="btn" onclick="saveProfileName()" id="btnSaveName">Opslaan</button><button class="btn btn-outline" style="font-size:12.5px" onclick="openChangePass()" id="btnChangePass">Wachtwoord wijzigen</button></div>
+      <div id="changePassBox" hidden style="margin-top:12px;border-top:1px solid var(--line);padding-top:12px">
+        <div class="set-field"><label id="lblNewPass">Nieuw wachtwoord</label><input id="setPass1" type="password" minlength="4"></div>
+        <div class="set-field"><label id="lblRepPass">Herhaal nieuw wachtwoord</label><input id="setPass2" type="password"></div>
+        <div style="display:flex;gap:8px"><button class="btn" onclick="saveNewPassword()">Opslaan</button><button class="btn-ghost" onclick="closeChangePass()">Annuleren</button></div>
+      </div>
+    </div>
+
+    <!-- AI KEY -->
+    <div class="settings-section" style="margin-top:10px">
+      <h3 id="lblAiKey">AI — GEMINI</h3>
+      <p class="set-hint" style="margin-bottom:8px" id="lblAiKeyHint"></p>
+      <div class="set-field"><label id="lblKeyLbl">Gemini API-sleutel</label><input id="setKey" type="password" placeholder="AIza..."></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" onclick="saveSettings()" id="btnSaveKey">Sleutel opslaan</button><button class="btn btn-outline" style="font-size:12.5px" onclick="clearApiKey()" id="btnClearKey">Wissen</button><span id="setKeyState" style="font-size:11px;color:var(--muted);align-self:center"></span></div>
       <div id="serverAiRow" style="font-size:11px;color:var(--muted);margin-top:8px"></div>
     </div>
 
+    <!-- SHIPPING DEFAULTS -->
     <div class="settings-section" style="margin-top:10px">
-      <h3>📮 VERZENDING — DEFAULTS</h3>
-      <p style="font-size:12px;color:var(--muted);margin-bottom:10px">Deze keuzes worden onthouden en direct toegepast in de Verzendcalculator. Wijzigen kan altijd nog in de calculator zelf.</p>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div class="field" style="margin-bottom:0"><label>Standaard agent</label><select id="setShipAgent"></select></div>
-        <div class="field" style="margin-bottom:0"><label>Standaard bestemming</label><select id="setShipCountry"></select></div>
-        <div class="field" style="margin-bottom:0"><label>Standaard snelheid</label><select id="setShipMode"></select></div>
-        <div class="field" style="margin-bottom:0"><label>Standaard valuta</label><select id="setShipCurr"></select></div>
+      <h3 id="lblShipDefaults">VERZENDING — DEFAULTS</h3>
+      <p class="set-hint" style="margin-bottom:8px" id="lblShipDefaultsHint"></p>
+      <div class="set-grid2">
+        <div class="set-field"><label id="lblDefAgent">Standaard agent</label><select id="setShipAgent"></select></div>
+        <div class="set-field"><label id="lblDefCountry">Standaard bestemming</label><select id="setShipCountry"></select></div>
+        <div class="set-field"><label id="lblDefMode">Standaard snelheid</label><select id="setShipMode"></select></div>
+        <div class="set-field"><label id="lblDefCurr">Standaard valuta</label><select id="setShipCurr"></select></div>
       </div>
-      <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-outline" style="font-size:12.5px" onclick="saveShipDefaults()">Defaults opslaan</button><span style="font-size:11px;color:var(--muted);align-self:center">Tip: taalwissel vertaalt ook land/snelheid labels</span></div>
+      <div style="margin-top:8px"><button class="btn btn-outline" style="font-size:12.5px" onclick="saveShipDefaults()" id="btnSaveDefaults">Defaults opslaan</button></div>
     </div>
 
+    <!-- DATA -->
     <div class="settings-section" style="margin-top:10px">
-      <h3>🗄️ DATA</h3>
+      <h3 id="lblData">DATA</h3>
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-        <button class="btn btn-outline" style="font-size:12.5px" onclick="exportAllData()">⬇ Exporteer JSON</button>
-        <button class="btn btn-outline" style="font-size:12.5px;color:var(--red);border-color:#fecaca" onclick="wipeMyData()">🗑 Wis mijn data (dit apparaat)</button>
-        <span style="font-size:11px;color:var(--muted)">Wissen = alleen jouw browser — andere apparaten blijven staan</span>
+        <button class="btn btn-outline" style="font-size:12.5px" onclick="exportAllData()" id="btnExpJson">⬇ Exporteer JSON</button>
+        <button class="btn btn-outline" style="font-size:12.5px" onclick="exportLedgerCsv()" id="btnExpCsv">⬇ Exporteer CSV (boekhouder)</button>
+        <label class="btn btn-outline" style="font-size:12.5px;cursor:pointer">⬆ Importeer CSV<input type="file" accept=".csv,text/csv" hidden onchange="importLedgerCsv(this)"></label>
+        <button class="btn btn-outline" style="font-size:12.5px;color:var(--red);border-color:#fecaca" onclick="wipeMyData()" id="btnWipe">🗑 Wis mijn data (dit apparaat)</button>
+        <span style="font-size:11px;color:var(--muted)" id="lblWipeHint"></span>
       </div>
     </div>
 
-    <div style="margin-top:14px;display:flex;justify-content:flex-end"><button class="btn" onclick="closeSettings()">Klaar</button></div>
+    <div style="margin-top:14px;display:flex;justify-content:flex-end;gap:8px"><button class="btn" style="background:#10b981" onclick="saveAllSettings()">Save</button><button class="btn-ghost" onclick="closeSettings()" id="btnDone">Done</button></div>
   </div>
 </div>
 
@@ -1837,62 +2127,158 @@ const BRAND_TIERS = {
 const LS_PREFS = "guidsell_prefs";
 const I18N = {
   nl: {
-    settings: "Instellingen", settingsHint: "Klik op je naam/avatar om hier te komen. Taal wijzigt alles live — thema en je haul-defaults worden onthouden.",
-    profile: "PROFIEL", general: "ALGEMEEN", lang: "Taal", langHint: "NL / EN — live op de hele site", theme: "Thema", themeHint: "Donker of licht", compact: "Compacte kaarten", compactHint: "Minder witruimte (pro tip)",
-    ai: "AI — GEMINI", aiHint: "Sluit je gratis Google Gemini sleutel aan (aistudio.google.com/apikey) óf gebruik de server-sleutel als die draait. De sleutel blijft lokaal in deze browser.",
+    settings: "Instellingen", settingsHint: "Verbindingen, kosten en de standaardtekst voor elke listing.",
+    profile: "PROFIEL", general: "ALGEMEEN", lang: "Taal", langHint: "Listings blijven in het Engels — daar zitten de kopers", theme: "Weergave", themeHint: "Licht / donker / automatisch", compact: "Compacte kaarten", compactHint: "Minder witruimte", currency: "Valuta", shipFrom: "Verzenden vanuit", categoryMode: "Categorie-modus", fixedLines: "Vaste regels op elke listing", fixedLinesHint: "Eén per regel.",
+    economics: "ECONOMIE", vintedFeePct: "VINTED FEE %", vintedFixedFee: "VINTED FIXED FEE", depopFeePct: "DEPOP FEE %", depopFixedFee: "DEPOP FIXED FEE", hourlyRate: "YOUR HOURLY RATE", minutesPerItem: "MINUTES PER ITEM", minutesHint: "Fotograferen, listen, inpakken. Voor echte netto winst.", deadStock: "DEAD STOCK AFTER (DAYS)", minNet: "MIN. NET", minNetHint2: "De herprijs-vloer zakt nooit onder kostprijs + dit.", defaultShip: "DEFAULT SHIPPING COST",
+    platforms: "PLATFORMS", whenSale: "When a sale comes in", whenSaleHint: "De tool kan niets wijzigen op Vinted/Depop. Hij markeert als gereserveerd en zet de andere platforms voor je op een lijst.", preSelPlatforms: "Pre-selected Platforms", tickedDefault: "Standaard aangevinkt bij voorbereiden.",
+    listingEditor: "LISTING EDITOR", tone: "Tone", length: "Length", clean:"Clean", hype:"Hype", luxury2:"Luxury", minimal:"Minimal", short:"Short", standard:"Standard", detailed:"Detailed",
+    connections: "PLATFORM CONNECTIONS", vinted: "Vinted", depop: "Depop", aiAnalysis: "AI analysis", manual: "MANUAL", connected: "CONNECTED",
+    vintedManualDesc: "Vinted staat geen automatisch publiceren toe. Listing en foto's worden volledig voorbereid; je plakt ze zelf.",
+    depopManualDesc: "Depop staat geen automatisch publiceren toe. Listing en foto's worden volledig voorbereid; je plakt ze zelf.",
+    aiConnectedDesc: "Foto-analyse, listing-tekst en pricing draaien hierdoorheen.",
+    billing: "BILLING", thisMonth: "THIS MONTH", creditsUsed: "CREDITS USED", free: "FREE", seePlans: "See plans", left: "left",
     shipDefaults: "VERZENDING — DEFAULTS", shipDefaultsHint: "Deze keuzes worden onthouden en direct toegepast in de Verzendcalculator.",
-    data: "DATA", exportJson: "⬇ Exporteer JSON", wipeMe: "🗑 Wis mijn data (dit apparaat)", wipeMeHint: "Wissen = alleen jouw browser — andere apparaten blijven staan",
-    save: "Opslaan", cancel: "Annuleren", close: "Sluiten", ready: "Klaar", changePass: "Wachtwoord wijzigen", nameSaved: "Naam opgeslagen", passSaved: "Wachtwoord gewijzigd",
-    navDashboard: "Dashboard", navCheck: "Waardecheck", navShip: "Verzending", navItems: "Mijn items", navLedger: "Kasboek", navUpgrade: "Upgrade",
-    themeLight: "☀️ Licht", themeDark: "🌙 Donker", compactOn: "Aan",
+    data: "DATA", exportJson: "⬇ Exporteer JSON", importCsv: "⬆ Importeer CSV", exportCsv: "⬇ Exporteer CSV (boekhouder)", wipeMe: "🗑 Wis mijn data (dit apparaat)",
+    save: "Opslaan", saveGreen: "Save", cancel: "Annuleren", close: "Sluiten", ready: "Klaar", changePass: "Wachtwoord wijzigen", nameSaved: "Naam opgeslagen", passSaved: "Wachtwoord gewijzigd",
+    navDashboard: "Dashboard", navCheck: "Waardecheck", navShip: "Verzending", navItems: "Mijn items", navLedger: "Kasboek", navBundles: "Bundels", navReplies: "Reacties", navUpgrade: "Upgrade",
+    themeLight: "☀️ Licht", themeDark: "🌙 Donker", themeAuto: "Auto", compactOn: "Aan",
     defAgent: "Standaard agent", defCountry: "Standaard bestemming", defMode: "Standaard snelheid", defCurr: "Standaard valuta",
     defaultsSaved: "Defaults opgeslagen — staan meteen klaar in Verzending",
     langSwitched: "Taal: Nederlands", keySaved: "AI verbonden! 🤖✨", keyRemoved: "AI-sleutel verwijderd", keyTooShort: "Deze sleutel is te kort — kopieer hem volledig", keyRejected: "Google weigerde de sleutel", wipeConfirm: "Weet je zeker dat je ALLEEN jouw data op dit apparaat wilt wissen? (account + items + kasboek) Deze actie kan niet ongedaan worden.",
-    wiped: "Data gewist — je wordt uitgelogd", exported: "Data geëxporteerd", name: "Naam", email: "E-mail", newPass: "Nieuw wachtwoord", repeatPass: "Herhaal nieuw wachtwoord"
+    wiped: "Data gewist — je wordt uitgelogd", exported: "Data geëxporteerd", imported: "CSV geïmporteerd", name: "Naam", email: "E-mail", newPass: "Nieuw wachtwoord", repeatPass: "Herhaal nieuw wachtwoord"
   },
   en: {
-    settings: "Settings", settingsHint: "Click your name/avatar to get here. Language changes live across the site — theme & haul defaults are saved.",
-    profile: "PROFILE", general: "GENERAL", lang: "Language", langHint: "NL / EN — live across the site", theme: "Theme", themeHint: "Dark or light", compact: "Compact cards", compactHint: "Less whitespace (pro tip)",
-    ai: "AI — GEMINI", aiHint: "Connect your free Google Gemini key (aistudio.google.com/apikey) or use the server key when running. Key stays local in this browser.",
+    settings: "Settings", settingsHint: "Connections, fees and the boilerplate that goes on every listing.",
+    profile: "PROFILE", general: "GENERAL", lang: "Interface Language", langHint: "Listings stay in English regardless - that is where the buyers are.", theme: "Appearance", themeHint: "Light / dark / auto", compact: "Compact cards", compactHint: "Less whitespace", currency: "Currency", shipFrom: "Ship From", categoryMode: "Category Mode", fixedLines: "Fixed lines on every listing", fixedLinesHint: "One per line.",
+    economics: "ECONOMICS", vintedFeePct: "VINTED FEE %", vintedFixedFee: "VINTED FIXED FEE", depopFeePct: "DEPOP FEE %", depopFixedFee: "DEPOP FIXED FEE", hourlyRate: "YOUR HOURLY RATE", minutesPerItem: "MINUTES PER ITEM", minutesHint: "Photograph, list, pack. Used for the true net profit.", deadStock: "DEAD STOCK AFTER (DAYS)", minNet: "MIN. NET", minNetHint2: "The reprice floor never goes below cost plus this.", defaultShip: "DEFAULT SHIPPING COST",
+    platforms: "PLATFORMS", whenSale: "When a sale comes in", whenSaleHint: "The tool cannot change anything on Vinted or Depop. It marks the item as reserved and puts the other platforms on your list, for you to take down yourself.", preSelPlatforms: "Pre-selected Platforms", tickedDefault: "Ticked by default when preparing.",
+    listingEditor: "LISTING EDITOR", tone: "Tone", length: "Length", clean:"Clean", hype:"Hype", luxury2:"Luxury", minimal:"Minimal", short:"Short", standard:"Standard", detailed:"Detailed",
+    connections: "PLATFORM CONNECTIONS", vinted: "Vinted", depop: "Depop", aiAnalysis: "AI analysis", manual: "MANUAL", connected: "CONNECTED",
+    vintedManualDesc: "Vinted allows no automatic publishing. The listing and photos are prepared in full; you paste them yourself.",
+    depopManualDesc: "Depop allows no automatic publishing. The listing and photos are prepared in full; you paste them yourself.",
+    aiConnectedDesc: "Photo analysis, listing text and pricing all run through it.",
+    billing: "BILLING", thisMonth: "THIS MONTH", creditsUsed: "CREDITS USED", free: "FREE", seePlans: "See plans", left: "left",
     shipDefaults: "SHIPPING — DEFAULTS", shipDefaultsHint: "These choices are saved and applied directly in the Shipping calculator.",
-    data: "DATA", exportJson: "⬇ Export JSON", wipeMe: "🗑 Wipe my data (this device)", wipeMeHint: "Wiping only affects this browser — other devices stay as is",
-    save: "Save", cancel: "Cancel", close: "Close", ready: "Done", changePass: "Change password", nameSaved: "Name saved", passSaved: "Password updated",
-    navDashboard: "Dashboard", navCheck: "Value check", navShip: "Shipping", navItems: "My items", navLedger: "Ledger", navUpgrade: "Upgrade",
-    themeLight: "☀️ Light", themeDark: "🌙 Dark", compactOn: "On",
+    data: "DATA", exportJson: "⬇ Export JSON", importCsv: "⬆ Import CSV", exportCsv: "⬇ Export CSV (accountant)", wipeMe: "🗑 Wipe my data (this device)",
+    save: "Save", saveGreen: "Save", cancel: "Cancel", close: "Close", ready: "Done", changePass: "Change password", nameSaved: "Name saved", passSaved: "Password updated",
+    navDashboard: "Dashboard", navCheck: "Value check", navShip: "Shipping", navItems: "My items", navLedger: "Ledger", navBundles: "Bundles", navReplies: "Replies", navUpgrade: "Upgrade",
+    themeLight: "Light", themeDark: "Dark", themeAuto: "Auto", compactOn: "On",
     defAgent: "Default agent", defCountry: "Default destination", defMode: "Default speed", defCurr: "Default currency",
     defaultsSaved: "Defaults saved — ready in Shipping", langSwitched: "Language: English", keySaved: "AI connected! 🤖✨", keyRemoved: "AI key removed", keyTooShort: "Key too short — copy it fully", keyRejected: "Google rejected the key", wipeConfirm: "Sure you want to wipe ONLY your data on this device? (account + items + ledger) This cannot be undone.",
-    wiped: "Data wiped — logging you out", exported: "Data exported", name: "Name", email: "Email", newPass: "New password", repeatPass: "Repeat new password"
+    wiped: "Data wiped — logging you out", exported: "Data exported", imported: "CSV imported", name: "Name", email: "Email", newPass: "New password", repeatPass: "Repeat new password"
+  },
+  de: {
+    settings: "Einstellungen", settingsHint: "Verbindungen, Gebühren und Standardtext für jedes Inserat.",
+    profile: "PROFIL", general: "ALLGEMEIN", lang: "Sprache", langHint: "Inserate bleiben auf Englisch", theme: "Darstellung", themeHint: "Hell / dunkel / auto", compact: "Kompakte Karten", compactHint: "Weniger Weißraum", currency: "Währung", shipFrom: "Versand aus", categoryMode: "Kategorie-Modus", fixedLines: "Feste Zeilen für jedes Inserat", fixedLinesHint: "Eine pro Zeile.",
+    economics: "WIRTSCHAFT", vintedFeePct: "VINTED GEBÜHR %", vintedFixedFee: "VINTED FIXGEBÜHR", depopFeePct: "DEPOP GEBÜHR %", depopFixedFee: "DEPOP FIXGEBÜHR", hourlyRate: "STUNDENSATZ", minutesPerItem: "MINUTEN PRO ARTIKEL", minutesHint: "Fotografieren, inserieren, verpacken.", deadStock: "DEAD STOCK NACH (TAGE)", minNet: "MIN. NETTO", minNetHint2: "Der Preis fällt nie unter Kosten + dies.", defaultShip: "STANDARD VERSANDKOSTEN",
+    platforms: "PLATTFORMEN", whenSale: "Bei Verkauf", whenSaleHint: "Markiert als reserviert.", preSelPlatforms: " Vorausgewählte Plattformen", tickedDefault: "Standardmäßig angekreuzt.",
+    listingEditor: "INSERAT-EDITOR", tone: "Ton", length: "Länge", clean:"Clean", hype:"Hype", luxury2:"Luxury", minimal:"Minimal", short:"Kurz", standard:"Standard", detailed:"Detailliert",
+    connections: "VERBINDUNGEN", vinted: "Vinted", depop: "Depop", aiAnalysis: "KI-Analyse", manual: "MANUELL", connected: "VERBUNDEN",
+    vintedManualDesc: "Kein automatisches Veröffentlichen.", depopManualDesc: "Kein automatisches Veröffentlichen.", aiConnectedDesc: "Foto-Analyse und Texte laufen hierüber.",
+    billing: "ABRECHNUNG", thisMonth: "DIESEN MONAT", creditsUsed: "CREDITS VERBRAUCHT", free: "FREE", seePlans: "Pläne ansehen", left: "übrig",
+    shipDefaults: "VERSAND — DEFAULTS", shipDefaultsHint: "Wird gespeichert.", data: "DATEN", exportJson: "⬇ JSON exportieren", importCsv: "⬆ CSV importieren", exportCsv: "⬇ CSV exportieren", wipeMe: "🗑 Daten löschen", save: "Speichern", saveGreen: "Speichern", cancel: "Abbrechen", close: "Schließen", ready: "Fertig", changePass: "Passwort ändern", nameSaved: "Name gespeichert", passSaved: "Passwort geändert",
+    navDashboard: "Dashboard", navCheck: "Wertcheck", navShip: "Versand", navItems: "Artikel", navLedger: "Kassenbuch", navBundles: "Bundles", navReplies: "Antworten", navUpgrade: "Upgrade", themeLight: "Hell", themeDark: "Dunkel", themeAuto: "Auto", compactOn: "An", defAgent: "Standard Agent", defCountry: "Standard Ziel", defMode: "Standard Geschwindigkeit", defCurr: "Standard Währung", defaultsSaved: "Gespeichert", langSwitched: "Sprache: Deutsch", keySaved: "KI verbunden", keyRemoved: "Schlüssel entfernt", keyTooShort: "Zu kurz", keyRejected: "Abgelehnt", wipeConfirm: "Wirklich löschen?", wiped: "Gelöscht", exported: "Exportiert", imported: "Importiert", name: "Name", email: "E-Mail", newPass: "Neues Passwort", repeatPass: "Wiederholen"
+  },
+  fr: {
+    settings: "Paramètres", settingsHint: "Connexions, frais et texte standard pour chaque annonce.",
+    profile: "PROFIL", general: "GÉNÉRAL", lang: "Langue", langHint: "Les annonces restent en anglais", theme: "Apparence", themeHint: "Clair / sombre / auto", compact: "Cartes compactes", compactHint: "Moins d'espace", currency: "Devise", shipFrom: "Expédier depuis", categoryMode: "Mode catégorie", fixedLines: "Lignes fixes sur chaque annonce", fixedLinesHint: "Une par ligne.",
+    economics: "ÉCONOMIE", vintedFeePct: "FRAIS VINTED %", vintedFixedFee: "FRAIS FIXES VINTED", depopFeePct: "FRAIS DEPOP %", depopFixedFee: "FRAIS FIXES DEPOP", hourlyRate: "TAUX HORAIRE", minutesPerItem: "MINUTES PAR ARTICLE", minutesHint: "Photographier, lister, emballer.", deadStock: "STOCK MORT APRÈS (JOURS)", minNet: "NET MIN.", minNetHint2: "Le prix ne descend jamais sous coût + ceci.", defaultShip: "FRAIS D'EXPÉDITION PAR DÉFAUT",
+    platforms: "PLATEFORMES", whenSale: "Lors d'une vente", whenSaleHint: "Marqué comme réservé.", preSelPlatforms: "Plateformes pré-sélectionnées", tickedDefault: "Coché par défaut.",
+    listingEditor: "ÉDITEUR D'ANNONCE", tone: "Ton", length: "Longueur", clean:"Clean", hype:"Hype", luxury2:"Luxury", minimal:"Minimal", short:"Court", standard:"Standard", detailed:"Détaillé",
+    connections: "CONNEXIONS", vinted: "Vinted", depop: "Depop", aiAnalysis: "Analyse IA", manual: "MANUEL", connected: "CONNECTÉ",
+    vintedManualDesc: "Pas de publication automatique.", depopManualDesc: "Pas de publication automatique.", aiConnectedDesc: "L'analyse passe par ici.",
+    billing: "FACTURATION", thisMonth: "CE MOIS", creditsUsed: "CRÉDITS UTILISÉS", free: "FREE", seePlans: "Voir les plans", left: "restants",
+    shipDefaults: "LIVRAISON — DÉFAUTS", shipDefaultsHint: "Enregistré.", data: "DONNÉES", exportJson: "⬇ Exporter JSON", importCsv: "⬆ Importer CSV", exportCsv: "⬇ Exporter CSV", wipeMe: "🗑 Effacer mes données", save: "Enregistrer", saveGreen: "Enregistrer", cancel: "Annuler", close: "Fermer", ready: "Terminé", changePass: "Changer mot de passe", nameSaved: "Nom enregistré", passSaved: "Mot de passe modifié",
+    navDashboard: "Tableau de bord", navCheck: "Vérification", navShip: "Livraison", navItems: "Articles", navLedger: "Livre de caisse", navBundles: "Lots", navReplies: "Réponses", navUpgrade: "Upgrade", themeLight: "Clair", themeDark: "Sombre", themeAuto: "Auto", compactOn: "Oui", defAgent: "Agent par défaut", defCountry: "Destination", defMode: "Vitesse", defCurr: "Devise", defaultsSaved: "Enregistré", langSwitched: "Langue: Français", keySaved: "IA connectée", keyRemoved: "Clé supprimée", keyTooShort: "Trop court", keyRejected: "Rejetée", wipeConfirm: "Effacer?", wiped: "Effacé", exported: "Exporté", imported: "Importé", name: "Nom", email: "E-mail", newPass: "Nouveau mot de passe", repeatPass: "Répéter"
   }
 };
+const ECON_DEFAULTS = { vintedFeePct:0, vintedFixedFee:0, depopFeePct:0, depopFixedFee:0, hourlyRate:20, minutesPerItem:12, deadStockDays:21, minNet:3, defaultShipCost:0 };
+const LISTING_DEFAULTS = { tone:"clean", length:"standard" };
+const PLATFORM_DEFAULTS = { saleAction:"reserved", preVinted:true, preDepop:false };
 function prefsRaw(){ try{ return JSON.parse(localStorage.getItem(LS_PREFS)||"{}"); }catch(e){ return {}; } }
 function getPrefs(){
   const p=prefsRaw();
-  return { lang: (p.lang==="en"?"en":"nl"), theme: (p.theme==="dark"||p.theme==="light"?p.theme:null), compact: !!p.compact, shipAgent: p.shipAgent||null, shipCountry: p.shipCountry||null, shipMode: p.shipMode||null, shipCurrency: p.shipCurrency||null };
+  const lang = ["nl","en","de","fr"].includes(p.lang) ? p.lang : "nl";
+  const theme = ["dark","light","auto"].includes(p.theme) ? p.theme : (p.theme==="dark"||p.theme==="light"?p.theme:null);
+  return {
+    lang, theme, compact: !!p.compact,
+    currency: p.currency || "EUR", shipFrom: p.shipFrom || "", categoryMode: p.categoryMode || "clothing",
+    fixedLines: p.fixedLines || "",
+    vintedFeePct: isFinite(p.vintedFeePct)? Number(p.vintedFeePct) : ECON_DEFAULTS.vintedFeePct,
+    vintedFixedFee: isFinite(p.vintedFixedFee)? Number(p.vintedFixedFee) : ECON_DEFAULTS.vintedFixedFee,
+    depopFeePct: isFinite(p.depopFeePct)? Number(p.depopFeePct) : ECON_DEFAULTS.depopFeePct,
+    depopFixedFee: isFinite(p.depopFixedFee)? Number(p.depopFixedFee) : ECON_DEFAULTS.depopFixedFee,
+    hourlyRate: isFinite(p.hourlyRate)? Number(p.hourlyRate) : ECON_DEFAULTS.hourlyRate,
+    minutesPerItem: isFinite(p.minutesPerItem)? Number(p.minutesPerItem) : ECON_DEFAULTS.minutesPerItem,
+    deadStockDays: isFinite(p.deadStockDays)? Number(p.deadStockDays) : ECON_DEFAULTS.deadStockDays,
+    minNet: isFinite(p.minNet)? Number(p.minNet) : ECON_DEFAULTS.minNet,
+    defaultShipCost: isFinite(p.defaultShipCost)? Number(p.defaultShipCost) : ECON_DEFAULTS.defaultShipCost,
+    saleAction: p.saleAction || PLATFORM_DEFAULTS.saleAction,
+    preVinted: p.preVinted!==undefined ? !!p.preVinted : PLATFORM_DEFAULTS.preVinted,
+    preDepop: p.preDepop!==undefined ? !!p.preDepop : PLATFORM_DEFAULTS.preDepop,
+    tone: ["clean","hype","luxury","minimal"].includes(p.tone) ? p.tone : LISTING_DEFAULTS.tone,
+    length: ["short","standard","detailed"].includes(p.length) ? p.length : LISTING_DEFAULTS.length,
+    shipAgent: p.shipAgent||null, shipCountry: p.shipCountry||null, shipMode: p.shipMode||null, shipCurrency: p.shipCurrency||null
+  };
 }
 function setPref(k,v){ const p=prefsRaw(); p[k]=v; localStorage.setItem(LS_PREFS, JSON.stringify(p)); }
-function t(key){ const lang=(prefsRaw().lang==="en"?"en":"nl"); return (I18N[lang]&&I18N[lang][key]) || I18N.nl[key] || key; }
+function setPrefsBulk(obj){ const p=prefsRaw(); Object.assign(p,obj); localStorage.setItem(LS_PREFS, JSON.stringify(p)); }
+function t(key){ const lang=getPrefs().lang; return (I18N[lang]&&I18N[lang][key]) || I18N.nl[key] || I18N.en[key] || key; }
 function applyI18n(){
-  const L = prefsRaw().lang==="en" ? "en" : "nl";
+  const L = getPrefs().lang;
   document.documentElement.lang = L;
-  // nav labels
-  const navMap = { dashboard: t("navDashboard"), check: t("navCheck"), ship: t("navShip"), items: t("navItems"), ledger: t("navLedger"), upgrade: t("navUpgrade") };
+  const navMap = { dashboard: t("navDashboard"), check: t("navCheck"), ship: t("navShip"), items: t("navItems"), ledger: t("navLedger"), bundles: t("navBundles"), replies: t("navReplies"), upgrade: t("navUpgrade") };
   document.querySelectorAll("#appLinks .navlink").forEach(b=>{
     const v=b.dataset.view; const label=navMap[v]; if(!label) return;
     const tag=b.querySelector(".pro-tag"); const tagHtml = tag ? " "+tag.outerHTML : "";
-    // behoud eventuele PRO tag
+    const ico=b.querySelector(".nav-ico"); const icoHtml = ico ? ico.outerHTML+" " : "";
     const textNode = Array.from(b.childNodes).find(n=> n.nodeType===3 && n.textContent.trim());
-    if(textNode) textNode.textContent = label + " ";
-    else b.childNodes[0] && (b.innerHTML = label + tagHtml);
+    if(textNode) textNode.textContent = " "+label + " ";
+    else b.innerHTML = icoHtml + label + tagHtml;
     if(tag && !b.querySelector(".pro-tag")) b.insertAdjacentHTML("beforeend", tagHtml);
   });
-  // settings panel strings (de rest blijft NL basis maar toggles zijn genoeg voor nu)
-  const sTitle=document.querySelector("#settingsModal h2"); if(sTitle) sTitle.textContent = "⚙️ " + t("settings");
+  const sTitle=document.querySelector("#settingsModal h2"); if(sTitle) sTitle.textContent = t("settings");
+  const sSub=document.getElementById("settingsSub"); if(sSub) sSub.textContent = t("settingsHint");
 }
 function setLang(lang){
-  const v = lang==="en"?"en":"nl";
-  setPref("lang", v);
-  applyI18n(); syncSettingsUI(); shipRender();
+  const v = ["nl","en","de","fr"].includes(lang) ? lang : "nl";
+  setPref("lang", v); applyI18n(); syncSettingsUI(); try{ renderAll(); shipRender(); renderItems(); renderBundles(); }catch(e){}
   toast(t("langSwitched"));
+}
+function currentCurrencySymbol(){ const c=getPrefs().currency; return c==="USD"?"$": c==="GBP"?"£": c==="PLN"?"zł":"€"; }
+/* Economics helpers — fees, time, net, floor, margin, days */
+function ecoTimeCost(){ const p=getPrefs(); return (p.hourlyRate * p.minutesPerItem)/60; }
+function ecoPlatformFee(price, plat){
+  const p=getPrefs(); const pct = plat==="depop" ? p.depopFeePct : p.vintedFeePct;
+  const fix = plat==="depop" ? p.depopFixedFee : p.vintedFixedFee;
+  return price*(pct/100) + fix;
+}
+function ecoDefaultShip(){ return Number(getPrefs().defaultShipCost)||0; }
+function itemPurchase(it){ return isFinite(it.purchaseCost) ? Number(it.purchaseCost) : 0; }
+function itemShip(it){ return isFinite(it.shipCost) ? Number(it.shipCost) : ecoDefaultShip(); }
+function itemPlatform(it){ return it.platform || (getPrefs().preDepop && !getPrefs().preVinted ? "depop" : "vinted"); }
+function itemNetForPrice(it, price){ const fee=ecoPlatformFee(price, itemPlatform(it)); return price - itemPurchase(it) - fee - ecoTimeCost() - itemShip(it); }
+function itemFloor(it){ const p=getPrefs(); const base=itemPurchase(it)+p.minNet+ecoTimeCost()+itemShip(it)+p.vintedFixedFee; const pct=p.vintedFeePct/100; if(pct>=0.99) return base; return base/(1-pct); }
+function itemMargin(it){ const price=it.status==="sold" ? (it.soldPrice||0) : (it.estPrice||0); return itemNetForPrice(it, price); }
+function itemDays(it){ return Math.max(0, Math.floor((Date.now()-(it.date||Date.now()))/86400000)); }
+function isDeadStock(it){ return itemDays(it) >= getPrefs().deadStockDays; }
+function migrateItem(it){
+  if(!('purchaseCost' in it)) it.purchaseCost=0;
+  if(!('shipCost' in it)) it.shipCost=ecoDefaultShip();
+  if(!('platform' in it)) it.platform="vinted";
+  if(!('shelf' in it)) it.shelf="";
+  if(!('desc' in it)) it.desc="";
+  if(!('tags' in it)) it.tags="";
+  return it;
+}
+function ensureItemMigration(){ if(!data||!Array.isArray(data.items)) return; let ch=false; data.items.forEach(it=>{ const before=JSON.stringify(it); migrateItem(it); if(JSON.stringify(it)!==before) ch=true; }); if(ch) saveData(); }
+function daysToSellEstimate(price, low, high){
+  // simple heuristic: price near high → longer, near low → faster
+  const mid = (low+high)/2;
+  if(price <= low*1.05) return "3–7 dagen";
+  if(price <= mid) return "7–14 dagen";
+  if(price <= high*0.95) return "14–30 dagen";
+  return "30+ dagen";
 }
 
 /* =====================================================
@@ -1938,6 +2324,7 @@ function loadData() {
   if(!('vinted' in data)) data.vinted = null;
   ensureWeek();
   checkProExpiry();
+  try{ ensureItemMigration(); }catch(e){}
 }
 function saveData() {
   try {
@@ -2206,36 +2593,44 @@ function switchView(name) {
   try{ closeMobileNav(); }catch(e){}
   checkProExpiry();
   const pro = isPro();
-  // PRO-poort: Verzending + items + kasboek alleen voor PRO
-  if (!pro && (name === "items" || name === "ledger" || name === "ship")) {
+  const proViews = new Set(["items","ledger","ship","bundles","replies"]);
+  if (!pro && proViews.has(name)) {
     document.getElementById("itemsLock").hidden = name !== "items";
     document.getElementById("itemsContent").hidden = name === "items";
     document.getElementById("ledgerLock").hidden = name !== "ledger";
     document.getElementById("ledgerContent").hidden = name === "ledger";
     document.getElementById("shipLock").hidden = name !== "ship";
     document.getElementById("shipContent").hidden = name === "ship";
-    document.querySelectorAll("#appLinks .navlink").forEach(b =>
-      b.classList.toggle("active", b.dataset.view === name));
+    const bL=document.getElementById("bundlesLock"), bC=document.getElementById("bundlesContent");
+    if(bL&&bC){ bL.hidden = name!=="bundles"; bC.hidden = name==="bundles"; }
+    const rL=document.getElementById("repliesLock"), rC=document.getElementById("repliesContent");
+    if(rL&&rC){ rL.hidden = name!=="replies"; rC.hidden = name==="replies"; }
+    document.querySelectorAll("#appLinks .navlink").forEach(b => b.classList.toggle("active", b.dataset.view === name));
     document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
     document.getElementById("view-" + name).classList.add("active");
     window.scrollTo(0, 0);
     return;
   }
-  // normale navigatie — paywalled secties tonen als PRO
   document.getElementById("itemsLock").hidden = pro;
   document.getElementById("itemsContent").hidden = !pro;
   document.getElementById("ledgerLock").hidden = pro;
   document.getElementById("ledgerContent").hidden = !pro;
   document.getElementById("shipLock").hidden = pro;
   document.getElementById("shipContent").hidden = !pro;
-  document.querySelectorAll("#appLinks .navlink").forEach(b =>
-    b.classList.toggle("active", b.dataset.view === name));
+  const bL2=document.getElementById("bundlesLock"), bC2=document.getElementById("bundlesContent");
+  if(bL2&&bC2){ bL2.hidden = pro; bC2.hidden = !pro; }
+  const rL2=document.getElementById("repliesLock"), rC2=document.getElementById("repliesContent");
+  if(rL2&&rC2){ rL2.hidden = pro; rC2.hidden = !pro; }
+  document.querySelectorAll("#appLinks .navlink").forEach(b => b.classList.toggle("active", b.dataset.view === name));
   document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
   document.getElementById("view-" + name).classList.add("active");
   window.scrollTo(0, 0);
   if (name === "items") renderItems();
   if (name === "ledger") renderLedger();
   if (name === "ship") shipRender();
+  if (name === "bundles") renderBundles();
+  if (name === "replies") renderRepliesInit();
+  if (name === "dashboard") { try{ renderProfitCurve(); renderRealProfit(); }catch(e){} }
 }
 
 /* =====================================================
@@ -2244,13 +2639,17 @@ function switchView(name) {
 function renderQuota() {
   checkProExpiry();
   const chip = document.getElementById("quotaChip");
+  const chipTop = document.getElementById("quotaChipTop");
   const wbLabel = document.getElementById("wbLabel");
   const wbFill = document.getElementById("wbFill");
   const wbUpgrade = document.getElementById("wbUpgrade");
+  const setChip=(el,txt,isPro_)=>{ if(!el) return; el.textContent=txt; el.classList.toggle("pro", !!isPro_); };
   if (isPro()) {
     const label = getProLabel();
-    chip.textContent = label + " · onbeperkt";
-    chip.classList.add("pro");
+    const txt = label + " · onbeperkt";
+    setChip(chip, txt, true);
+    setChip(chipTop, txt, true);
+    if(chipTop) chipTop.style.display = "inline-flex";
     const until = data.proUntil ? new Date(data.proUntil).toLocaleDateString("nl-NL") : "";
     wbLabel.textContent = label + ": onbeperkt waardechecks 💎" + (until ? " · tot " + until : "");
     wbFill.style.width = "100%";
@@ -2258,9 +2657,11 @@ function renderQuota() {
     wbUpgrade.style.display = "none";
     return;
   }
-  chip.classList.remove("pro");
   const used = data.usedThisWeek || 0;
-  chip.textContent = (QUOTA - used) + "/" + QUOTA + " deze week";
+  const txt2 = (QUOTA - used) + "/" + QUOTA + " deze week";
+  setChip(chip, txt2, false);
+  setChip(chipTop, txt2, false);
+  if(chipTop) chipTop.style.display = (QUOTA - used) <= 1 ? "inline-flex" : "none";
   wbLabel.textContent = "Deze week: " + used + " van " + QUOTA + " waardechecks gebruikt";
   wbFill.style.width = (used / QUOTA * 100) + "%";
   wbFill.classList.toggle("full", used >= QUOTA);
@@ -2357,13 +2758,13 @@ function renderKeyHint() {
 function syncSettingsUI(){
   try{
     const prefs=getPrefs();
-    // taal THE
-    const bNL=document.getElementById("segLangNL"), bEN=document.getElementById("segLangEN");
-    if(bNL&&bEN){ bNL.classList.toggle("active", prefs.lang!=="en"); bEN.classList.toggle("active", prefs.lang==="en"); }
-    // thema
-    const isDark=document.body.classList.contains("dark");
-    const bL=document.getElementById("segThemeLight"), bD=document.getElementById("segThemeDark");
-    if(bL&&bD){ bL.classList.toggle("active", !isDark); bD.classList.toggle("active", isDark); }
+    // taal 4 knoppen
+    const langs={ nl:"segLangNL", en:"segLangEN", de:"segLangDE", fr:"segLangFR" };
+    Object.entries(langs).forEach(([k,id])=>{ const el=document.getElementById(id); if(el) el.classList.toggle("active", prefs.lang===k); });
+    // thema light/dark/auto
+    const curTheme=prefs.theme||localStorage.getItem("guidsell_theme")||"light";
+    const bL=document.getElementById("segThemeLight"), bD=document.getElementById("segThemeDark"), bA=document.getElementById("segThemeAuto");
+    if(bL&&bD&&bA){ bL.classList.toggle("active", curTheme==="light"); bD.classList.toggle("active", curTheme==="dark"); bA.classList.toggle("active", curTheme==="auto"); }
     // profiel
     const me = (session && users[session]) ? users[session] : null;
     const inName=document.getElementById("setName"), inEmail=document.getElementById("setEmail");
@@ -2372,6 +2773,41 @@ function syncSettingsUI(){
     // compact
     const cEl=document.getElementById("setCompact"); if(cEl) cEl.checked = !!prefs.compact;
     document.body.classList.toggle("pref-compact", !!prefs.compact);
+    // GENERAL extras
+    const currSel=document.getElementById("setCurrency");
+    if(currSel && !currSel.dataset.filled){ currSel.innerHTML = SHIP_CURRENCIES.map(c=>`<option value="${c.code}">${c.label}</option>`).join(""); currSel.dataset.filled="1"; }
+    if(currSel) currSel.value = prefs.currency;
+    const sf=document.getElementById("setShipFrom"); if(sf) sf.value = prefs.shipFrom||"";
+    const cat=document.getElementById("setCategoryMode"); if(cat) cat.value = prefs.categoryMode||"clothing";
+    const fl=document.getElementById("setFixedLines"); if(fl) fl.value = prefs.fixedLines||"";
+    // ECONOMICS
+    const vF=document.getElementById("setVintedFee"); if(vF) vF.value = prefs.vintedFeePct;
+    const vFF=document.getElementById("setVintedFixed"); if(vFF) vFF.value = prefs.vintedFixedFee;
+    const dF=document.getElementById("setDepopFee"); if(dF) dF.value = prefs.depopFeePct;
+    const dFF=document.getElementById("setDepopFixed"); if(dFF) dFF.value = prefs.depopFixedFee;
+    const hr=document.getElementById("setHourly"); if(hr) hr.value = prefs.hourlyRate;
+    const mp=document.getElementById("setMinutes"); if(mp) mp.value = prefs.minutesPerItem;
+    const ds=document.getElementById("setDeadStock"); if(ds) ds.value = prefs.deadStockDays;
+    const mn=document.getElementById("setMinNet"); if(mn) mn.value = prefs.minNet;
+    const dsc=document.getElementById("setDefShip"); if(dsc) dsc.value = prefs.defaultShipCost;
+    // PLATFORMS
+    const sa=document.getElementById("setSaleAction"); if(sa) sa.value = prefs.saleAction;
+    const pv=document.getElementById("setPreVinted"); if(pv) pv.checked = !!prefs.preVinted;
+    const pd=document.getElementById("setPreDepop"); if(pd) pd.checked = !!prefs.preDepop;
+    // LISTING EDITOR tone/length
+    document.querySelectorAll("#segTone button").forEach(b=> b.classList.toggle("active", b.dataset.tone===prefs.tone));
+    document.querySelectorAll("#segLength button").forEach(b=> b.classList.toggle("active", (b.dataset.len||b.dataset.length||b.getAttribute("data-len"))===prefs.length));
+    // BILLING + THIS MONTH credits
+    const pro=isPro(); const used=data? (data.usedThisWeek||0):0; const left=Math.max(0, QUOTA-used);
+    const billBadge=document.getElementById("billBadge"), monthBadge=document.getElementById("monthBadge");
+    if(billBadge) billBadge.textContent = pro ? getProLabel().toUpperCase() : "FREE";
+    if(monthBadge) monthBadge.textContent = pro? getProLabel().toUpperCase() : "FREE";
+    const billText=document.getElementById("billText"); if(billText) billText.textContent = pro ? (getProLabel() + " — onbeperkt 💎" + (data.proUntil? " · tot "+new Date(data.proUntil).toLocaleDateString("nl-NL"):"")) : (prefs.lang==="en"?"You're on the Free plan.":"Je zit op het Free plan.");
+    const cu=document.getElementById("creditUsed"); if(cu) cu.textContent = (pro? "∞ / ∞" : (used.toFixed(1)+" / "+QUOTA));
+    const cl=document.getElementById("creditLeft"); if(cl) cl.textContent = pro ? (prefs.lang==="en"?"Unlimited":"Onbeperkt") : (left.toFixed(1)+" "+t("left"));
+    // PLATFORM CONNECTIONS status
+    const aiBadge=document.getElementById("connAiBadge");
+    if(aiBadge){ const ready = serverAiReady===true || !!getApiKey(); aiBadge.textContent = ready ? (prefs.lang==="en"?"CONNECTED":"VERBONDEN") : "MANUAL"; aiBadge.classList.toggle("ok", ready); }
     // AI key
     const kIn=document.getElementById("setKey"); if(kIn) kIn.value = getApiKey();
     const kState=document.getElementById("setKeyState"); if(kState){ const has=!!getApiKey(); kState.textContent = has ? (prefs.lang==="en"?"Key saved locally":"Sleutel lokaal opgeslagen") : ""; }
@@ -2387,6 +2823,24 @@ function syncSettingsUI(){
     if(coSel) coSel.value = prefs.shipCountry || shipCountry;
     if(moSel) moSel.value = prefs.shipMode || shipMode;
     if(cuSel) cuSel.value = prefs.shipCurrency || shipCurrency;
+    // i18n labels
+    try{ const L=prefs.lang; const el=(id,txt)=>{ const e=document.getElementById(id); if(e) e.textContent=txt; };
+      el("setH2", t("settings")); el("settingsSub", t("settingsHint"));
+      el("lblBilling", t("billing")); el("lblThisMonth", t("thisMonth")); el("lblCredits", t("creditsUsed"));
+      el("lblGeneral", t("general")); el("lblLang", prefs.lang==="de"?"Sprache": prefs.lang==="fr"?"Langue": t("lang")); el("lblLangHint", prefs.lang==="de"?"Inserate bleiben auf Englisch": prefs.lang==="fr"?"Les annonces restent en anglais": t("langHint"));
+      el("lblTheme", t("theme")); el("lblCurrency", t("currency")); el("lblShipFrom", t("shipFrom")); el("lblCatMode", t("categoryMode")); el("lblFixedLines", t("fixedLines")); el("lblFixedLinesHint", t("fixedLinesHint"));
+      el("lblEcon", t("economics")); el("lblVF", t("vintedFeePct")); el("lblVFF", t("vintedFixedFee")); el("lblDF", t("depopFeePct")); el("lblDFF", t("depopFixedFee")); el("lblHour", t("hourlyRate")); el("lblMin", t("minutesPerItem")); el("lblMinHint", t("minutesHint")); el("lblDead", t("deadStock")); el("lblMinNet", t("minNet")); el("lblMinNetHint", t("minNetHint2")); el("lblDefShip", t("defaultShip"));
+      el("lblPlatforms", t("platforms")); el("lblWhenSale", t("whenSale")); el("lblWhenSaleHint", t("whenSaleHint")); el("lblPreSel", t("preSelPlatforms")); el("lblPreSelHint", t("tickedDefault"));
+      el("lblListingEditor", t("listingEditor")); el("lblTone", t("tone")); el("lblLength", t("length"));
+      el("lblConnections", t("connections")); el("lblVinted", t("vinted")); el("lblDepop", t("depop")); el("lblAi", t("aiAnalysis"));
+      const vDesc=document.getElementById("lblVintedDesc"); if(vDesc) vDesc.textContent=t("vintedManualDesc");
+      const dDesc=document.getElementById("lblDepopDesc"); if(dDesc) dDesc.textContent=t("depopManualDesc");
+      const aiDesc=document.getElementById("lblAiDesc"); if(aiDesc) aiDesc.textContent=t("aiConnectedDesc");
+      el("lblProfile", t("profile")); el("lblName", t("name")); el("lblEmail", t("email")); el("lblNewPass", t("newPass")); el("lblRepPass", t("repeatPass"));
+      el("lblAiKey", "AI — GEMINI"); el("lblShipDefaults", t("shipDefaults")); el("lblShipDefaultsHint", t("shipDefaultsHint"));
+      el("lblData", t("data")); el("btnSaveKey", t("save")); el("btnClearKey", prefs.lang==="nl"?"Wissen":"Clear");
+      el("billBtn", t("seePlans")); el("btnDone", t("ready")); el("btnChangePass", t("changePass"));
+    }catch(e){}
     applyI18n();
   }catch(e){}
 }
@@ -2438,6 +2892,50 @@ function exportAllData(){
     const url=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=url; a.download="guidsell-export-"+new Date().toISOString().slice(0,10)+".json"; a.click(); setTimeout(()=>URL.revokeObjectURL(url), 2000);
     toast(t("exported"));
   }catch(e){ toast("Export mislukt", true); }
+}
+function setThemePref(v){
+  if(!["light","dark","auto"].includes(v)) return;
+  if(v==="auto"){
+    setPref("theme", "auto");
+    const sys = window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    document.body.classList.toggle("dark", sys==="dark");
+    document.querySelectorAll(".theme-toggle").forEach(b=>{ b.textContent=sys==="dark"?"☀️":"🌙"; b.title=sys==="dark"?"Lichte modus":"Donkere modus"; });
+    localStorage.setItem("guidsell_theme", sys);
+  } else { applyTheme(v); }
+  syncSettingsUI();
+}
+function setTone(v){ if(!["clean","hype","luxury","minimal"].includes(v)) return; setPref("tone", v); syncSettingsUI(); toast("Tone: "+v); }
+function setLength(v){ if(!["short","standard","detailed"].includes(v)) return; setPref("length", v); syncSettingsUI(); }
+function setLen(v){ return setLength(v); }
+function saveAllSettings(){
+  try{
+    const cur=document.getElementById("setCurrency")?.value;
+    const sf=document.getElementById("setShipFrom")?.value;
+    const cat=document.getElementById("setCategoryMode")?.value;
+    const fl=document.getElementById("setFixedLines")?.value;
+    const obj={};
+    if(cur) obj.currency=cur;
+    if(sf!==undefined) obj.shipFrom=sf;
+    if(cat) obj.categoryMode=cat;
+    if(fl!==undefined) obj.fixedLines=fl;
+    const vf=parseFloat(document.getElementById("setVintedFee")?.value); if(isFinite(vf)) obj.vintedFeePct=vf;
+    const vff=parseFloat(document.getElementById("setVintedFixed")?.value); if(isFinite(vff)) obj.vintedFixedFee=vff;
+    const df=parseFloat(document.getElementById("setDepopFee")?.value); if(isFinite(df)) obj.depopFeePct=df;
+    const dff=parseFloat(document.getElementById("setDepopFixed")?.value); if(isFinite(dff)) obj.depopFixedFee=dff;
+    const hr=parseFloat(document.getElementById("setHourly")?.value); if(isFinite(hr)) obj.hourlyRate=hr;
+    const mp=parseFloat(document.getElementById("setMinutes")?.value); if(isFinite(mp)) obj.minutesPerItem=mp;
+    const ds=parseFloat(document.getElementById("setDeadStock")?.value); if(isFinite(ds)) obj.deadStockDays=ds;
+    const mn=parseFloat(document.getElementById("setMinNet")?.value); if(isFinite(mn)) obj.minNet=mn;
+    const dsc=parseFloat(document.getElementById("setDefShip")?.value); if(isFinite(dsc)) obj.defaultShipCost=dsc;
+    const sa=document.getElementById("setSaleAction")?.value; if(sa) obj.saleAction=sa;
+    const pv=document.getElementById("setPreVinted")?.checked; obj.preVinted=!!pv;
+    const pd=document.getElementById("setPreDepop")?.checked; obj.preDepop=!!pd;
+    setPrefsBulk(obj);
+    const k=document.getElementById("setKey")?.value?.trim();
+    if(k && k.length>=20) { localStorage.setItem("guidsell_gemini_key", k); } else if(k===""){ localStorage.removeItem("guidsell_gemini_key"); }
+    saveShipDefaults();
+    syncSettingsUI(); renderKeyHint(); toast(t("saveGreen")||"Saved");
+  }catch(e){ toast("Opslaan mislukt", true); }
 }
 function wipeMyData(){
   if(!confirm(t("wipeConfirm"))) return;
@@ -2855,6 +3353,26 @@ async function runCheck(isDemo) {
     compEl.hidden = true;
   }
 
+  // low / mid / high cards + days + net hint + verifier
+  try{
+    const lo=document.getElementById("rLowVal"), mid=document.getElementById("rMidVal"), hi=document.getElementById("rHighVal");
+    if(lo) lo.textContent=fmt(low); if(mid) mid.textContent=fmt(price); if(hi) hi.textContent=fmt(high);
+    const days=daysToSellEstimate(price, low, high);
+    const db=document.getElementById("rDaysBadge"); if(db) db.textContent="⏱ "+days+" te verkopen";
+    const net=itemNetForPrice({ purchaseCost:0, shipCost:ecoDefaultShip(), platform:"vinted" }, price);
+    const floor=itemFloor({ purchaseCost:0, shipCost:ecoDefaultShip() });
+    const nh=document.getElementById("rNetHint"); if(nh) nh.textContent="Netto ca. "+fmt(net)+" · vloer "+fmt(floor)+" (kost + "+fmt(getPrefs().minNet)+")";
+    const verd=document.getElementById("rVerdict"); if(verd){
+      const hasCost = !!document.getElementById("rPurchase")?.value;
+      if(hasCost){
+        const buy=parseFloat(document.getElementById("rPurchase").value)||0;
+        const maxPay=Math.max(0, low - ecoPlatformFee(low,"vinted") - ecoTimeCost() - ecoDefaultShip() - getPrefs().minNet);
+        if(buy<=maxPay*0.7){ verd.hidden=false; verd.className="value-verdict buy"; verd.textContent="BUY — max betalen "+fmt(maxPay)+" · ruimte voor marge. Voorbeeld onderhandellijn: "+fmt(Math.round(maxPay*0.85*2)/2)+" bieden."; }
+        else if(buy>maxPay){ verd.hidden=false; verd.className="value-verdict pass"; verd.textContent="PASS — boven max "+fmt(maxPay)+" · geen marge bij "+fmt(price)+" verkoop."; }
+        else { verd.hidden=false; verd.className="value-verdict maybe"; verd.textContent="Twijfel — rond max "+fmt(maxPay)+" · alleen als je snel kunt verkopen."; }
+      } else { verd.hidden=true; }
+    }
+  }catch(e){}
   setStep("stepOut", "done", "✍️ Listing klaar");
   document.getElementById("resultEmpty").style.display = "none";
   document.getElementById("result").classList.add("show");
@@ -2882,16 +3400,25 @@ function useDemo() {
 function saveItem() {
   if (!isPro()) { switchView("upgrade"); toast("Voorraad bewaren is PRO", true); return; }
   if (!lastResult) { toast("Bereken eerst een prijs", true); return; }
+  const pBuy=parseFloat(document.getElementById("rPurchase")?.value); const pShip=parseFloat(document.getElementById("rShip")?.value); const pPlat=document.getElementById("rPlatform")?.value||"vinted"; const pShelf=document.getElementById("rShelf")?.value?.trim()||"";
+  const fixedLines=(getPrefs().fixedLines||"").split("\n").map(s=>s.trim()).filter(Boolean);
+  let desc=document.getElementById("rDesc").value; if(fixedLines.length){ const tail=fixedLines.join("\n"); if(!desc.includes(tail)) desc=(desc?desc+"\n\n":"")+tail; }
+  const tone=getPrefs().tone, len=getPrefs().length; // keep for later — listing shaped by tone/length (AI already)
   data.items.unshift({
     id: uid(),
     title: document.getElementById("rTitle").value.trim() || lastResult.title,
-    desc: document.getElementById("rDesc").value,
+    desc: desc,
     tags: document.getElementById("rTags").value,
     itemLabel: lastResult.itemLabel,
     brand: lastResult.brand,
     size: lastResult.size,
     cond: lastResult.condLabel,
     estPrice: parseFloat(document.getElementById("rPriceInput").value) || lastResult.price,
+    low: lastResult.low, high: lastResult.high,
+    purchaseCost: isFinite(pBuy)? pBuy : 0,
+    shipCost: isFinite(pShip)? pShip : ecoDefaultShip(),
+    platform: pPlat,
+    shelf: pShelf,
     source: lastResult.source,
     soldPrice: null,
     status: "stock",
@@ -2912,32 +3439,62 @@ function setFilter(f) {
 }
 
 function renderItems() {
-  const grid = document.getElementById("itemGrid");
-  const items = (data.items || []).filter(it =>
-    itemFilter === "all" || it.status === itemFilter);
+  const grid = document.getElementById("itemGrid"); const bar=document.getElementById("itemStorageBar"); if(bar) bar.hidden = !isPro();
+  const q=(document.getElementById("itemSearch")?.value||"").toLowerCase().trim();
+  const sort=document.getElementById("itemSort")?.value||"newest";
+  let items = (data.items || []).filter(it=>{ if(itemFilter!=="all" && it.status!==itemFilter) return false; if(!q) return true; const hay=[it.title,it.brand,it.size,it.shelf,it.platform,it.cond, it.tags].join(" ").toLowerCase(); return hay.includes(q); });
+  items = items.slice().sort((a,b)=>{
+    if(sort==="oldest") return (a.date||0)-(b.date||0);
+    if(sort==="priceHigh") return (b.estPrice||0)-(a.estPrice||0);
+    if(sort==="priceLow") return (a.estPrice||0)-(b.estPrice||0);
+    if(sort==="marginHigh") return itemMargin(b)-itemMargin(a);
+    if(sort==="daysHigh") return itemDays(b)-itemDays(a);
+    return (b.date||0)-(a.date||0);
+  });
+  if(!isPro()){ grid.innerHTML=''; return; }
   if (items.length === 0) {
     grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1">Geen items hier. Start een waardecheck om je eerste item toe te voegen!</div>';
     return;
   }
-  grid.innerHTML = items.map(it => `
+  grid.innerHTML = items.map(it => {
+    const m=itemMargin(it); const d=itemDays(it); const dead=isDeadStock(it);
+    return `
     <div class="item-card">
       <div class="item-photo">
         ${it.cover ? `<img src="${it.cover}" alt="">` : "📦"}
         <span class="status-badge ${it.status}">${it.status === "sold" ? "VERKOCHT" : "IN VOORRAAD"}</span>
+        ${dead && it.status==="stock" ? `<span style="position:absolute;bottom:8px;left:8px;font-size:10px;font-weight:800;background:#fef2f2;color:#dc2626;border:1px solid #fecaca;padding:3px 8px;border-radius:20px">DEAD STOCK</span>`:""}
         ${it.vintedUrl? `<a href="${esc(it.vintedUrl)}" target="_blank" rel="noopener" title="Open op Vinted" style="position:absolute;top:10px;right:10px;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:4px 8px;font-size:10px;font-weight:700;color:var(--brand-dark);text-decoration:none">Vinted ↗</a>`:""}
       </div>
       <div class="item-body">
         <div class="item-title">${esc(it.title)} ${it.source==="vinted"?`<span style="font-size:10px;background:#eaf7ef;color:var(--green);border:1px solid #d3eedd;padding:2px 6px;border-radius:20px;vertical-align:middle">VINTED</span>`:""}</div>
-        <div class="item-meta">${esc(it.brand || "geen merk")} · ${esc(it.cond || "")} · ${new Date(it.date).toLocaleDateString("nl-NL")}</div>
+        <div class="item-meta">${esc(it.brand || "geen merk")} · ${esc(it.cond || "")} · ${esc(it.shelf||"geen plank")} · ${esc(it.platform||"vinted")} · ${new Date(it.date).toLocaleDateString("nl-NL")}</div>
         <div class="item-price ${it.status === "sold" ? "green" : ""}">${it.status === "sold" ? fmt(it.soldPrice || 0) + " verkocht" : "schatting " + fmt(it.estPrice || 0)}</div>
+        <div style="font-size:11px;color:${m>=0?'var(--green)':'var(--red)'};margin-bottom:8px">marge ${fmt(m)} · ${d} dagen online${dead?' · dead stock':''} · kost ${fmt(itemPurchase(it))} + ship ${fmt(itemShip(it))} + fee ≈ ${fmt(ecoPlatformFee(it.status==="sold"?it.soldPrice:it.estPrice, itemPlatform(it)))}</div>
         <div class="item-actions">
+          <button class="btn btn-outline" style="font-size:12px" onclick="openItemEdit('${it.id}')">✎ Edit</button>
           ${it.status === "stock"
             ? `<button class="btn btn-green" onclick="openSoldModal('${it.id}')">Verkocht!</button>`
             : `<button class="btn btn-outline" onclick="copyItemText('${it.id}')">📋 Kopieer listing</button>`}
           <button class="btn btn-danger-o" onclick="deleteItem('${it.id}')">🗑</button>
         </div>
       </div>
-    </div>`).join("");
+    </div>`; }).join("");
+}
+let editTargetId=null;
+function openItemEdit(id){ const it=data.items.find(x=>x.id===id); if(!it) return; editTargetId=id; document.getElementById("editTitle").value=it.title||""; document.getElementById("editBrand").value=it.brand||""; document.getElementById("editSize").value=it.size||""; document.getElementById("editPrice").value=it.estPrice||""; document.getElementById("editPurchase").value=it.purchaseCost||""; document.getElementById("editShip").value=it.shipCost||""; document.getElementById("editShelf").value=it.shelf||""; document.getElementById("editPlatform").value=it.platform||"vinted"; document.getElementById("itemEditModal").classList.add("show"); }
+function closeItemEdit(){ document.getElementById("itemEditModal").classList.remove("show"); editTargetId=null; }
+function saveItemEdit(){
+  const it=data.items.find(x=>x.id===editTargetId); if(!it) return;
+  it.title=document.getElementById("editTitle").value.trim()||it.title;
+  it.brand=document.getElementById("editBrand").value.trim();
+  it.size=document.getElementById("editSize").value.trim();
+  const pr=parseFloat(document.getElementById("editPrice").value); if(isFinite(pr)) it.estPrice=pr;
+  const pu=parseFloat(document.getElementById("editPurchase").value); it.purchaseCost=isFinite(pu)?pu:0;
+  const sh=parseFloat(document.getElementById("editShip").value); it.shipCost=isFinite(sh)?sh:ecoDefaultShip();
+  it.shelf=document.getElementById("editShelf").value.trim();
+  it.platform=document.getElementById("editPlatform").value||"vinted";
+  saveData(); closeItemEdit(); renderItems(); renderDashboard(); try{ renderBundles(); renderRealProfit(); renderProfitCurve(); }catch(e){} toast("Item bijgewerkt");
 }
 
 function openSoldModal(id) {
@@ -3044,13 +3601,14 @@ function renderDashboard() {
   const recent = document.getElementById("dashRecent");
   if (!isPro()) {
     recent.innerHTML = '<div class="empty-state">📦 Voorraaditems zijn zichtbaar met <b>PRO</b>.<br>Je kunt onbeperkt waardechecks doen — upgrade om je voorraad bij te houden.</div>';
+    // still try to render profit placeholders as locked state
+    try{ renderProfitCurve(); renderRealProfit(); }catch(e){}
     return;
   }
   if (items.length === 0) {
     recent.innerHTML = '<div class="empty-state">Nog geen items. Start je eerste waardecheck!</div>';
-    return;
-  }
-  recent.innerHTML = items.slice(0, 3).map(it => `
+  } else {
+    recent.innerHTML = items.slice(0, 3).map(it => `
     <div class="ledger-row">
       <div style="width:38px;height:38px;border-radius:9px;overflow:hidden;background:#eef0f7;display:flex;align-items:center;justify-content:center;flex-shrink:0">
         ${it.cover ? `<img src="${it.cover}" style="width:100%;height:100%;object-fit:cover" alt="">` : "📦"}
@@ -3061,6 +3619,359 @@ function renderDashboard() {
       </div>
       <span class="status-badge ${it.status}" style="position:static">${it.status === "sold" ? "VERKOCHT" : "VOORRAAD"}</span>
     </div>`).join("");
+  }
+  try{ renderProfitCurve(); renderRealProfit(); }catch(e){}
+}
+/* =====================================================
+   PROFIT CURVE (cumulative net per sale, peak + drawdown)
+===================================================== */
+function renderProfitCurve(){
+  const c=document.getElementById("profitCanvas");
+  const empty=document.getElementById("curveEmpty");
+  const meta=document.getElementById("curveMeta");
+  const peakEl=document.getElementById("curvePeak");
+  const ddEl=document.getElementById("curveDD");
+  const netEl=document.getElementById("curveNet");
+  if(!c || !c.getContext) return;
+  const ctx=c.getContext("2d");
+  const entries=(data && Array.isArray(data.ledger) ? data.ledger.slice() : []).slice().sort((a,b)=>(a.date||0)-(b.date||0));
+  const hasIn=entries.some(e=>e.type==="in");
+  if(!entries.length || !hasIn){
+    if(empty) empty.hidden=false;
+    if(meta) meta.textContent="";
+    if(peakEl) peakEl.textContent="";
+    if(ddEl) ddEl.textContent="";
+    if(netEl) netEl.textContent="";
+    const W=c.width,H=c.height;
+    ctx.clearRect(0,0,W,H);
+    ctx.strokeStyle=document.body.classList.contains("dark")?"#262b36":"#e6e9f2";
+    ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(40,14); ctx.lineTo(40,H-22); ctx.lineTo(W-12,H-22); ctx.stroke();
+    ctx.fillStyle=document.body.classList.contains("dark")?"#8b93a3":"#6b7280";
+    ctx.font="11px system-ui,sans-serif"; ctx.textAlign="center";
+    ctx.fillText("Nog geen verkopen — curve verschijnt na je eerste verkoop", W/2, H/2);
+    return;
+  }
+  if(empty) empty.hidden=true;
+  let cum=0, points=[];
+  let peak=-Infinity, peakIdx=-1;
+  entries.forEach(e=>{
+    const delta=e.type==="in" ? (Number(e.amount)||0) : -(Number(e.amount)||0);
+    cum+=delta;
+    points.push({cum, date:e.date, delta, label:e.label});
+    if(cum>peak){ peak=cum; peakIdx=points.length-1; }
+  });
+  const net=cum;
+  let maxPeak=points[0].cum, maxDD=0;
+  points.forEach(p=>{ if(p.cum>maxPeak) maxPeak=p.cum; const dd=maxPeak-p.cum; if(dd>maxDD) maxDD=dd; });
+  const W=c.width,H=c.height;
+  const pad={l:42,r:12,t:14,b:24};
+  const plotW=W-pad.l-pad.r, plotH=H-pad.t-pad.b;
+  ctx.clearRect(0,0,W,H);
+  const vals=points.map(p=>p.cum);
+  let minV=Math.min(...vals,0), maxV=Math.max(...vals,0);
+  if(minV===maxV){ minV-=6; maxV+=6; }
+  const range=maxV-minV||1;
+  const xStep=plotW/Math.max(1,points.length-1);
+  ctx.strokeStyle=document.body.classList.contains("dark")?"#262b36":"#e6e9f2";
+  ctx.lineWidth=1; ctx.setLineDash([3,3]);
+  for(let i=0;i<=4;i++){ const y=pad.t+plotH-(i/4)*plotH; ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(W-pad.r,y); ctx.stroke(); }
+  ctx.setLineDash([]);
+  if(minV<0 && maxV>0){
+    const y0=pad.t+plotH-((0-minV)/range)*plotH;
+    ctx.strokeStyle="#94a3b8"; ctx.setLineDash([4,4]); ctx.beginPath(); ctx.moveTo(pad.l,y0); ctx.lineTo(W-pad.r,y0); ctx.stroke(); ctx.setLineDash([]);
+  }
+  ctx.fillStyle=document.body.classList.contains("dark")?"rgba(99,102,241,0.12)":"rgba(99,102,241,0.10)";
+  ctx.beginPath();
+  points.forEach((p,i)=>{ const x=pad.l+i*xStep; const y=pad.t+plotH-((p.cum-minV)/range)*plotH; if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y); });
+  const lastX=pad.l+(points.length-1)*xStep; const bottomY=pad.t+plotH;
+  ctx.lineTo(lastX,bottomY); ctx.lineTo(pad.l,bottomY); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle="#6366f1"; ctx.lineWidth=2.2; ctx.beginPath();
+  points.forEach((p,i)=>{ const x=pad.l+i*xStep; const y=pad.t+plotH-((p.cum-minV)/range)*plotH; if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y); });
+  ctx.stroke();
+  points.forEach((p,i)=>{ if(p.delta>0){ const x=pad.l+i*xStep; const y=pad.t+plotH-((p.cum-minV)/range)*plotH; ctx.fillStyle=p.cum>=0?"#16a34a":"#dc2626"; ctx.beginPath(); ctx.arc(x,y,3.2,0,Math.PI*2); ctx.fill(); ctx.fillStyle="#fff"; ctx.beginPath(); ctx.arc(x,y,1.2,0,Math.PI*2); ctx.fill(); }});
+  if(peakIdx>=0){ const px=pad.l+peakIdx*xStep; const py=pad.t+plotH-((peak-minV)/range)*plotH; ctx.fillStyle="#10b981"; ctx.beginPath(); ctx.arc(px,py,4,0,Math.PI*2); ctx.fill(); ctx.strokeStyle="#fff"; ctx.lineWidth=1.5; ctx.stroke(); }
+  ctx.fillStyle=document.body.classList.contains("dark")?"#8b93a3":"#6b7280";
+  ctx.font="11px system-ui,sans-serif";
+  ctx.textAlign="left"; ctx.fillText(fmt(maxV),4,pad.t+10); ctx.fillText(fmt(minV),4,pad.t+plotH+2);
+  ctx.textAlign="left"; try{ ctx.fillText(new Date(points[0].date).toLocaleDateString("nl-NL",{day:"2-digit",month:"short"}),pad.l,H-6); }catch(e){}
+  ctx.textAlign="right"; try{ ctx.fillText(new Date(points[points.length-1].date).toLocaleDateString("nl-NL",{day:"2-digit",month:"short"}),W-pad.r,H-6); }catch(e){}
+  if(meta) meta.textContent=points.length+" stappen \u00B7 "+fmt(net)+" netto";
+  if(peakEl) peakEl.textContent="Peak "+fmt(peak);
+  if(ddEl) ddEl.textContent="Max drawdown "+fmt(maxDD);
+  if(netEl) netEl.textContent="Netto "+fmt(net)+(net>=0?" \u2191":" \u2193");
+}
+/* =====================================================
+   REAL NET PROFIT (per verkoop na alle kosten)
+===================================================== */
+function renderRealProfit(){
+  const el=document.getElementById("realProfitTable");
+  if(!el) return;
+  const sold=(data.items||[]).filter(i=>i.status==="sold");
+  if(!sold.length){
+    el.innerHTML='<div class="empty-state" style="padding:18px">Nog geen verkopen \u2014 markeer een item als verkocht om je netto te zien.</div>';
+    return;
+  }
+  sold.sort((a,b)=>(b.date||0)-(a.date||0));
+  let totalRev=0, totalCost=0, totalNet=0;
+  const rows=sold.map(it=>{
+    const rev=Number(it.soldPrice)||0;
+    const purchase=itemPurchase(it);
+    const ship=itemShip(it);
+    const plat=itemPlatform(it);
+    const fee=ecoPlatformFee(rev, plat);
+    const time=ecoTimeCost();
+    const net=rev - purchase - fee - time - ship;
+    totalRev+=rev; totalCost+= purchase+fee+time+ship; totalNet+=net;
+    const pct=rev>0?(net/rev*100).toFixed(1):"0";
+    return `<div class="ledger-row" style="gap:10px;align-items:center">
+      <div style="width:42px;height:42px;border-radius:9px;overflow:hidden;background:#eef0f7;flex-shrink:0;display:flex;align-items:center;justify-content:center">${it.cover?`<img src="${it.cover}" style="width:100%;height:100%;object-fit:cover" alt="">`:"\uD83D\uDCE6"}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(it.title)}</div>
+        <div style="font-size:11px;color:var(--muted)">${esc(it.brand||"geen merk")} \u00B7 ${esc(plat)} \u00B7 ${new Date(it.date).toLocaleDateString("nl-NL")}</div>
+        <div style="font-size:11px;color:var(--muted)">aankoop ${fmt(purchase)} \u00B7 ship ${fmt(ship)} \u00B7 fee ${fmt(fee)} \u00B7 tijd ${fmt(time)}</div>
+      </div>
+      <div style="text-align:right;min-width:86px">
+        <div style="font-weight:800;font-size:13px;color:${net>=0?"var(--green)":"var(--red)"}">${fmt(net)} <span style="font-weight:500;color:var(--muted);font-size:11px">(${pct}%)</span></div>
+        <div style="font-size:11px;color:var(--muted)">${fmt(rev)} omzet</div>
+      </div>
+    </div>`;
+  }).join("");
+  const summary=`<div style="display:flex;gap:10px;flex-wrap:wrap;padding:12px 16px;background:${document.body.classList.contains("dark")?"#14171d":"#fbfbfe"};border-top:1px solid var(--line);font-size:12px;align-items:center">
+    <span>Omzet <b>${fmt(totalRev)}</b></span> \u00B7 <span>Kosten <b style="color:var(--red)">${fmt(totalCost)}</b></span> \u00B7 <span>Netto <b style="color:${totalNet>=0?"var(--green)":"var(--red)"}">${fmt(totalNet)}</b></span> \u00B7 <span style="color:var(--muted)">${sold.length} verkopen</span>
+    <span style="margin-left:auto;font-size:11px;color:var(--muted)">fee ${getPrefs().vintedFeePct}% + ${fmt(getPrefs().vintedFixedFee)} · ${getPrefs().hourlyRate}/u · ${getPrefs().minutesPerItem}min/item</span>
+  </div>`;
+  el.innerHTML=rows+summary;
+}
+/* =====================================================
+   BUNDELS (slow + mover, 10-20% onder som)
+===================================================== */
+function renderBundles(){
+  const grid=document.getElementById("bundleGrid");
+  const empty=document.getElementById("bundleEmpty");
+  if(!grid) return;
+  if(!isPro()){ grid.innerHTML=""; if(empty) empty.hidden=true; return; }
+  const all=(data.items||[]).filter(i=>i.status==="stock");
+  if(all.length<2){ grid.innerHTML=""; if(empty){ empty.hidden=false; empty.textContent="Te weinig voorraad voor bundels \u2014 je hebt minstens 2 items nodig (1 traag, 1 verkopend)."; } return; }
+  const dead=all.filter(isDeadStock);
+  const movers=all.filter(i=>!isDeadStock(i)).sort((a,b)=> itemMargin(b)-itemMargin(a) || (b.estPrice||0)-(a.estPrice||0));
+  let candidates=dead.length ? dead.slice() : all.slice().sort((a,b)=> itemDays(b)-itemDays(a)).slice(0, Math.ceil(all.length/2));
+  let moverPool=movers.length ? movers.slice() : all.slice().sort((a,b)=> (b.estPrice||0)-(a.estPrice||0)).slice(0,2);
+  if(!candidates.length || !moverPool.length){ grid.innerHTML=""; if(empty) empty.hidden=false; return; }
+  if(empty) empty.hidden=true;
+  let bundles=[];
+  const used=new Set();
+  candidates.slice(0,6).forEach((slow,idx)=>{
+    let mover=moverPool.find(m=> m.id!==slow.id && !used.has(m.id));
+    if(!mover) mover=moverPool.find(m=> m.id!==slow.id);
+    if(!mover || mover.id===slow.id) return;
+    used.add(mover.id);
+    const sum=(slow.estPrice||0)+(mover.estPrice||0);
+    if(sum<=0) return;
+    const discount=0.15 + (idx%3)*0.025;
+    const bundlePrice=Math.round(sum*(1-discount)*2)/2;
+    const fee=ecoPlatformFee(bundlePrice, "vinted");
+    const totalPurchase=itemPurchase(slow)+itemPurchase(mover);
+    const totalShip=itemShip(slow)+itemShip(mover);
+    const time=ecoTimeCost();
+    const net=bundlePrice - totalPurchase - totalShip - fee - time;
+    const save=sum-bundlePrice;
+    bundles.push({slow,mover,sum,bundlePrice,discount,save,net});
+  });
+  if(!bundles.length){ grid.innerHTML='<div class="empty-state" style="grid-column:1/-1">Geen bundels te maken \u2014 voeg meer items toe.</div>'; return; }
+  grid.innerHTML=bundles.map((b,i)=>{
+    const dSlow=itemDays(b.slow), dMover=itemDays(b.mover);
+    return `<div class="bundle-card">
+      <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px">
+        <div style="width:48px;height:48px;border-radius:9px;overflow:hidden;background:#eef0f7;flex-shrink:0;display:flex;align-items:center;justify-content:center">${b.slow.cover?`<img src="${b.slow.cover}" style="width:100%;height:100%;object-fit:cover" alt="">`:"\uD83D\uDCE6"}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(b.slow.title)} <span style="font-size:10px;background:#fef2f2;color:#dc2626;border:1px solid #fecaca;padding:2px 6px;border-radius:20px;vertical-align:middle">${dSlow}d</span></div>
+          <div style="font-size:11px;color:var(--muted)">${esc(b.slow.brand||"\u2014")} \u00B7 ${fmt(b.slow.estPrice||0)}</div>
+        </div>
+        <span style="font-weight:800;color:var(--muted)">+</span>
+        <div style="width:48px;height:48px;border-radius:9px;overflow:hidden;background:#eaf7ef;flex-shrink:0;display:flex;align-items:center;justify-content:center">${b.mover.cover?`<img src="${b.mover.cover}" style="width:100%;height:100%;object-fit:cover" alt="">`:"\uD83D\uDCE6"}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(b.mover.title)} <span style="font-size:10px;background:#eaf7ef;color:#16a34a;border:1px solid #d3eedd;padding:2px 6px;border-radius:20px;vertical-align:middle">${dMover}d</span></div>
+          <div style="font-size:11px;color:var(--muted)">${esc(b.mover.brand||"\u2014")} \u00B7 ${fmt(b.mover.estPrice||0)}</div>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;background:${document.body.classList.contains("dark")?"#14171d":"#fbfbfe"};border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px">
+        <div><div style="font-size:11px;letter-spacing:.6px;color:var(--muted);font-weight:700">BUNDELPRIJS (${Math.round(b.discount*100)}% korting)</div><div style="font-size:18px;font-weight:800;color:var(--green)">${fmt(b.bundlePrice)}</div><div style="font-size:11px;color:var(--muted)">som ${fmt(b.sum)} \u00B7 je bespaart ${fmt(b.save)}</div></div>
+        <div style="text-align:right"><div style="font-size:11px;color:${b.net>=0?"var(--green)":"var(--red)"};font-weight:700">netto ${fmt(b.net)}</div><div style="font-size:10px;color:var(--muted)">na kosten</div></div>
+      </div>
+      <div style="font-size:11px;color:var(--muted);line-height:1.4;margin-bottom:8px">Bundle: &ldquo;${esc(b.slow.title)} + ${esc(b.mover.title)} &mdash; samen ${fmt(b.bundlePrice)} i.p.v. ${fmt(b.sum)}. Alleen samen te koop.&rdquo;</div>
+      <button class="btn btn-outline" style="width:100%;font-size:12.5px;padding:8px" onclick="copyBundleText(${i})">\uD83D\uDCCB Kopieer bundel-tekst</button>
+    </div>`;
+  }).join("");
+  window._lastBundles=bundles;
+}
+function copyBundleText(idx){
+  const b=(window._lastBundles||[])[idx];
+  if(!b){ toast("Geen bundel gevonden", true); return; }
+  const txt=`${b.slow.title} + ${b.mover.title}\nBundle prijs: ${fmt(b.bundlePrice)} (samen ${fmt(b.sum)} \u2014 ${Math.round(b.discount*100)}% korting)\n${b.slow.title}: ${fmt(b.slow.estPrice||0)} \u00B7 ${b.slow.brand||""} ${b.slow.size||""}\n${b.mover.title}: ${fmt(b.mover.estPrice||0)} \u00B7 ${b.mover.brand||""} ${b.mover.size||""}\nAlleen samen te koop \u2014 verzending in \u00E9\u00E9n pakket. Vraag gerust om extra foto\u2019s!`;
+  navigator.clipboard.writeText(txt).then(()=>toast("Bundel gekopieerd \uD83D\uDCCB"));
+}
+/* =====================================================
+   REPLIES (taal-detectie + vloer-bewust)
+===================================================== */
+function renderRepliesInit(){
+  const sel=document.getElementById("replyItemSel");
+  const floor=document.getElementById("replyFloor");
+  const out=document.getElementById("replyOut");
+  if(!sel) return;
+  const items=(data.items||[]).filter(i=>i.status==="stock");
+  const cur=sel.value;
+  sel.innerHTML=`<option value="">\u2014 kies item (voor vloer) \u2014</option>`+items.map(it=>`<option value="${it.id}">${esc(it.title.slice(0,48))} \u00B7 vloer ${fmt(itemFloor(it))} \u00B7 ${fmt(it.estPrice||0)}</option>`).join("") + (items.length===0?`<option disabled>Geen voorraad \u2014 typ vloer handmatig</option>`:"");
+  if(cur) sel.value=cur;
+  sel.onchange=()=>{
+    const it=(data.items||[]).find(x=>x.id===sel.value);
+    if(it && floor){ floor.placeholder=fmt(itemFloor(it)); floor.value=""; }
+  };
+  if(out && !out.dataset.inited){
+    out.innerHTML='<div style="font-size:12px;color:var(--muted);padding:6px 2px">Plak een bericht en kies een item \u2014 je vloer wordt automatisch bewaakt.</div>';
+    out.dataset.inited="1";
+  }
+}
+function detectLangForReply(s){
+  const t=(s||"").toLowerCase();
+  if(/\b(bonjour|salut|prix|combien|frais|envoi|merci|int\u00E9ress\u00E9|int\u00E9ress\u00E9e|\u00E7a marche|d\u00E9s)(\b|\s)/.test(t)) return "fr";
+  if(/\b(guten|hallo|preis|wie viel|versand|danke|interessiert|noch da|letzter preis)\b/.test(t)) return "de";
+  if(/\b(hello|hi there|price|how much|shipping|thanks|interested|offer|still available)\b/.test(t)) return "en";
+  if(/\b(hoi|hallo|prijs|verzend|bedankt|ge\u00EFnteresseerd|bieden|bod|ophalen|versturen)\b/.test(t)) return "nl";
+  return getPrefs().lang||"nl";
+}
+function parseProposedPrice(s){
+  const a=(s||"").match(/\u20AC\s*([0-9]+(?:[.,][0-9]+)?)/);
+  if(a) return parseFloat(a[1].replace(",","."));
+  const b=(s||"").match(/\b([0-9]+(?:[.,][0-9]+)?)\s*(?:euro|eur|\u20AC)/i);
+  if(b) return parseFloat(b[1].replace(",","."));
+  const c=(s||"").match(/\b([0-9]{1,3}(?:[.,][0-9]{1,2})?)\b/);
+  if(c){ const v=parseFloat(c[1].replace(",",".")); if(v>=2 && v<=800) return v; }
+  return null;
+}
+function genReplies(){
+  const input=document.getElementById("replyInput");
+  const sel=document.getElementById("replyItemSel");
+  const floorInput=document.getElementById("replyFloor");
+  const out=document.getElementById("replyOut");
+  if(!input || !out) return;
+  const raw=(input.value||"").trim();
+  if(!raw){ toast("Plak eerst een bericht van de koper", true); input.focus(); return; }
+  const lang=detectLangForReply(raw);
+  const proposed=parseProposedPrice(raw);
+  let floor=null, item=null;
+  if(sel && sel.value){ item=(data.items||[]).find(x=>x.id===sel.value); if(item) floor=itemFloor(item); }
+  const manual=parseFloat(floorInput && floorInput.value);
+  if(isFinite(manual) && manual>0) floor=manual;
+  if(!isFinite(floor) || floor<=0) floor=getPrefs().minNet + ecoTimeCost() + ecoDefaultShip() + 2;
+  floor=Math.round(floor*2)/2;
+  const refPrice=item ? (item.estPrice||floor+12) : floor+12;
+  const T={
+    nl:{ hi:"Hoi", thanks:"Bedankt voor je berichtje!", ship:"Verzending binnen 1 werkdag, zorgvuldig verpakt.", floorLine:(p)=> `Mijn laagste prijs is ${fmt(p)} \u2014 daaronder kan ik echt niet gaan (kosten + fees).`, meet:(p)=> `Ik kan ${fmt(p)} doen \u2014 dan heb je meteen een mooie deal.`, firm:(p)=> `Ik begrijp je bod, maar ${fmt(p)} is echt mijn ondergrens.`, bundle:"Ik kan er eventueel een bundel van maken met korting.", close:"Laat je weten of dat voor je werkt? \uD83D\uDE0A" },
+    en:{ hi:"Hi", thanks:"Thanks for your message!", ship:"Ships within 1 business day, carefully packed.", floorLine:(p)=> `My lowest is ${fmt(p)} \u2014 I really can\u2019t go below that (fees + costs).`, meet:(p)=> `I can do ${fmt(p)} \u2014 that\u2019s a great deal.`, firm:(p)=> `I appreciate your offer, but ${fmt(p)} is my absolute floor.`, bundle:"I can also bundle it with another item for a discount.", close:"Let me know if that works for you? \uD83D\uDE0A" },
+    de:{ hi:"Hallo", thanks:"Danke f\u00FCr deine Nachricht!", ship:"Versand innerhalb 1 Werktag, sorgf\u00E4ltig verpackt.", floorLine:(p)=> `Mein letzter Preis ist ${fmt(p)} \u2014 darunter geht leider nicht.`, meet:(p)=> `Ich kann ${fmt(p)} machen \u2014 das ist ein fairer Preis.`, firm:(p)=> `Danke f\u00FCr dein Angebot, aber ${fmt(p)} ist meine Grenze.`, bundle:"Ich kann es auch als Bundle mit Rabatt anbieten.", close:"Sag Bescheid, ob das passt? \uD83D\uDE0A" },
+    fr:{ hi:"Bonjour", thanks:"Merci pour ton message !", ship:"Envoi sous 1 jour ouvr\u00E9, bien emball\u00E9.", floorLine:(p)=> `Mon dernier prix est ${fmt(p)} \u2014 je ne peux pas descendre en dessous.`, meet:(p)=> `Je peux faire ${fmt(p)} \u2014 c\u2019est une belle offre.`, firm:(p)=> `Merci pour ton offre, mais ${fmt(p)} est mon minimum.`, bundle:"Je peux aussi faire un lot avec une remise.", close:"Dis-moi si \u00E7a te convient ? \uD83D\uDE0A" }
+  };
+  const L=T[lang]||T.nl;
+  const title=item?item.title:"dit item";
+  let counter;
+  if(proposed==null) counter=floor;
+  else if(proposed < floor) counter=floor;
+  else if(proposed >= refPrice) counter=proposed;
+  else { counter=Math.round(Math.max(floor, (proposed + refPrice)/2 * 0.95)*2)/2; if(counter<floor) counter=floor; }
+  if(counter<floor) counter=floor;
+  const friendly=`${L.hi}! ${L.thanks} ${L.meet(counter)} Voor \u201C${title}\u201D. ${L.floorLine(floor)} ${L.ship} ${L.close}`;
+  const firm=`${L.hi}, ${L.firm(counter)} Voor \u201C${title}\u201D is ${fmt(counter)} mijn beste prijs. ${L.ship} ${L.bundle} ${L.close}`;
+  const best=`${L.hi}! ${L.thanks} Mijn vaste prijs is ${fmt(refPrice)}; ${L.meet(counter)} is het laagste wat ik kan doen \u2014 daaronder maak ik verlies. ${L.bundle} ${L.close}`;
+  const replies=[
+    {label: lang==="nl"?"Vriendelijk": lang==="en"?"Friendly": lang==="de"?"Freundlich":"Amical", text:friendly, badge:"vriendelijk"},
+    {label: lang==="nl"?"Stevig": lang==="en"?"Firm": lang==="de"?"Fest":"Ferme", text:firm, badge:"stevig"},
+    {label: lang==="nl"?"Best bod": lang==="en"?"Best offer": lang==="de"?"Bestes Angebot":"Meilleure offre", text:best, badge:"best bod"}
+  ];
+  const note=`Vloer ${fmt(floor)} bewaakt \u2014 geen antwoord gaat eronder. Taal gedetecteerd: ${lang.toUpperCase()}${proposed!=null?` \u00B7 bod ${fmt(proposed)}`:""}.`;
+  out.innerHTML=`<div style="font-size:11px;color:var(--muted);margin-bottom:8px">${esc(note)}</div>` + replies.map((r,i)=>`
+    <div class="reply-box">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><b style="font-size:13px">${esc(r.label)}</b><span style="font-size:10px;letter-spacing:.6px;font-weight:700;color:var(--muted);border:1px solid var(--line);padding:3px 8px;border-radius:20px">${r.badge.toUpperCase()}</span></div>
+      <div style="font-size:13px;line-height:1.5;white-space:pre-wrap">${esc(r.text)}</div>
+      <button class="btn btn-outline" style="margin-top:8px;font-size:12px;padding:7px 12px" onclick="copyReplyText(${i})">\uD83D\uDCCB Kopi\u00EBren</button>
+    </div>`).join("");
+  window._lastReplies=replies.map(r=>r.text);
+  toast("Antwoorden klaar \u2014 vloer "+fmt(floor)+" bewaakt");
+}
+function copyReplyText(i){
+  const t=(window._lastReplies||[])[i];
+  if(!t){ toast("Geen antwoord gevonden", true); return; }
+  navigator.clipboard.writeText(t).then(()=>toast("Antwoord gekopieerd \uD83D\uDCCB"));
+}
+/* =====================================================
+   CSV (kasboek: export / import)
+===================================================== */
+function csvEscape(v){
+  const s=String(v==null?"":v);
+  if(s.includes('"')||s.includes(",")||s.includes("\n")) return '"'+s.replace(/"/g,'""')+'"';
+  return s;
+}
+function exportLedgerCsv(){
+  if(!data || !Array.isArray(data.ledger)){ toast("Geen kasboek om te exporteren", true); return; }
+  let csv="date,type,label,amount\n";
+  (data.ledger||[]).forEach(e=>{
+    const d=new Date(e.date).toISOString();
+    csv+=`${csvEscape(d)},${csvEscape(e.type)},${csvEscape(e.label)},${csvEscape(e.amount)}\n`;
+  });
+  const blob=new Blob([csv],{type:"text/csv;charset=utf-8"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a"); a.href=url; a.download="guidsell-kasboek-"+new Date().toISOString().slice(0,10)+".csv"; a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),2000);
+  toast("CSV ge\u00EBxporteerd \uD83D\uDCC4");
+}
+function importLedgerCsv(input){
+  const file=input.files && input.files[0];
+  if(!file){ toast("Geen bestand gekozen", true); return; }
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const text=String(e.target.result||"");
+      const lines=text.split(/\r?\n/).filter(l=>l.trim());
+      if(lines.length<2){ toast("CSV lijkt leeg", true); return; }
+      let start=0;
+      const head=lines[0].toLowerCase();
+      if(head.includes("date")||head.includes("type")||head.includes("label")) start=1;
+      function parseCsvLine(line){
+        const out=[]; let cur="", inQ=false;
+        for(let i=0;i<line.length;i++){
+          const c=line[i];
+          if(c==='"'){ if(inQ && line[i+1]==='"'){ cur+='"'; i++; } else inQ=!inQ; }
+          else if(c==="," && !inQ){ out.push(cur); cur=""; }
+          else cur+=c;
+        }
+        out.push(cur);
+        return out.map(s=>s.trim());
+      }
+      let added=0;
+      for(let i=start;i<lines.length;i++){
+        const cols=parseCsvLine(lines[i]);
+        if(cols.length<3) continue;
+        let type,label,amount,date;
+        if(cols.length>=4){ date=cols[0]; type=cols[1]; label=cols[2]; amount=cols[3]; }
+        else { type=cols[0]; label=cols[1]; amount=cols[2]; }
+        type=String(type||"").toLowerCase().trim();
+        if(type!=="in" && type!=="out"){
+          if(type.includes("uit")||type.includes("cost")||type.includes("aankoop")||type.includes("out")) type="out"; else type="in";
+        }
+        const amt=parseFloat(String(amount||"").replace(",",".").replace(/[^0-9.\-]/g,""));
+        if(!isFinite(amt) || amt<=0) continue;
+        const lbl=String(label||"Import").slice(0,140) || "Import";
+        let ts=Date.now()-added*1000;
+        if(date){ const d=new Date(date); if(!isNaN(d)) ts=d.getTime(); }
+        data.ledger.unshift({id:uid(), type: type==="in"?"in":"out", label: lbl, amount: amt, date: ts});
+        added++;
+      }
+      if(added>0){ saveData(); renderLedger(); renderDashboard(); try{ renderProfitCurve(); renderRealProfit(); }catch(_){} toast(added+" boekingen ge\u00EFmporteerd \u2705"); }
+      else toast("Geen boekingen herkend \u2014 check het CSV formaat", true);
+    }catch(err){ toast("Import mislukt: "+String(err.message||err).slice(0,120), true); }
+    finally{ input.value=""; }
+  };
+  reader.readAsText(file);
 }
 
 /* =====================================================
@@ -3356,27 +4267,48 @@ document.querySelectorAll(".modal-back").forEach(m => {
     if (e.target === m) { m.classList.remove("show"); }
   });
 });
-/* ---------- HAMBURGER / MOBILE NAV ---------- */
+/* ---------- HAMBURGER / MOBILE NAV + SIDEBAR ---------- */
 function toggleMobileNav(){
-  const open = document.body.classList.toggle("nav-open");
-  document.querySelectorAll(".nav-burger").forEach(b=>{ b.setAttribute("aria-expanded", open?"true":"false"); b.textContent=open?"✕":"☰"; });
+  const isLanding = !document.getElementById("page-landing").hidden;
+  if(isLanding){
+    const open = document.body.classList.toggle("nav-open");
+    document.querySelectorAll("#burgerLanding").forEach(b=>{ b.setAttribute("aria-expanded", open?"true":"false"); b.textContent=open?"✕":"☰"; });
+    return;
+  }
+  // app: respecteer zijbalk (sidebar-open) op mobiel, niet nav-open
+  const open = document.body.classList.toggle("sidebar-open");
+  document.querySelectorAll("#burgerApp, .app-topbar .nav-burger").forEach(b=>{ b.setAttribute("aria-expanded", open?"true":"false"); b.textContent=open?"✕":"☰"; });
 }
 function closeMobileNav(){
   document.body.classList.remove("nav-open");
+  document.body.classList.remove("sidebar-open");
   document.querySelectorAll(".nav-burger").forEach(b=>{ b.setAttribute("aria-expanded","false"); b.textContent="☰"; });
 }
 // sluit menu bij nav-link klik of switchView
 document.addEventListener("click", e=>{
   if(document.body.classList.contains("nav-open") && e.target.closest(".topnav .links .navlink")) closeMobileNav();
+  if(document.body.classList.contains("sidebar-open") && e.target.closest(".app-sidebar .navlink")) closeMobileNav();
 });
-// Escape handled above; ook klik buiten topnav sluit overlay
+// Escape handled above; ook klik buiten topnav/sidebar sluit overlay
 document.addEventListener("click", e=>{
-  if(!document.body.classList.contains("nav-open")) return;
-  if(e.target.closest(".topnav")) return;
-  closeMobileNav();
+  if(document.body.classList.contains("sidebar-open")){
+    if(e.target.closest(".app-sidebar") || e.target.closest(".nav-burger") ) return;
+    // klik buiten sidebar/topnav -> sluit (overlay doet het al, maar extra guard)
+  } else {
+    if(!document.body.classList.contains("nav-open")) return;
+    if(e.target.closest(".topnav")) return;
+    closeMobileNav();
+  }
 });
+function openWhat(view){
+  // frontpage -> real app features on the side; if not logged in, ask to log in/register first
+  if(!session || !users[session]){ openAuth('register'); toast(view==="check" ? "Log in om de listing tool te gebruiken" : "Log in om "+view+" te openen — daarna staat alles aan de zijkant"); return; }
+  if(document.getElementById("page-app").hidden) enterApp();
+  // allow render path to settle (enterApp is async-ish)
+  setTimeout(()=> switchView(view), view==="dashboard"? 80 : 40);
+}
 // bij resize naar desktop: overlay weg
-window.addEventListener("resize", ()=>{ if(window.innerWidth>900) closeMobileNav(); });
+window.addEventListener("resize", ()=>{ if(window.innerWidth>900){ closeMobileNav(); document.body.classList.remove("sidebar-open"); } });
 
 /* =====================================================
    VERZENDCALCULATOR
