@@ -422,6 +422,110 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  // ---- AI manuele haul-schatting: vrije tekst → gewicht/volume (zonder link) ----
+  if (u.pathname === "/api/ship-manual-estimate" && req.method === "POST") {
+    let raw = "";
+    req.on("data", c => { raw += c; if (raw.length > 2 * 1024 * 1024) req.destroy(); });
+    req.on("end", async () => {
+      try {
+        const body = JSON.parse(raw || "{}");
+        let text = String(body.text || body.q || "").trim().slice(0, 800);
+        if (!text) return sendJson(res, 400, { error: "tekst ontbreekt — typ bijv. '2x UGG schoenen, Nike Elite tas'" });
+        // normaliseer: komma/newline/“ en ” -> scheiden, maar laat AI het echte splitten doen
+        const cacheKey = "ship-manual:" + text.toLowerCase().slice(0, 200);
+        const hit = cache.get(cacheKey);
+        if (hit && Date.now() - hit.at < CACHE_TTL) return sendJson(res, 200, { ...hit.body, cached: true });
+
+        const PRESETS_M = {
+          "t-shirt": [0.20, [30,25,2]], "hoodie": [0.55,[35,30,6]], "sweater": [0.50,[35,30,5]], "jas": [1.10,[45,35,10]],
+          "broek": [0.45,[35,25,4]], "jeans": [0.65,[35,25,5]], "jurk": [0.35,[35,25,4]], "sneakers": [1.05,[34,20,13]],
+          "schoenen": [1.00,[34,20,14]], "tas": [0.60,[35,25,15]], "accessoire": [0.15,[25,20,8]], "overig": [0.40,[30,20,10]]
+        };
+        function guessTypeM(s){
+          const t=(s||"").toLowerCase();
+          if(/ugg|boot|laars|timberland|dr\.\s*martens|drmartens/.test(t)) return "schoenen";
+          if(/hoodie|hoody|zip\s*hood|sweat.*hood|trui/.test(t)) return "hoodie";
+          if(/sneaker|trainer|air\s*max|jordan|dunk|yeezy/.test(t)) return "sneakers";
+          if(/jeans|denim/.test(t)) return "jeans";
+          if(/coat|parka|jacket|puffer|doudoune|jas\b/.test(t)) return "jas";
+          if(/\btas\b|bag|backpack|handbag|crossbody|elite\s*tas|duffel|shoulder\s*bag/.test(t)) return "tas";
+          if(/dress|jurk\b/.test(t)) return "jurk";
+          if(/\bpant\b|broek|trouser|chino|cargo.*pant/.test(t)) return "broek";
+          if(/sweater|knit|pullover/.test(t)) return "sweater";
+          if(/tee|t-shirt|tshirt|shirt/.test(t)) return "t-shirt";
+          if(/cap|hat|beanie|muts|pet\b|accessoire|sjaal|handschoen/.test(t)) return "accessoire";
+          if(/schoen|shoe|loafer|mocassin|clog/.test(t)) return "schoenen";
+          return "overig";
+        }
+        function clampOne(j, fallbackText){
+          const allowed=["t-shirt","hoodie","sweater","jas","broek","jeans","jurk","sneakers","schoenen","tas","accessoire","overig"];
+          let t = String(j.item_type||j.type||"").toLowerCase().trim();
+          if(!allowed.includes(t)) t = guessTypeM(String(j.raw||j.title||fallbackText||""));
+          let w = Number(j.weight_kg ?? j.weightKg ?? j.w);
+          let L = Number(j.length_cm ?? j.l ?? j.length);
+          let W = Number(j.width_cm ?? j.w2 ?? j.width);
+          let H = Number(j.height_cm ?? j.h ?? j.height);
+          let q = parseInt(j.qty ?? j.aantal ?? "1",10); if(!(q>=1 && q<=99)) q=1;
+          const fb = PRESETS_M[t] || PRESETS_M.overig;
+          if(!(w>0 && w<30)) w = fb[0];
+          if(!(L>0 && L<120)) L = fb[1][0];
+          if(!(W>0 && W<120)) W = fb[1][1];
+          if(!(H>0 && H<80)) H = fb[1][2];
+          w = Math.round(w*100)/100; L=Math.round(L); W=Math.round(W); H=Math.round(H);
+          const conf = ["laag","gemiddeld","hoog"].includes(String(j.confidence))? String(j.confidence): "gemiddeld";
+          const rawTitle = String(j.raw || j.title || fallbackText || t).slice(0,80).trim() || PRESETS_M[t] ? t : "item";
+          return { item_type:t, qty:q, weight_kg:w, length_cm:L, width_cm:W, height_cm:H, confidence:conf, raw: rawTitle, reason:String(j.reason||"").slice(0,140) };
+        }
+        // fallback zonder AI: split op komma/newline/en/;
+        function fallbackFromText(txt){
+          const parts = txt.split(/[,;\n]+|\s+en\s+|\s+&\s+/i).map(s=>s.trim()).filter(Boolean).slice(0,12);
+          if(parts.length===0) parts.push(txt);
+          return parts.map(p=>{
+            let q=1, rest=p;
+            let m = p.match(/^\s*(\d+)\s*[x×]\s*(.+)/i);
+            if(m){ q=Math.min(99,Math.max(1,parseInt(m[1],10)||1)); rest=m[2].trim(); }
+            else {
+              m = p.match(/^\s*(\d+)\s+(.+)/);
+              if(m && guessTypeM(m[2])!=="overig" || (m && /hoodie|jean|tas|schoen|sneaker|ugg|broek|jas|trui|sweater|t-shirt/i.test(m[2]))){ q=Math.min(99,Math.max(1,parseInt(m[1],10)||1)); rest=m[2].trim(); }
+            }
+            const t = guessTypeM(rest);
+            const fb=PRESETS_M[t];
+            return { item_type:t, qty:q, weight_kg:fb[0], length_cm:fb[1][0], width_cm:fb[1][1], height_cm:fb[1][2], confidence:"laag", raw: rest.slice(0,80), reason:"preset op basis van tekst (geen AI)" };
+          });
+        }
+
+        const k = readApiKey();
+        if (!k) {
+          const ests = fallbackFromText(text);
+          const bodyOut = { ok:true, source:"preset", estimates: ests, text };
+          cache.set(cacheKey,{at:Date.now(), body:bodyOut});
+          return sendJson(res,200, bodyOut);
+        }
+        const prompt = `Je bent verzend-expert voor Chinese shops (Weidian/Taobao/1688 etc) → verzending naar EU.\nGebruiker typt vrij wat hij in zijn haul heeft (zonder link). Tekst: "${text.replace(/"/g,"'").slice(0,600)}"\n\nTaak: splits in losse items (herken aantallen zoals "2x UGG schoenen" = qty 2, "Nike Elite tas" = qty 1, komma/enter = nieuw item, "en" = nieuw item). Voor elk item schat: item_type (één van [t-shirt,hoodie,sweater,jas,broek,jeans,jurk,sneakers,schoenen,tas,accessoire,overig]), qty (1-99), gewicht kg per stuk, afmetingen L×B×H cm gevouwen (realistisch pakket incl. doos voor schoenen), confidence (laag/gemiddeld/hoog).\nVoorbeelden: "2x UGG schoenen" → schoenen 1.0kg 34×20×14, "Nike Elite tas" → tas 0.65kg 35×25×15, "hoodie" → 0.55kg 35×30×6.\nAntwoord ALLEEN geldige JSON array, geen uitleg: [{"raw":"UGG schoenen","item_type":"schoenen","qty":2,"weight_kg":1.0,"length_cm":34,"width_cm":20,"height_cm":14,"confidence":"gemiddeld","reason":"kort"}]\nRichtlijnen gewicht: t-shirt 0.18-0.25, hoodie 0.5-0.65, sweater 0.45-0.6, jas 0.9-1.6, jeans 0.6-0.8, broek 0.4-0.6, sneakers 0.9-1.2 incl doos, schoenen/boots/UGG 0.9-1.4, tas 0.4-0.9 (Elite/duffel 0.6-0.9), accessoire 0.1-0.25. Afmetingen: t-shirt 30x25x2, hoodie 35x30x6, schoenen/boots 34x20x14, sneakers 34x20x13, tas 35x25x15, jas 45x35x10. Wees conservatief.`;
+        try {
+          const rawJ = await callGeminiServer(prompt, []);
+          let arr = Array.isArray(rawJ) ? rawJ : (rawJ.estimates || rawJ.items || (rawJ.item_type ? [rawJ] : []));
+          if(!Array.isArray(arr) || arr.length===0) throw new Error("lege AI response");
+          let ests = arr.slice(0,12).map(j=> clampOne(j||{}, text));
+          // qty cap en merge duplicate raws? laat los
+          const bodyOut = { ok:true, source:"ai", estimates: ests, text };
+          cache.set(cacheKey,{at:Date.now(), body:bodyOut});
+          console.log(`[ship-manual] "${text.slice(0,50)}" → ${ests.length} items AI (${ests.map(e=>e.qty+"×"+e.item_type).join(", ")})`);
+          return sendJson(res,200, bodyOut);
+        } catch (e) {
+          console.log("[ship-manual] AI mislukt:", e.message, "→ fallback");
+          const ests = fallbackFromText(text);
+          const bodyOut = { ok:true, source:"preset_fallback", estimates: ests, text, error:e.message };
+          cache.set(cacheKey,{at:Date.now(), body:bodyOut});
+          return sendJson(res,200, bodyOut);
+        }
+      } catch (e) {
+        return sendJson(res, 200, { ok:false, reason:"fout", error:e.message });
+      }
+    });
+    return;
+  }
+
   // ---- Vinted profiel koppelen: /api/vinted/profile?url=... of ?id=... ----
   if (u.pathname === "/api/vinted/profile") {
     const rawUrl = (u.searchParams.get("url") || "").trim();

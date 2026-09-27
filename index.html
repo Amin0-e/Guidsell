@@ -830,8 +830,28 @@
   .nav-burger{ display:none; background:none; border:none; font-size:22px; line-height:1; padding:8px 10px; border-radius:9px; color:var(--text); }
   .nav-burger:hover{ background:#f1f3fa; }
   body.dark .nav-burger:hover{ background:#1a1e26; }
-  .app-actions{ display:flex; align-items:center; gap:6px; margin-left:8px; }
+  .app-actions{ display:flex; align-items:center; gap:6px; margin-left:8px; flex-wrap:nowrap; }
   .app-actions .quota-chip{ max-width:140px; overflow:hidden; text-overflow:ellipsis; }
+  .user-chip{ cursor:pointer; border-radius:20px; padding:4px 8px 4px 4px; transition:background .15s; }
+  .user-chip:hover{ background:#f1f3fa; }
+  body.dark .user-chip:hover{ background:#1a1e26; }
+  .user-chip:focus-visible{ outline:2px solid var(--brand); outline-offset:2px; }
+  /* settings modal */
+  .settings-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  @media(max-width:640px){ .settings-grid{ grid-template-columns:1fr; } }
+  .settings-section{ background:#fbfbfe; border:1px solid var(--line); border-radius:12px; padding:14px; }
+  body.dark .settings-section{ background:#14171d; }
+  .settings-section h3{ font-size:12px; letter-spacing:.8px; color:var(--muted); margin-bottom:10px; }
+  .settings-row{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:8px 0; border-bottom:1px solid var(--line); }
+  .settings-row:last-child{ border-bottom:none; }
+  .settings-row b{ font-size:13px; }
+  .settings-row small{ font-size:11px; color:var(--muted); }
+  .seg{ display:flex; background:#f1f3fa; padding:3px; border-radius:10px; gap:3px; }
+  body.dark .seg{ background:#1a1e26; }
+  .seg button{ padding:6px 12px; border-radius:8px; border:none; background:none; font-size:12.5px; font-weight:600; color:var(--muted); }
+  .seg button.active{ background:var(--card); color:var(--text); box-shadow:0 1px 3px rgba(0,0,0,.08); }
+  body.dark .seg button.active{ background:#262b36; }
+  .settings-modal{ max-width:640px; max-height:85vh; overflow:auto; }
   /* forgot modal helpers */
   #forgotFoundMsg{ background:#eaf7ef; border:1px solid #d3eedd; border-radius:10px; padding:10px 14px; font-size:13px; color:#15803d; margin-bottom:14px; }
   body.dark #forgotFoundMsg{ background:rgba(22,163,74,.12); border-color:rgba(22,163,74,.3); color:#86efac; }
@@ -1132,12 +1152,12 @@
     <button class="nav-burger" id="burgerApp" onclick="toggleMobileNav()" aria-label="Menu" aria-expanded="false">☰</button>
     <div class="app-actions">
       <button class="btn-ghost theme-toggle" onclick="toggleTheme()" title="Donker/licht">🌙</button>
-      <button class="btn-ghost" onclick="openSettings()" title="Instellingen">⚙️</button>
       <span class="quota-chip" id="quotaChip">5/5 deze week</span>
-      <div class="user-chip">
+      <button class="user-chip" id="userChipBtn" onclick="openSettings()" title="Instellingen openen" aria-label="Instellingen openen">
         <div class="avatar" id="avatar">J</div>
         <span id="userName">…</span>
-      </div>
+      </button>
+      <button class="btn-ghost" onclick="openSettings()" title="Instellingen" aria-label="Instellingen">⚙️</button>
       <button class="btn-ghost" onclick="logout()" title="Uitloggen">⎋ Uitloggen</button>
     </div>
   </nav>
@@ -1387,6 +1407,16 @@
           <div class="card" id="shipManualPane">
             <div class="card-head">➕ ITEM TOEVOEGEN — HANDMATIG</div>
             <div class="card-body">
+              <!-- AI: vrije tekst → gewicht/volume automatisch -->
+              <div style="background:linear-gradient(135deg,#eef0ff,#f5f0ff);border:1px solid #e0e2ff;border-radius:12px;padding:12px;margin-bottom:14px">
+                <div style="font-size:12px;font-weight:800;letter-spacing:.4px;margin-bottom:6px">✨ AI — typ wat je hebt</div>
+                <div style="display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap">
+                  <textarea id="shipManualText" rows="2" placeholder="bv. 2x UGGs schoenen, Nike Elite tas, 3 hoodies" onkeydown="if(event.key==='Enter' && (event.ctrlKey||event.metaKey)){ event.preventDefault(); shipAddFromManualText(); }" style="flex:1;min-width:180px;resize:vertical;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--text);font-size:13px;line-height:1.45"></textarea>
+                  <button class="btn" id="shipManualAiBtn" onclick="shipAddFromManualText()" style="white-space:nowrap;align-self:flex-start;padding:10px 14px">✨ AI berekenen</button>
+                </div>
+                <div class="ship-preset-hint" style="margin-top:6px">Tip: typ vrij — bv. <b>"uggs schoenen"</b>, <b>"nike elite tas"</b> of <b>"2x UGGs, 1 tas, 3 hoodies"</b>. AI schat per item gewicht &amp; afmeting en zet alles in je pakket. Daarna gewoon verzending uitrekenen — handmatig bijsturen kan altijd.</div>
+                <div id="shipManualAiHint" class="ship-preset-hint" style="display:none"></div>
+              </div>
               <div class="ship-add-row">
                 <div class="field" style="margin-bottom:0">
                   <label>Item</label>
@@ -1422,6 +1452,7 @@
                 <button class="filter-btn" onclick="shipQuick('sneakers')">👟 Sneakers</button>
                 <button class="filter-btn" onclick="shipQuick('tas')">👜 Tas</button>
                 <button class="filter-btn" onclick="shipQuick('jas')">🧥 Jas</button>
+                <button class="filter-btn" onclick="shipQuick('schoenen')">👢 Schoenen</button>
               </div>
             </div>
           </div>
@@ -1692,19 +1723,64 @@
   </div>
 </div>
 
-<div class="modal-back" id="settingsModal">
-  <div class="modal" style="text-align:left">
-    <h2>⚙️ AI instellen</h2>
-    <p style="margin-bottom:12px">Sluit je <b>gratis Google Gemini API-sleutel</b> aan zodat de AI je foto's echt kan bekijken en beschrijvingen kan schrijven. Maak er gratis één aan op <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>.</p>
-    <div class="field">
-      <label>Gemini API-sleutel</label>
-      <input id="setKey" type="password" placeholder="AIza...">
+<div class="modal-back" id="settingsModal" onclick="if(event.target===this) closeSettings()">
+  <div class="modal settings-modal" style="text-align:left">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px">
+      <h2 style="margin:0">⚙️ Instellingen</h2>
+      <button class="btn-ghost" onclick="closeSettings()" aria-label="Sluiten">✕</button>
     </div>
-    <p style="font-size:11px;margin-bottom:16px">De sleutel blijft in deze browser (localStorage) en wordt live gecontroleerd bij opslaan. Voor een publieke site verplaats je hem later naar een eigen server.</p>
-    <div class="modal-actions">
-      <button class="btn btn-lg" onclick="saveSettings()">Sleutel opslaan</button>
-      <button class="btn-ghost" onclick="document.getElementById('settingsModal').classList.remove('show')">Sluiten</button>
+    <p style="margin-bottom:14px;font-size:13px">Klik op je naam/avatar om hier te komen. Taal wijzigt alles live — thema en je haul-defaults worden onthouden.</p>
+
+    <div class="settings-grid">
+      <div class="settings-section">
+        <h3>👤 PROFIEL</h3>
+        <div class="field" style="margin-bottom:10px"><label>Naam</label><input id="setName" type="text" placeholder="Je naam" autocomplete="name"></div>
+        <div class="field" style="margin-bottom:6px"><label>E-mail</label><input id="setEmail" type="text" disabled style="opacity:.7"></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" onclick="saveProfileName()">Naam opslaan</button><button class="btn btn-outline" style="font-size:12.5px" onclick="openChangePass()">Wachtwoord wijzigen</button></div>
+        <div id="changePassBox" hidden style="margin-top:12px;border-top:1px solid var(--line);padding-top:12px">
+          <div class="field"><label>Nieuw wachtwoord</label><input id="setPass1" type="password" placeholder="Minimaal 4 tekens" minlength="4"></div>
+          <div class="field"><label>Herhaal nieuw wachtwoord</label><input id="setPass2" type="password" placeholder="Herhalen"></div>
+          <div style="display:flex;gap:8px"><button class="btn" onclick="saveNewPassword()">Opslaan</button><button class="btn-ghost" onclick="closeChangePass()">Annuleren</button></div>
+        </div>
+      </div>
+      <div class="settings-section">
+        <h3>🌐 ALGEMEEN</h3>
+        <div class="settings-row"><div><b>Taal</b><br><small>NL / EN — live op de hele site</small></div><div class="seg" role="group" aria-label="Taal"><button id="segLangNL" onclick="setLang('nl')">NL</button><button id="segLangEN" onclick="setLang('en')">EN</button></div></div>
+        <div class="settings-row"><div><b>Thema</b><br><small>Donker of licht</small></div><div class="seg" role="group" aria-label="Thema"><button id="segThemeLight" onclick="applyTheme('light')">☀️ Licht</button><button id="segThemeDark" onclick="applyTheme('dark')">🌙 Donker</button></div></div>
+        <div class="settings-row"><div><b>Compacte kaarten</b><br><small>Minder witruimte (pro tip)</small></div><label style="display:flex;align-items:center;gap:6px"><input id="setCompact" type="checkbox" onchange="setPref('compact', this.checked)"> <span style="font-size:12.5px">Aan</span></label></div>
+      </div>
     </div>
+
+    <div class="settings-section" style="margin-top:10px">
+      <h3>🤖 AI — GEMINI</h3>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:10px;line-height:1.45">Sluit je <b>gratis Google Gemini sleutel</b> aan (aistudio.google.com/apikey) óf gebruik de server-sleutel als die draait. De sleutel blijft lokaal in deze browser.</p>
+      <div class="field" style="margin-bottom:8px"><label>Gemini API-sleutel</label><input id="setKey" type="password" placeholder="AIza..."></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" onclick="saveSettings()">Sleutel opslaan</button><button class="btn btn-outline" style="font-size:12.5px" onclick="clearApiKey()">Wissen</button><span id="setKeyState" style="font-size:11px;color:var(--muted);align-self:center"></span></div>
+      <div id="serverAiRow" style="font-size:11px;color:var(--muted);margin-top:8px"></div>
+    </div>
+
+    <div class="settings-section" style="margin-top:10px">
+      <h3>📮 VERZENDING — DEFAULTS</h3>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:10px">Deze keuzes worden onthouden en direct toegepast in de Verzendcalculator. Wijzigen kan altijd nog in de calculator zelf.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="field" style="margin-bottom:0"><label>Standaard agent</label><select id="setShipAgent"></select></div>
+        <div class="field" style="margin-bottom:0"><label>Standaard bestemming</label><select id="setShipCountry"></select></div>
+        <div class="field" style="margin-bottom:0"><label>Standaard snelheid</label><select id="setShipMode"></select></div>
+        <div class="field" style="margin-bottom:0"><label>Standaard valuta</label><select id="setShipCurr"></select></div>
+      </div>
+      <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-outline" style="font-size:12.5px" onclick="saveShipDefaults()">Defaults opslaan</button><span style="font-size:11px;color:var(--muted);align-self:center">Tip: taalwissel vertaalt ook land/snelheid labels</span></div>
+    </div>
+
+    <div class="settings-section" style="margin-top:10px">
+      <h3>🗄️ DATA</h3>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <button class="btn btn-outline" style="font-size:12.5px" onclick="exportAllData()">⬇ Exporteer JSON</button>
+        <button class="btn btn-outline" style="font-size:12.5px;color:var(--red);border-color:#fecaca" onclick="wipeMyData()">🗑 Wis mijn data (dit apparaat)</button>
+        <span style="font-size:11px;color:var(--muted)">Wissen = alleen jouw browser — andere apparaten blijven staan</span>
+      </div>
+    </div>
+
+    <div style="margin-top:14px;display:flex;justify-content:flex-end"><button class="btn" onclick="closeSettings()">Klaar</button></div>
   </div>
 </div>
 
@@ -1756,6 +1832,70 @@ const BRAND_TIERS = {
   premium: ["the north face", "carhartt", "polo ralph lauren", "lacoste", "stone island", "arc'teryx", "arcteryx", "patagonia", "barbour", "g-star"],
   luxury: ["gucci", "louis vuitton", "burberry", "moncler", "canada goose", "prada", "balenciaga", "versace", "dior", "yves saint laurent", "ysl"]
 };
+
+/* =====================================================
+   PREFS & I18N
+===================================================== */
+const LS_PREFS = "guidsell_prefs";
+const I18N = {
+  nl: {
+    settings: "Instellingen", settingsHint: "Klik op je naam/avatar om hier te komen. Taal wijzigt alles live — thema en je haul-defaults worden onthouden.",
+    profile: "PROFIEL", general: "ALGEMEEN", lang: "Taal", langHint: "NL / EN — live op de hele site", theme: "Thema", themeHint: "Donker of licht", compact: "Compacte kaarten", compactHint: "Minder witruimte (pro tip)",
+    ai: "AI — GEMINI", aiHint: "Sluit je gratis Google Gemini sleutel aan (aistudio.google.com/apikey) óf gebruik de server-sleutel als die draait. De sleutel blijft lokaal in deze browser.",
+    shipDefaults: "VERZENDING — DEFAULTS", shipDefaultsHint: "Deze keuzes worden onthouden en direct toegepast in de Verzendcalculator.",
+    data: "DATA", exportJson: "⬇ Exporteer JSON", wipeMe: "🗑 Wis mijn data (dit apparaat)", wipeMeHint: "Wissen = alleen jouw browser — andere apparaten blijven staan",
+    save: "Opslaan", cancel: "Annuleren", close: "Sluiten", ready: "Klaar", changePass: "Wachtwoord wijzigen", nameSaved: "Naam opgeslagen", passSaved: "Wachtwoord gewijzigd",
+    navDashboard: "Dashboard", navCheck: "Waardecheck", navShip: "Verzending", navItems: "Mijn items", navLedger: "Kasboek", navUpgrade: "Upgrade",
+    themeLight: "☀️ Licht", themeDark: "🌙 Donker", compactOn: "Aan",
+    defAgent: "Standaard agent", defCountry: "Standaard bestemming", defMode: "Standaard snelheid", defCurr: "Standaard valuta",
+    defaultsSaved: "Defaults opgeslagen — staan meteen klaar in Verzending",
+    langSwitched: "Taal: Nederlands", keySaved: "AI verbonden! 🤖✨", keyRemoved: "AI-sleutel verwijderd", keyTooShort: "Deze sleutel is te kort — kopieer hem volledig", keyRejected: "Google weigerde de sleutel", wipeConfirm: "Weet je zeker dat je ALLEEN jouw data op dit apparaat wilt wissen? (account + items + kasboek) Deze actie kan niet ongedaan worden.",
+    wiped: "Data gewist — je wordt uitgelogd", exported: "Data geëxporteerd", name: "Naam", email: "E-mail", newPass: "Nieuw wachtwoord", repeatPass: "Herhaal nieuw wachtwoord"
+  },
+  en: {
+    settings: "Settings", settingsHint: "Click your name/avatar to get here. Language changes live across the site — theme & haul defaults are saved.",
+    profile: "PROFILE", general: "GENERAL", lang: "Language", langHint: "NL / EN — live across the site", theme: "Theme", themeHint: "Dark or light", compact: "Compact cards", compactHint: "Less whitespace (pro tip)",
+    ai: "AI — GEMINI", aiHint: "Connect your free Google Gemini key (aistudio.google.com/apikey) or use the server key when running. Key stays local in this browser.",
+    shipDefaults: "SHIPPING — DEFAULTS", shipDefaultsHint: "These choices are saved and applied directly in the Shipping calculator.",
+    data: "DATA", exportJson: "⬇ Export JSON", wipeMe: "🗑 Wipe my data (this device)", wipeMeHint: "Wiping only affects this browser — other devices stay as is",
+    save: "Save", cancel: "Cancel", close: "Close", ready: "Done", changePass: "Change password", nameSaved: "Name saved", passSaved: "Password updated",
+    navDashboard: "Dashboard", navCheck: "Value check", navShip: "Shipping", navItems: "My items", navLedger: "Ledger", navUpgrade: "Upgrade",
+    themeLight: "☀️ Light", themeDark: "🌙 Dark", compactOn: "On",
+    defAgent: "Default agent", defCountry: "Default destination", defMode: "Default speed", defCurr: "Default currency",
+    defaultsSaved: "Defaults saved — ready in Shipping", langSwitched: "Language: English", keySaved: "AI connected! 🤖✨", keyRemoved: "AI key removed", keyTooShort: "Key too short — copy it fully", keyRejected: "Google rejected the key", wipeConfirm: "Sure you want to wipe ONLY your data on this device? (account + items + ledger) This cannot be undone.",
+    wiped: "Data wiped — logging you out", exported: "Data exported", name: "Name", email: "Email", newPass: "New password", repeatPass: "Repeat new password"
+  }
+};
+function prefsRaw(){ try{ return JSON.parse(localStorage.getItem(LS_PREFS)||"{}"); }catch(e){ return {}; } }
+function getPrefs(){
+  const p=prefsRaw();
+  return { lang: (p.lang==="en"?"en":"nl"), theme: (p.theme==="dark"||p.theme==="light"?p.theme:null), compact: !!p.compact, shipAgent: p.shipAgent||null, shipCountry: p.shipCountry||null, shipMode: p.shipMode||null, shipCurrency: p.shipCurrency||null };
+}
+function setPref(k,v){ const p=prefsRaw(); p[k]=v; localStorage.setItem(LS_PREFS, JSON.stringify(p)); }
+function t(key){ const lang=(prefsRaw().lang==="en"?"en":"nl"); return (I18N[lang]&&I18N[lang][key]) || I18N.nl[key] || key; }
+function applyI18n(){
+  const L = prefsRaw().lang==="en" ? "en" : "nl";
+  document.documentElement.lang = L;
+  // nav labels
+  const navMap = { dashboard: t("navDashboard"), check: t("navCheck"), ship: t("navShip"), items: t("navItems"), ledger: t("navLedger"), upgrade: t("navUpgrade") };
+  document.querySelectorAll("#appLinks .navlink").forEach(b=>{
+    const v=b.dataset.view; const label=navMap[v]; if(!label) return;
+    const tag=b.querySelector(".pro-tag"); const tagHtml = tag ? " "+tag.outerHTML : "";
+    // behoud eventuele PRO tag
+    const textNode = Array.from(b.childNodes).find(n=> n.nodeType===3 && n.textContent.trim());
+    if(textNode) textNode.textContent = label + " ";
+    else b.childNodes[0] && (b.innerHTML = label + tagHtml);
+    if(tag && !b.querySelector(".pro-tag")) b.insertAdjacentHTML("beforeend", tagHtml);
+  });
+  // settings panel strings (de rest blijft NL basis maar toggles zijn genoeg voor nu)
+  const sTitle=document.querySelector("#settingsModal h2"); if(sTitle) sTitle.textContent = "⚙️ " + t("settings");
+}
+function setLang(lang){
+  const v = lang==="en"?"en":"nl";
+  setPref("lang", v);
+  applyI18n(); syncSettingsUI(); shipRender();
+  toast(t("langSwitched"));
+}
 
 /* =====================================================
    STATE
@@ -2216,21 +2356,129 @@ function renderKeyHint() {
   const el = document.getElementById("aiHint");
   if (el) el.hidden = !!getApiKey();
 }
+function syncSettingsUI(){
+  try{
+    const prefs=getPrefs();
+    // taal THE
+    const bNL=document.getElementById("segLangNL"), bEN=document.getElementById("segLangEN");
+    if(bNL&&bEN){ bNL.classList.toggle("active", prefs.lang!=="en"); bEN.classList.toggle("active", prefs.lang==="en"); }
+    // thema
+    const isDark=document.body.classList.contains("dark");
+    const bL=document.getElementById("segThemeLight"), bD=document.getElementById("segThemeDark");
+    if(bL&&bD){ bL.classList.toggle("active", !isDark); bD.classList.toggle("active", isDark); }
+    // profiel
+    const me = (session && users[session]) ? users[session] : null;
+    const inName=document.getElementById("setName"), inEmail=document.getElementById("setEmail");
+    if(inName) inName.value = me ? (me.name||"") : "";
+    if(inEmail) inEmail.value = session || "";
+    // compact
+    const cEl=document.getElementById("setCompact"); if(cEl) cEl.checked = !!prefs.compact;
+    document.body.classList.toggle("pref-compact", !!prefs.compact);
+    // AI key
+    const kIn=document.getElementById("setKey"); if(kIn) kIn.value = getApiKey();
+    const kState=document.getElementById("setKeyState"); if(kState){ const has=!!getApiKey(); kState.textContent = has ? (prefs.lang==="en"?"Key saved locally":"Sleutel lokaal opgeslagen") : ""; }
+    const srvRow=document.getElementById("serverAiRow");
+    if(srvRow){ srvRow.textContent = serverAiReady===null ? "" : (serverAiReady ? (prefs.lang==="en"?"Server AI: ready — works without personal key":"Server AI: actief — werkt ook zonder eigen sleutel") : (prefs.lang==="en"?"Server AI: not configured":"Server AI: niet geconfigureerd — eigen sleutel nodig")); }
+    // ship defaults selects
+    const agSel=document.getElementById("setShipAgent"), coSel=document.getElementById("setShipCountry"), moSel=document.getElementById("setShipMode"), cuSel=document.getElementById("setShipCurr");
+    if(agSel && !agSel.dataset.filled){ agSel.innerHTML = SHIP_AGENTS.map(a=>`<option value="${a.id}">${a.name}</option>`).join(""); agSel.dataset.filled="1"; }
+    if(coSel && !coSel.dataset.filled){ coSel.innerHTML = SHIP_COUNTRIES.map(c=>`<option value="${c.code}">${c.flag} ${c.name} (${c.code})</option>`).join(""); coSel.dataset.filled="1"; }
+    if(moSel && !moSel.dataset.filled){ moSel.innerHTML = SHIP_MODES.map(m=>`<option value="${m.id}">${m.label} — ${m.days}</option>`).join(""); moSel.dataset.filled="1"; }
+    if(cuSel && !cuSel.dataset.filled){ cuSel.innerHTML = SHIP_CURRENCIES.map(c=>`<option value="${c.code}">${c.label}</option>`).join(""); cuSel.dataset.filled="1"; }
+    if(agSel) agSel.value = prefs.shipAgent || shipAgent;
+    if(coSel) coSel.value = prefs.shipCountry || shipCountry;
+    if(moSel) moSel.value = prefs.shipMode || shipMode;
+    if(cuSel) cuSel.value = prefs.shipCurrency || shipCurrency;
+    applyI18n();
+  }catch(e){}
+}
 function openSettings() {
+  syncSettingsUI();
   document.getElementById("settingsModal").classList.add("show");
-  document.getElementById("setKey").value = getApiKey();
+}
+function closeSettings(){ document.getElementById("settingsModal").classList.remove("show"); }
+function saveProfileName(){
+  if(!session || !users[session]){ toast("Niet ingelogd", true); return; }
+  const v=(document.getElementById("setName").value||"").trim();
+  if(!v){ toast("Vul een naam in", true); return; }
+  users[session].name=v; saveUsers();
+  document.getElementById("userName").textContent=v; document.getElementById("avatar").textContent=(v[0]||"G").toUpperCase();
+  const d=document.getElementById("dashName"); if(d) d.textContent=v;
+  toast(t("nameSaved"));
+}
+function openChangePass(){ const b=document.getElementById("changePassBox"); if(b){ b.hidden=false; setTimeout(()=>document.getElementById("setPass1")?.focus(), 60); } }
+function closeChangePass(){ const b=document.getElementById("changePassBox"); if(b) b.hidden=true; const a=document.getElementById("setPass1"), c=document.getElementById("setPass2"); if(a) a.value=""; if(c) c.value=""; }
+function saveNewPassword(){
+  if(!session || !users[session]){ toast("Niet ingelogd", true); return; }
+  const a=(document.getElementById("setPass1").value||""), b=(document.getElementById("setPass2").value||"");
+  if(a.length<4){ toast("Minimaal 4 tekens", true); return; }
+  if(a!==b){ toast("Wachtwoorden komen niet overeen", true); return; }
+  users[session].pass=a; saveUsers(); closeChangePass(); toast(t("passSaved"));
+}
+function clearApiKey(){ localStorage.removeItem("guidsell_gemini_key"); syncSettingsUI(); renderKeyHint(); toast(t("keyRemoved")); }
+function saveShipDefaults(){
+  const ag=document.getElementById("setShipAgent")?.value, co=document.getElementById("setShipCountry")?.value, mo=document.getElementById("setShipMode")?.value, cu=document.getElementById("setShipCurr")?.value;
+  if(ag) setPref("shipAgent", ag);
+  if(co) setPref("shipCountry", co);
+  if(mo) setPref("shipMode", mo);
+  if(cu) setPref("shipCurrency", cu);
+  applyShipPrefs(); shipRender(); toast(t("defaultsSaved"));
+}
+function applyShipPrefs(){
+  try{
+    const p=getPrefs();
+    if(p.shipAgent && SHIP_AGENTS.find(x=>x.id===p.shipAgent)) shipAgent=p.shipAgent;
+    if(p.shipCountry && SHIP_COUNTRIES.find(x=>x.code===p.shipCountry)) shipCountry=p.shipCountry;
+    if(p.shipMode && SHIP_MODES.find(x=>x.id===p.shipMode)) shipMode=p.shipMode;
+    if(p.shipCurrency && SHIP_CURRENCIES.find(x=>x.code===p.shipCurrency)) shipCurrency=p.shipCurrency;
+  }catch(e){}
+}
+function exportAllData(){
+  try{
+    const payload = { exportedAt: new Date().toISOString(), session, users, prefs: prefsRaw(), data };
+    const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
+    const url=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=url; a.download="guidsell-export-"+new Date().toISOString().slice(0,10)+".json"; a.click(); setTimeout(()=>URL.revokeObjectURL(url), 2000);
+    toast(t("exported"));
+  }catch(e){ toast("Export mislukt", true); }
+}
+function wipeMyData(){
+  if(!confirm(t("wipeConfirm"))) return;
+  try{
+    const prefsLS=prefsRaw(); const keepLang=prefsLS.lang;
+    if(session){
+      localStorage.removeItem("guidsell_data_"+session);
+      if(users[session]){ delete users[session]; saveUsers(); }
+    }
+    // behoud alleen theme/lang + wipe flag
+    const keepTheme = localStorage.getItem("guidsell_theme");
+    const wipeFlag = localStorage.getItem(LS_WIPE);
+    const keepPrefs={ lang: keepLang||"nl" };
+    for(let i=localStorage.length-1;i>=0;i--){
+      const k=localStorage.key(i);
+      if(!k) continue;
+      if(k.startsWith("guidsell_")){
+        if(k===LS_WIPE || k==="guidsell_theme" || k===LS_PREFS) continue;
+        localStorage.removeItem(k);
+      }
+    }
+    if(keepTheme) localStorage.setItem("guidsell_theme", keepTheme);
+    if(wipeFlag) localStorage.setItem(LS_WIPE, wipeFlag);
+    localStorage.setItem(LS_PREFS, JSON.stringify(keepPrefs));
+    toast(t("wiped"));
+    setTimeout(()=>{ localStorage.removeItem(LS_SESSION); location.reload(); }, 700);
+  }catch(e){ toast("Wissen mislukt", true); }
 }
 function saveSettings() {
   const v = document.getElementById("setKey").value.trim();
   if (!v) {
     localStorage.removeItem("guidsell_gemini_key");
-    document.getElementById("settingsModal").classList.remove("show");
+    syncSettingsUI();
     renderKeyHint();
-    toast("AI-sleutel verwijderd");
+    toast(t("keyRemoved"));
     return;
   }
   if (v.length < 20) {
-    toast("Deze sleutel is te kort — kopieer hem volledig (met het kopieer-icoontje)", true);
+    toast(t("keyTooShort"), true);
     return;
   }
   // controleer live of de sleutel werkt (elk formaat wordt geaccepteerd)
@@ -2249,13 +2497,13 @@ function saveSettings() {
       btn.textContent = oudeTekst;
       if (res.ok) {
         localStorage.setItem("guidsell_gemini_key", v);
-        document.getElementById("settingsModal").classList.remove("show");
+        syncSettingsUI();
         renderKeyHint();
-        toast("AI verbonden! 🤖✨");
+        toast(t("keySaved"));
       } else {
         const j = await res.json().catch(() => null);
         const reden = j?.error?.message || "onbekende fout";
-        toast("Google weigerde de sleutel (" + res.status + "): " + reden.slice(0, 80), true);
+        toast(t("keyRejected") + " (" + res.status + "): " + reden.slice(0, 80), true);
       }
     })
     .catch(() => {
@@ -3103,7 +3351,7 @@ document.getElementById("inBrand").addEventListener("input", e => {
 
 /* modal sluiten met Escape of klik buiten */
 document.addEventListener("keydown", e => {
-  if (e.key === "Escape") { closePaywall(); closeSoldModal(); closeForgotModal(); closeMobileNav(); }
+  if (e.key === "Escape") { closePaywall(); closeSoldModal(); closeForgotModal(); closeSettings(); closeMobileNav(); }
 });
 document.querySelectorAll(".modal-back").forEach(m => {
   m.addEventListener("click", e => {
@@ -3219,16 +3467,71 @@ function shipLoadPreset(key){
 function shipQuick(key){ shipLoadPreset(key); }
 function shipInferTypeFromText(s){
   const t=(s||"").toLowerCase();
+  if(/ugg|boot|laars|timberland|dr\.\s*martens|drmartens/.test(t)) return "schoenen";
   if(/hoodie|hoody|zip|trui|sweat/.test(t)) return "hoodie";
-  if(/sneaker|shoe|trainer/.test(t)) return "sneakers";
+  if(/sneaker|trainer|air\s*max|jordan|dunk|yeezy/.test(t)) return "sneakers";
+  if(/schoen|shoe|loafer|mocassin|clog/.test(t)) return "schoenen";
   if(/jeans|denim/.test(t)) return "jeans";
-  if(/coat|parka|jacket|jas/.test(t)) return "jas";
-  if(/bag|tas|backpack/.test(t)) return "tas";
+  if(/coat|parka|jacket|puffer|jas\b/.test(t)) return "jas";
+  if(/\btas\b|bag|backpack|handbag|crossbody|duffel|shoulder\s*bag|elite/.test(t)) return "tas";
+  if(/sweater|knit|pullover/.test(t)) return "sweater";
   if(/dress|jurk/.test(t)) return "jurk";
-  if(/pant|broek|trouser/.test(t)) return "broek";
-  if(/tee|t-shirt|shirt/.test(t)) return "t-shirt";
-  if(/cap|hat|beanie|accessoire/.test(t)) return "accessoire";
+  if(/\bpant\b|broek|trouser|chino|cargo/.test(t)) return "broek";
+  if(/tee|t-shirt|tshirt|shirt/.test(t)) return "t-shirt";
+  if(/cap|hat|beanie|muts|pet\b|accessoire|sjaal|handschoen/.test(t)) return "accessoire";
   return "overig";
+}
+let shipManualBusy=false;
+async function shipAddFromManualText(){
+  if(shipManualBusy) return;
+  const ta=document.getElementById("shipManualText");
+  const raw=(ta?ta.value:"").trim();
+  if(!raw){ toast("Typ eerst wat je hebt — bv. \u201C2x UGG schoenen, Nike Elite tas\u201D", true); ta&&ta.focus(); return; }
+  const btn=document.getElementById("shipManualAiBtn");
+  const hint=document.getElementById("shipManualAiHint");
+  const old = btn?btn.textContent:"";
+  shipManualBusy=true;
+  if(btn){ btn.disabled=true; btn.textContent="\u23F3 AI schat\u2026"; }
+  if(hint){ hint.style.display="block"; hint.textContent="\u23F3 AI schat gewicht & volume per item\u2026"; }
+  try{
+    const r=await fetch("/api/ship-manual-estimate",{
+      method:"POST", headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ text: raw }), signal: AbortSignal.timeout(30000)
+    });
+    const j=await r.json().catch(()=>({ok:false}));
+    if(!j||!j.ok||!Array.isArray(j.estimates)||!j.estimates.length){
+      throw new Error((j&&j.error)||"Geen schatting ontvangen");
+    }
+    let added=0;
+    const source=j.source||"ai";
+    const aiTag = source==="ai"?" \u00B7 AI":"";
+    j.estimates.forEach(e=>{
+      const typeKey = (e.item_type && SHIP_PRESETS[e.item_type]) ? e.item_type : shipInferTypeFromText(e.raw||raw);
+      const p0=SHIP_PRESETS[typeKey]||SHIP_PRESETS.overig;
+      const w = Number(e.weight_kg)>0? Math.round(Number(e.weight_kg)*100)/100 : p0.w;
+      const l = Number(e.length_cm)>0? Math.round(Number(e.length_cm)):p0.d[0];
+      const w2= Number(e.width_cm)>0? Math.round(Number(e.width_cm)):p0.d[1];
+      const h = Number(e.height_cm)>0? Math.round(Number(e.height_cm)):p0.d[2];
+      const qty = Math.min(99,Math.max(1,parseInt(e.qty,10)||1));
+      const title=(e.raw||"").toString().slice(0,80).trim() || SHIP_PRESETS[typeKey].label;
+      const ex = shipCart.find(x=> x.typeKey===typeKey && x.w===w && x.l===l && x.w2===w2 && x.h===h && (x.title||"")===title && x.url==="" && x.unitPrice==null);
+      if(ex) ex.qty += qty;
+      else shipCart.push({ typeKey, qty, w, l, w2, h, title, url:"", unitPrice:null });
+      added+=qty;
+    });
+    shipRender();
+    if(ta) ta.value="";
+    if(hint){ hint.textContent = j.estimates.length+" item"+(j.estimates.length===1?"":"s")+" toegevoegd"+aiTag+" \u00B7 "+added+" stuks — onderin staat je pakket & rekengewicht."; setTimeout(()=>{ hint.style.display="none"; }, 4500); }
+    const label = j.estimates.map(e=> (e.qty>1?e.qty+"\u00D7 ":"")+((SHIP_PRESETS[e.item_type]&&SHIP_PRESETS[e.item_type].label)||e.item_type)).join(", ");
+    toast(label+" toegevoegd \uD83D\uDCE6"+aiTag+" \u00B7 "+shipCart.reduce((a,r)=>a+r.qty,0)+" in pakket");
+  } catch(e){
+    const msg = e && e.message ? e.message : String(e);
+    if(hint){ hint.textContent="Kon niet schatten: "+msg.slice(0,120); }
+    toast(msg.slice(0,120), true);
+  } finally {
+    shipManualBusy=false;
+    if(btn){ btn.disabled=false; btn.textContent=old||"\u2728 AI berekenen"; }
+  }
 }
 function shipToggleDropdown(which){
   const a=document.getElementById("shipAgentDropdown"), c=document.getElementById("shipCurrDropdown");
@@ -3610,12 +3913,20 @@ function applyTheme(t) {
     b.title = t === "dark" ? "Lichte modus" : "Donkere modus";
   });
   localStorage.setItem("guidsell_theme", t);
+  setPref("theme", t);
+  syncSettingsUI();
 }
 function toggleTheme() {
   applyTheme(document.body.classList.contains("dark") ? "light" : "dark");
 }
-applyTheme(localStorage.getItem("guidsell_theme") ||
-  (window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
+// prefs theme heeft voorrang op guidsell_theme legacy
+(function initTheme(){
+  const p=getPrefs().theme; const stored=localStorage.getItem("guidsell_theme");
+  const t = p || stored || (window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  document.body.classList.toggle("dark", t === "dark");
+  document.querySelectorAll(".theme-toggle").forEach(b => { b.textContent = t === "dark" ? "☀️" : "🌙"; b.title = t === "dark" ? "Lichte modus" : "Donkere modus"; });
+  localStorage.setItem("guidsell_theme", t);
+})();
 
 /* init: betaal-redirect afhandelen (?pro=success&plan=weekly|monthly) */
 (function handleProRedirect() {
@@ -3640,14 +3951,24 @@ applyTheme(localStorage.getItem("guidsell_theme") ||
   } catch (e) {}
 })();
 
+// haul defaults uit prefs
+applyShipPrefs();
 shipInitUI();
+/* global handlers for compact/i18n */
+(function initGlobalHandlers(){
+  // Escape is al geregeld bij de eerste listener (closeSettings etc.) — hier geen dubbele binding
+  // compact class init
+  try{ if(getPrefs().compact) document.body.classList.add("pref-compact"); }catch(e){}
+  try{ applyI18n(); }catch(e){}
+})();
 /* init: ingelogd? → app, anders landing */
 if (session && users[session]) {
   enterApp();
 } else {
   showPage("page-landing");
 }
-refreshServerAi();
+refreshServerAi().then(()=>{ try{ syncSettingsUI(); }catch(e){} });
+setTimeout(()=>{ try{ syncSettingsUI(); }catch(e){} }, 300);
 </script>
 </body>
 </html>
