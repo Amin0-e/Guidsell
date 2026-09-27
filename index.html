@@ -1762,7 +1762,23 @@ const BRAND_TIERS = {
 ===================================================== */
 const LS_USERS = "guidsell_users";
 const LS_SESSION = "guidsell_session";
-
+const LS_WIPE = "guidsell_wipe_v20260927";
+// HARDE WIPE — op verzoek eigenaar: wis ALLE ooit geregistreerde e-mails/accounts.
+// Draait één keer per browser bij het laden van de nieuwe versie. Daarna kunnen
+// mensen gewoon weer registreren; nieuwe accounts worden niet meer gewist.
+try{
+  if(!localStorage.getItem(LS_WIPE)){
+    const keep = new Set(["guidsell_theme", LS_WIPE]);
+    const toRemove = [];
+    for(let i=0;i<localStorage.length;i++){
+      const k=localStorage.key(i);
+      if(k && k.startsWith("guidsell_") && !keep.has(k)) toRemove.push(k);
+    }
+    toRemove.forEach(k=>localStorage.removeItem(k));
+    localStorage.setItem(LS_WIPE, String(Date.now()));
+    if(toRemove.length) console.log("[Guidsell] wipe — verwijderd:", toRemove.join(", "));
+  }
+}catch(e){}
 let users = {};
 try { users = JSON.parse(localStorage.getItem(LS_USERS) || "{}"); } catch (e) { users = {}; }
 let session = localStorage.getItem(LS_SESSION) || null;
