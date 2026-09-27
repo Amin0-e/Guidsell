@@ -1387,8 +1387,7 @@
             </button>
             <div class="ship-sel-dropdown" id="shipCurrDropdown"></div>
           </div>
-        </div>
-        <div style="font-size:11px;color:var(--muted)">Tariefbron: <b id="shipAgentFeeLabel">Oopbuy</b> · wisselkoers indicatief</div>
+        </div>         <div style="font-size:11px;color:var(--muted)">Tarief: China→EU agent-line · <b id="shipAgentFeeLabel">Oopbuy</b> · wisselkoers indicatief</div>
       </div>
       <div class="ship-tabs">
         <button class="ship-tab active" id="shipTabLink" onclick="shipSetTab('link')">Product link</button>
@@ -1492,8 +1491,7 @@
               <div class="cost-row"><span>Producten (indien prijs bekend)</span><b id="shipSGoods">—</b></div>
               <div class="cost-row"><span>Pakketadvies</span><b id="shipSPack">—</b></div>
             </div>
-            <div class="card-body" style="padding-top:0">
-              <div class="volumetric-note">Rekengewicht = hoogste van werkelijk gewicht en volumetrisch gewicht (L×B×H / 5000 — PostNL/DHL-standaard). Pakketadvies telt 15% vulruimte. <b>Prijzen zijn indicatief</b> — agent-toeslag en wisselkoers al verrekend.</div>
+            <div class="card-body" style="padding-top:0">               <div class="volumetric-note">Rekengewicht = hoogste van werkelijk gewicht en volumetrisch gewicht (L×B×H / 5000 — China→EU agent-lines). Pakketadvies telt 15% vulruimte. <b>Prijzen zijn indicatief</b> voor China→EU — agent-toeslag & bestemming al verrekend.</div>
               <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
                 <button class="btn btn-outline" style="flex:1;min-width:90px" onclick="shipClear()">Wissen</button>
                 <button class="btn" style="flex:1;min-width:140px" onclick="shipCopy()">📋 Kopieer samenvatting</button>
@@ -3434,16 +3432,25 @@ const SHIP_MODES = [
   { id:"standard", label:"Standard", days:"3–7 werkdagen",  factor:1.35 },
   { id:"express",  label:"Express",  days:"1–3 werkdagen",  factor:1.80 },
 ];
-// basis-tarieven NL (rekengewicht kg -> prijs), indicatief PostNL/Vinted Go tarieven
+// BASIS-TARIEVEN CHINA → NL/EU (rekengewicht kg → prijs) — REALISTISCH voor Weidian/Taobao/1688 via agent
+// Was eerst PostNL binnenlands (€6,75 voor 2kg) — dat klopte dus voor geen meter voor China→EU.
+// Nu: echte 2025/26 agent-lines (Oopbuy/Kakobuy GD-EMS/SAL/CNE etc.), incl. inklaring. 2kg ≈ €28,50 economy.
 function shipBasePrice(chargeKg){
-  if(chargeKg<=0.1) return 3.20;
-  if(chargeKg<=0.5) return 4.10;
-  if(chargeKg<=1)   return 5.25;
-  if(chargeKg<=2)   return 6.75;
-  if(chargeKg<=5)   return 8.95;
-  if(chargeKg<=10)  return 12.50;
-  if(chargeKg<=20)  return 17.90;
-  return 17.90 + Math.ceil(chargeKg-20)*0.85;
+  if(chargeKg<=0.2) return 11.50;
+  if(chargeKg<=0.5) return 14.90;
+  if(chargeKg<=0.8) return 18.50;
+  if(chargeKg<=1)   return 20.90;
+  if(chargeKg<=1.5) return 24.90;
+  if(chargeKg<=2)   return 28.50;
+  if(chargeKg<=2.5) return 32.00;
+  if(chargeKg<=3)   return 35.50;
+  if(chargeKg<=4)   return 42.00;
+  if(chargeKg<=5)   return 48.50;
+  if(chargeKg<=7)   return 61.00;
+  if(chargeKg<=10)  return 78.00;
+  if(chargeKg<=15)  return 108.00;
+  if(chargeKg<=20)  return 138.00;
+  return 138 + Math.ceil((chargeKg-20)/0.5)*4.50; // +€9/kg daarboven
 }
 let shipCart = []; // [{typeKey, qty, w, l, w2, h, title, url, unitPrice}]
 let shipCountry = "NL";
@@ -3757,8 +3764,7 @@ function shipCopy(){
     "Bestemming: " + (SHIP_COUNTRIES.find(c=>c.code===shipCountry)||{}).name,
     "Snelheid: " + (SHIP_MODES.find(m=>m.id===shipMode)||{}).label,
     "Geschatte verzending: " + fmt(s.price) + " ("+fmtCur(s.price)+" in "+shipCurrency+")",
-    s.goodsTotalEuro? "Producten totaal: "+fmt(s.goodsTotalEuro) + " — geschat totaal haul: "+fmt(s.goodsTotalEuro+s.price):"",
-    "","Let op: indicatieve prijs (PostNL/DHL-standaard + bestemmingstoeslag)."
+    s.goodsTotalEuro? "Producten totaal: "+fmt(s.goodsTotalEuro) + " — geschat totaal haul: "+fmt(s.goodsTotalEuro+s.price):"",     "","Let op: indicatieve prijs China→EU (agent-line GD-EMS/SAL/CNE etc. + bestemmingstoeslag). Check je agent voor exacte quote."
   ].filter(Boolean);
   navigator.clipboard.writeText(lines.join("\n")).then(()=>toast("Samenvatting gekopieerd 📋"));
 }
