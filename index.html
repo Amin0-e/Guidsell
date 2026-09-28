@@ -4,6 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Guidsell — Wat is jouw item waard?</title>
+<meta name="description" content="Guidsell — weet in 30 seconden wat je Vinted-item waard is. AI-prijsadvies, verkoopklare beschrijving, voorraad, kasboek en verzendcalculator.">
+<meta name="theme-color" content="#6366f1">
+<meta name="color-scheme" content="light dark">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Guidsell">
+<meta property="og:title" content="Guidsell — Wat is jouw item waard?">
+<meta property="og:description" content="Upload een foto en krijg in 30 seconden een prijsadvies met laag/voorgesteld/hoog plus een verkoopklare Vinted-beschrijving.">
+<meta property="og:locale" content="nl_NL">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Guidsell — Wat is jouw item waard?">
+<meta name="twitter:description" content="AI-prijsadvies, verkoopklare beschrijving, voorraad, kasboek en verzendcalculator voor Vinted-resellers.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%236366f1'/%3E%3Cstop offset='1' stop-color='%238b5cf6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='8' fill='url(%23g)'/%3E%3Cg transform='translate(5,5) scale(.92)'%3E%3Cpath d='M20.59 13.41 13.42 20.58a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82Z' fill='none' stroke='white' stroke-width='2.1' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='7.2' cy='7.2' r='1.5' fill='white'/%3E%3C/g%3E%3C/svg%3E">
 <style>
   :root {
     --bg: #f7f8fc;
@@ -147,7 +159,9 @@
     justify-content: center;
     font-size: 15px;
     font-weight: 800;
+    flex-shrink: 0;
   }
+  .brand-mark svg { width: 17px; height: 17px; display: block; }
   .topnav .links { display: flex; gap: 4px; }
   .navlink {
     background: none;
@@ -305,16 +319,31 @@
   .feature .ico { font-size: 24px; margin-bottom: 12px; }
   .feature h3 { font-size: 15px; margin-bottom: 6px; }
   .feature p { color: var(--muted); font-size: 13.5px; line-height: 1.55; }
-  /* What you get — dark grid from screenshot */
+  /* What you get — theme-aware feature grid */
+  .what-section{ background:linear-gradient(180deg, rgba(99,102,241,.07), rgba(99,102,241,0) 62%); border-top:1px solid var(--line); border-bottom:1px solid var(--line); padding:54px 28px 64px; }
+  body.dark .what-section{ background:linear-gradient(180deg, rgba(99,102,241,.13), rgba(99,102,241,0) 62%); }
+  .what-inner{ max-width:1080px; margin:0 auto; }
   .what-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
   @media(max-width:900px){ .what-grid{ grid-template-columns:repeat(2,1fr);} }
   @media(max-width:560px){ .what-grid{ grid-template-columns:1fr;} }
-  .what-card{ background:#1a1a1a; border:1px solid #2a2a2a; border-radius:14px; padding:18px; }
+  .what-card{ background:var(--card); border:1px solid var(--line); border-radius:14px; padding:18px; box-shadow:var(--shadow); }
   .what-top{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
-  .what-ico{ width:34px;height:34px;border-radius:8px; background:rgba(16,185,129,.14); border:1px solid rgba(16,185,129,.28); color:#34d399; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; }
-  .what-badge{ font-size:9px; letter-spacing:.7px; font-weight:700; color:#a0a8b8; border:1px solid #333; padding:4px 8px; border-radius:20px; white-space:nowrap; }
-  .what-card h3{ color:#fff; font-size:14px; margin-bottom:6px; }
-  .what-card p{ color:#9aa0b2; font-size:12.5px; line-height:1.55; }
+  .what-ico{ width:34px;height:34px;border-radius:8px; background:rgba(99,102,241,.12); border:1px solid rgba(99,102,241,.26); color:var(--brand-dark); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; }
+  body.dark .what-ico{ background:rgba(99,102,241,.18); border-color:rgba(99,102,241,.36); color:#a5b4fc; }
+  .what-badge{ font-size:9px; letter-spacing:.7px; font-weight:700; color:var(--muted); background:var(--bg); border:1px solid var(--line); padding:4px 8px; border-radius:20px; white-space:nowrap; }
+  .what-badge.pro{ color:var(--green); background:#eaf7ef; border-color:#d3eedd; }
+  body.dark .what-badge.pro{ background:rgba(22,163,74,.12); border-color:rgba(22,163,74,.3); }
+  .what-card h3{ color:var(--text); font-size:14px; margin-bottom:6px; }
+  .what-card p{ color:var(--muted); font-size:12.5px; line-height:1.55; }
+  .what-sub{ color:var(--muted); font-size:13.5px; margin-bottom:18px; max-width:720px; }
+  .what-head{ font-size:26px; letter-spacing:-.5px; color:var(--text); margin-bottom:6px; }
+  /* language switcher in the landing nav */
+  .lang-seg{ display:flex; gap:2px; background:var(--bg); border:1px solid var(--line); border-radius:9px; padding:2px; margin-left:6px; }
+  .lang-seg button{ border:none; background:none; color:var(--muted); font-size:11.5px; font-weight:700; letter-spacing:.3px; padding:5px 8px; border-radius:7px; }
+  .lang-seg button:hover{ color:var(--text); }
+  .lang-seg button.active{ background:var(--card); color:var(--text); box-shadow:0 1px 3px rgba(17,24,39,.1); }
+  body.dark .lang-seg{ background:#14171d; }
+  body.dark .lang-seg button.active{ background:#262b36; }
 
   .plans { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; max-width: 720px; margin: 0 auto; }
   @media (max-width: 680px) { .plans { grid-template-columns: 1fr; } }
@@ -346,6 +375,9 @@
   .plan li { font-size: 14px; color: var(--muted); padding: 5px 0; }
   .plan li::before { content: "✓ "; color: var(--green); font-weight: 700; }
   .plan .btn { width: 100%; }
+  /* 3-up pricing rows (landing + upgrade) — must collapse on small screens */
+  .plans.plans-3 { grid-template-columns: repeat(3, 1fr); max-width: 980px; }
+  @media (max-width: 860px) { .plans.plans-3 { grid-template-columns: 1fr; } }
 
   footer { border-top: 1px solid var(--line); padding: 30px 28px; text-align: center; color: var(--muted); font-size: 13px; }
 
@@ -850,8 +882,8 @@
   .user-chip:focus-visible{ outline:2px solid var(--brand); outline-offset:2px; }
   /* what-card clickable (frontpage → real features) */
   .what-card[role="button"]{ cursor:pointer; transition: transform .12s, border-color .12s, box-shadow .12s; }
-  .what-card[role="button"]:hover{ transform: translateY(-2px); border-color:#3a3a3a; box-shadow: 0 8px 24px rgba(0,0,0,.25); }
-  .what-card[role="button"]:focus-visible{ outline:2px solid #10b981; outline-offset:2px; }
+  .what-card[role="button"]:hover{ transform: translateY(-2px); border-color:var(--brand); box-shadow: 0 10px 30px rgba(99,102,241,.18); }
+  .what-card[role="button"]:focus-visible{ outline:2px solid var(--brand); outline-offset:2px; }
   .what-card[role="button"] h3{ display:flex; align-items:center; gap:6px; }
   /* APP SHELL — sidebar layout (functions on the side, not top) */
   .app-shell{ display:flex; min-height:100vh; }
@@ -947,8 +979,12 @@
     #page-app[hidden]{ display:none !important; }
     .app-topbar{ display:flex; }
     #page-app .topnav{ display:none; } /* sidebar replaces topnav on desktop */
+  }  @media (max-width: 1080px) {
+    #page-landing .topnav .navlink{ padding:8px 9px; font-size:13.5px; }
+    #page-landing .lang-seg{ margin-left:2px; }
+    #page-landing .lang-seg button{ padding:5px 6px; }
   }
-  @media(max-width: 900px){
+  @media (max-width: 900px) {
     .topnav{ padding:0 12px; height:56px; gap:6px; }
     .brand{ font-size:17px; margin-right:8px; }
     .topnav .links{ display:none; }
@@ -961,6 +997,7 @@
     body.nav-open #page-landing .topnav .links .navlink{
       text-align:left; padding:12px 14px; border-radius:10px; font-size:14px;
     }
+    body.nav-open #page-landing .topnav .links .lang-seg{ margin:6px 0 0; align-self:flex-start; }
     .topnav .navlink.active{ background:#eef0ff; }
     body.dark .topnav .links{ background:#171a21; }
     #page-landing .topnav .btn, #page-landing .topnav .btn-ghost{ font-size:13px; padding:8px 12px; }
@@ -971,6 +1008,11 @@
     .app-main-wrap{ min-width:0; }
     #page-app .topnav{ display:flex; }
     .app-topbar{ display:none; }
+    /* app mobile topbar: keep burger + quota + avatar only (no horizontal overflow) */
+    #page-app .topnav .brand{ display:none; }
+    #page-app .app-actions .btn-ghost{ display:none; }
+    #page-app .app-actions .theme-toggle{ display:inline-flex; }
+    #page-app .app-actions .quota-chip{ max-width:104px; }
   }
   @media(max-width: 640px){
     .hero{ padding:42px 16px 48px; }
@@ -1033,112 +1075,126 @@
 </head>
 <body>
 
+<!-- brand logo (single source) -->
+<svg width="0" height="0" style="position:absolute;overflow:hidden" aria-hidden="true" focusable="false">
+  <symbol id="gs-logo" viewBox="0 0 24 24">
+    <path d="M20.59 13.41 13.42 20.58a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82Z" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="7.2" cy="7.2" r="1.5" fill="currentColor"/>
+  </symbol>
+</svg>
+
 <!-- ==================================================
      PAGE 1: LANDING
 ================================================== -->
 <div id="page-landing">
   <nav class="topnav">
-    <button class="brand" onclick="goLanding()"><span class="brand-mark">G</span> Guidsell</button>
+    <button class="brand" onclick="goLanding()"><span class="brand-mark"><svg aria-hidden="true"><use href="#gs-logo"/></svg></span> Guidsell</button>
     <div class="links">
-      <button class="navlink" onclick="closeMobileNav();document.getElementById('sec-how').scrollIntoView({behavior:'smooth'})">Hoe het werkt</button>
-      <button class="navlink" onclick="closeMobileNav();document.getElementById('sec-what').scrollIntoView({behavior:'smooth'})">What you get</button>
-      <button class="navlink" onclick="closeMobileNav();document.getElementById('sec-pricing').scrollIntoView({behavior:'smooth'})">Prijzen</button>
+      <button class="navlink" onclick="closeMobileNav();document.getElementById('sec-how').scrollIntoView({behavior:'smooth'})" data-i18n="lp_navHow">Hoe het werkt</button>
+      <button class="navlink" onclick="closeMobileNav();document.getElementById('sec-what').scrollIntoView({behavior:'smooth'})" data-i18n="lp_navWhat">Wat je krijgt</button>
+      <button class="navlink" onclick="closeMobileNav();document.getElementById('sec-pricing').scrollIntoView({behavior:'smooth'})" data-i18n="lp_navPricing">Prijzen</button>
+      <div class="lang-seg" role="group" aria-label="Taal / Language">
+        <button type="button" data-lang="nl" onclick="setLang('nl')">NL</button>
+        <button type="button" data-lang="en" onclick="setLang('en')">EN</button>
+        <button type="button" data-lang="de" onclick="setLang('de')">DE</button>
+        <button type="button" data-lang="fr" onclick="setLang('fr')">FR</button>
+      </div>
     </div>
     <div class="nav-spacer"></div>
     <button class="nav-burger" id="burgerLanding" onclick="toggleMobileNav()" aria-label="Menu" aria-expanded="false">☰</button>
     <button class="btn-ghost theme-toggle" onclick="toggleTheme()" title="Donker/licht">🌙</button>
-    <button class="btn-ghost" onclick="openAuth('login')">Inloggen</button>
-    <button class="btn" onclick="openAuth('register')">Begin gratis</button>
+    <button class="btn-ghost" onclick="openAuth('login')" data-i18n="lp_login">Inloggen</button>
+    <button class="btn" onclick="openAuth('register')" data-i18n="lp_start">Begin gratis</button>
   </nav>
 
   <header class="hero">
-    <div class="hero-badge">VINTED RESELLING, SLIMMER</div>
-    <h1>Weten wat jouw item écht waard is. In 30 seconden.</h1>
-    <p class="sub">Upload een foto — de AI herkent je item, vergelijkt het met live Vinted-prijzen en schrijft een beschrijving die verkoopt.</p>
-    <div class="cta-row">              <button class="btn btn-white btn-lg" onclick="openAuth('register')">Begin gratis — 5 checks per week</button>
+    <div class="hero-badge" data-i18n="lp_heroBadge">VINTED RESELLING, SLIMMER</div>
+    <h1 data-i18n="lp_heroH1">Weten wat jouw item écht waard is. In 30 seconden.</h1>
+    <p class="sub" data-i18n="lp_heroSub">Upload een foto — de AI herkent je item, vergelijkt het met live Vinted-prijzen en schrijft een beschrijving die verkoopt.</p>
+    <div class="cta-row"><button class="btn btn-white btn-lg" onclick="openAuth('register')" data-i18n="lp_heroCta">Begin gratis — 5 checks per week</button>
     </div>
-    <div class="hero-note">Gratis · 5 checks/week · PRO vanaf €3/week of €10/maand — maand is het voordeligst</div>
+    <div class="hero-note" data-i18n="lp_heroNote">Gratis · 5 checks/week · PRO vanaf €3/week of €10/maand — maand is het voordeligst</div>
   </header>
 
   <section class="section" id="sec-how">
-    <h2 class="section-title">Zo werkt het</h2>
-    <p class="section-sub">Van foto tot verkoopklare listing in drie stappen.</p>
+    <h2 class="section-title" data-i18n="lp_howTitle">Zo werkt het</h2>
+    <p class="section-sub" data-i18n="lp_howSub">Van foto tot verkoopklare listing in drie stappen.</p>
     <div class="steps">
       <div class="step-card">
         <div class="step-num">1</div>
-        <h3>📸 Upload je foto</h3>
-        <p>Sleep, klik of plak tot 8 foto's van je item. De eerste foto wordt automatisch je cover.</p>
+        <h3 data-i18n="lp_s1t">📸 Upload je foto</h3>
+        <p data-i18n="lp_s1p">Sleep, klik of plak tot 8 foto's van je item. De eerste foto wordt automatisch je cover.</p>
       </div>
       <div class="step-card">
         <div class="step-num">2</div>
-        <h3>🏷️ Kies item &amp; staat</h3>
-        <p>Wat is het, welk merk, welke maat en hoe mooi is het nog? Dat bepaalt de prijs.</p>
+        <h3 data-i18n="lp_s2t">🏷️ Kies item &amp; staat</h3>
+        <p data-i18n="lp_s2p">Wat is het, welk merk, welke maat en hoe mooi is het nog? Dat bepaalt de prijs.</p>
       </div>
       <div class="step-card">
         <div class="step-num">3</div>
-        <h3>💰 Krijg prijs + beschrijving</h3>
-        <p>De AI taxeert je item op basis van echte Vinted-verkopen en schrijft een beschrijving die kopers overtuigt.</p>
+        <h3 data-i18n="lp_s3t">💰 Krijg prijs + beschrijving</h3>
+        <p data-i18n="lp_s3p">De AI taxeert je item op basis van echte Vinted-verkopen en schrijft een beschrijving die kopers overtuigt.</p>
       </div>
     </div>
   </section>
 
-  <section style="background:#0e0e0e;padding:54px 28px 64px;margin-top:0" id="sec-what">
-    <div style="max-width:1080px;margin:0 auto">
-      <h2 style="font-size:26px;letter-spacing:-.5px;color:#fff;margin-bottom:6px">What you get</h2>
-      <p style="color:#9aa0b2;font-size:13.5px;margin-bottom:18px;text-align:left;max-width:720px">Alles hieronder is live in de app — klik een kaart om direct naar die functie te gaan (log in als je nog niet ingelogd bent).</p>
+  <section class="what-section" id="sec-what">
+    <div class="what-inner">
+      <h2 class="what-head" data-i18n="lp_whatTitle">Wat je krijgt</h2>
+      <p class="what-sub" data-i18n="lp_whatSub">Alles hieronder is live in de app — klik een kaart om direct naar die functie te gaan.</p>
       <div class="what-grid">
-        <div class="what-card" role="button" tabindex="0" data-what="check" onclick="openWhat('check')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openWhat('check')}"><div class="what-top"><span class="what-ico">◧</span><span class="what-badge">STARTER AND UP</span></div><h3>Listing tool →</h3><p>Structured analysis, a fixed-format block, and a price call with a low, suggested and high range plus expected days to sell.</p></div>
-        <div class="what-card" role="button" tabindex="0" data-what="check" onclick="openWhat('check')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openWhat('check')}"><div class="what-top"><span class="what-ico">▭</span><span class="what-badge">STARTER AND UP</span></div><h3>Value check →</h3><p>At a flea market stall: a photo in, a clear buy-or-pass verdict out, with the most you should pay and a line to negotiate with.</p></div>
-        <div class="what-card" role="button" tabindex="0" data-what="items" onclick="openWhat('items')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openWhat('items')}"><div class="what-top"><span class="what-ico">⧉</span><span class="what-badge">STARTER AND UP</span></div><h3>Storage system →</h3><p>Every item with photo, price, platform — and the shelf it is actually on. Searchable, sortable like a watchlist, with margin and days online on every row.</p></div>
-        <div class="what-card" role="button" tabindex="0" data-what="dashboard" onclick="openWhat('dashboard')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openWhat('dashboard')}"><div class="what-top"><span class="what-ico">▅</span><span class="what-badge">STARTER AND UP</span></div><h3>Profit curve →</h3><p>Cumulative net profit charted like a price line, one step per sale, with peak and maximum drawdown so a losing run shows up before the month closes.</p></div>
-        <div class="what-card" role="button" tabindex="0" data-what="dashboard" onclick="openWhat('dashboard')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openWhat('dashboard')}"><div class="what-top"><span class="what-ico">▦</span><span class="what-badge">STARTER AND UP</span></div><h3>Real net profit →</h3><p>Purchase, shipping, platform fees and your own hourly rate, subtracted per item. The number you see is the number you keep.</p></div>
-        <div class="what-card" role="button" tabindex="0" data-what="bundles" onclick="openWhat('bundles')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openWhat('bundles')}"><div class="what-top"><span class="what-ico">⧉</span><span class="what-badge">STARTER AND UP</span></div><h3>Bundle suggestions →</h3><p>Groups slow-moving stock with a piece that actually sells, priced 10 to 20 percent under the sum, so items that would sit for months move together instead.</p></div>
-        <div class="what-card" role="button" tabindex="0" data-what="replies" onclick="openWhat('replies')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openWhat('replies')}"><div class="what-top"><span class="what-ico">◭</span><span class="what-badge">STARTER AND UP</span></div><h3>Buyer replies →</h3><p>Paste what a buyer wrote, get send-ready answers in their language. It knows your floor and will not accept below it.</p></div>
-        <div class="what-card" role="button" tabindex="0" data-what="ledger" onclick="openWhat('ledger')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openWhat('ledger')}"><div class="what-top"><span class="what-ico">▌▌</span><span class="what-badge">STARTER AND UP</span></div><h3>Cash book →</h3><p>Income and expenses in one ledger, fed automatically from your sales. Import the spreadsheet you already keep, export for your accountant.</p></div>
+        <div class="what-card" role="button" tabindex="0" data-what="check" onclick="openWhat('check')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openWhat('check')}"><div class="what-top"><span class="what-ico">◧</span><span class="what-badge" data-i18n="lp_badgeFree">GRATIS</span></div><h3 data-i18n="lp_c1t">Listing-tool →</h3><p data-i18n="lp_c1p">Gestructureerde analyse, een vast tekstblok en een prijsadvies met laag, voorgesteld en hoog bereik plus de verwachte verkooptijd.</p></div>
+        <div class="what-card" role="button" tabindex="0" data-what="check" onclick="openWhat('check')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openWhat('check')}"><div class="what-top"><span class="what-ico">▭</span><span class="what-badge" data-i18n="lp_badgeFree">GRATIS</span></div><h3 data-i18n="lp_c2t">Waardecheck →</h3><p data-i18n="lp_c2p">Op de rommelmarkt: foto erin, een duidelijk koop-of-laat-maar oordeel eruit, met de maximale prijs en een zin om mee te onderhandelen.</p></div>
+        <div class="what-card" role="button" tabindex="0" data-what="items" onclick="openWhat('items')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openWhat('items')}"><div class="what-top"><span class="what-ico">⧉</span><span class="what-badge pro" data-i18n="lp_badgePro">PRO</span></div><h3 data-i18n="lp_c3t">Voorraadsysteem →</h3><p data-i18n="lp_c3p">Elk item met foto, prijs en platform — én de plank waar het echt ligt. Doorzoekbaar en sorteerbaar, met marge en dagen online op elke regel.</p></div>
+        <div class="what-card" role="button" tabindex="0" data-what="dashboard" onclick="openWhat('dashboard')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openWhat('dashboard')}"><div class="what-top"><span class="what-ico">▅</span><span class="what-badge pro" data-i18n="lp_badgePro">PRO</span></div><h3 data-i18n="lp_c4t">Winstcurve →</h3><p data-i18n="lp_c4p">Cumulatieve nettowinst als een koerslijn, één stap per verkoop, met piek en maximale daling zodat een verliesreeks opvalt vóór het einde van de maand.</p></div>
+        <div class="what-card" role="button" tabindex="0" data-what="dashboard" onclick="openWhat('dashboard')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openWhat('dashboard')}"><div class="what-top"><span class="what-ico">▦</span><span class="what-badge pro" data-i18n="lp_badgePro">PRO</span></div><h3 data-i18n="lp_c5t">Echte nettowinst →</h3><p data-i18n="lp_c5p">Inkoop, verzending, platformkosten en je eigen uurtarief er per item vanaf. Wat je ziet is wat je overhoudt.</p></div>
+        <div class="what-card" role="button" tabindex="0" data-what="bundles" onclick="openWhat('bundles')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openWhat('bundles')}"><div class="what-top"><span class="what-ico">⧉</span><span class="what-badge pro" data-i18n="lp_badgePro">PRO</span></div><h3 data-i18n="lp_c6t">Bundel-suggesties →</h3><p data-i18n="lp_c6p">Koppelt traag lopende voorraad aan een item dat wél verkoopt, 10 tot 20 procent onder de som, zodat blijven liggen verandert in samen vertrekken.</p></div>
+        <div class="what-card" role="button" tabindex="0" data-what="replies" onclick="openWhat('replies')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openWhat('replies')}"><div class="what-top"><span class="what-ico">◭</span><span class="what-badge pro" data-i18n="lp_badgePro">PRO</span></div><h3 data-i18n="lp_c7t">Koperreacties →</h3><p data-i18n="lp_c7p">Plak wat een koper schreef en krijg kant-en-klare antwoorden in hun taal. Het kent je ondergrens en zakt daar nooit onder.</p></div>
+        <div class="what-card" role="button" tabindex="0" data-what="ledger" onclick="openWhat('ledger')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openWhat('ledger')}"><div class="what-top"><span class="what-ico">▌▌</span><span class="what-badge pro" data-i18n="lp_badgePro">PRO</span></div><h3 data-i18n="lp_c8t">Kasboek →</h3><p data-i18n="lp_c8p">Inkomsten en uitgaven in één boek, automatisch gevuld vanuit je verkopen. Importeer je bestaande spreadsheet, exporteer voor je boekhouder.</p></div>
       </div>
-      <div style="text-align:center;margin-top:18px"><button class="btn btn-lg" onclick="openAuth('register')" style="background:#10b981;border:none">Try the listing tool →</button></div>
+      <div style="text-align:center;margin-top:18px"><button class="btn btn-lg" onclick="openAuth('register')" style="background:#10b981;border:none" data-i18n="lp_whatCta">Probeer de listing-tool →</button></div>
     </div>
   </section>
 
   <section class="section" id="sec-pricing" style="padding-top:0">
-    <h2 class="section-title">Eenvoudige prijzen</h2>
-    <p class="section-sub">Begin gratis. Upgrade wanneer je klaar bent om te schalen.</p>
-    <div class="plans" style="grid-template-columns: repeat(3,1fr); max-width:980px">
+    <h2 class="section-title" data-i18n="lp_priceTitle">Eenvoudige prijzen</h2>
+    <p class="section-sub" data-i18n="lp_priceSub">Begin gratis. Upgrade wanneer je klaar bent om te schalen.</p>
+    <div class="plans plans-3">
       <div class="plan">
-        <h3>FREE</h3>
-        <div class="p-price">€0<span>/altijd</span></div>
+        <h3 data-i18n="lp_free">GRATIS</h3>
+        <div class="p-price">€0<span data-i18n="lp_freePer">/altijd</span></div>
         <ul>
-          <li>5 waardechecks per week</li>
-          <li>Tot 8 foto's per check</li>
-          <li>Verkoopklare beschrijvingen</li>
+          <li data-i18n="lp_f1">5 waardechecks per week</li>
+          <li data-i18n="lp_f2">Tot 8 foto's per check</li>
+          <li data-i18n="lp_f3">Verkoopklare beschrijvingen</li>
         </ul>
-        <button class="btn btn-outline" onclick="openAuth('register')">Begin gratis</button>
+        <button class="btn btn-outline" onclick="openAuth('register')" data-i18n="lp_start">Begin gratis</button>
       </div>
-      <div class="plan" style="border:2px solid #e6e9f2">
-        <h3>PRO WEEK</h3>
-        <div class="p-price">€3<span>/week</span></div>
+      <div class="plan" style="border:2px solid var(--line)">
+        <h3 data-i18n="lp_week">PRO WEEK</h3>
+        <div class="p-price">€3<span data-i18n="lp_weekPer">/week</span></div>
         <ul>
-          <li>Onbeperkt waardechecks &amp; foto's</li>
-          <li>Verzendcalculator + agent-vergelijk</li>
-          <li>Voorraad &amp; kasboek</li>
+          <li data-i18n="lp_w1">Onbeperkt waardechecks &amp; foto's</li>
+          <li data-i18n="lp_w2">Verzendcalculator + agent-vergelijking</li>
+          <li data-i18n="lp_w3">Voorraad &amp; kasboek</li>
         </ul>
-        <button class="btn btn-outline" onclick="openAuth('register')">Kies Weekly</button>
+        <button class="btn btn-outline" onclick="openAuth('register')" data-i18n="lp_chooseWeek">Kies Week</button>
       </div>
       <div class="plan hot">
-        <div class="hot-tag">BESTE DEAL · BESPAAR 18%</div>
-        <h3>PRO MAAND</h3>
-        <div class="p-price">€10<span>/maand</span></div>
+        <div class="hot-tag" data-i18n="lp_monthTag">BESTE DEAL · BESPAAR 18%</div>
+        <h3 data-i18n="lp_month">PRO MAAND</h3>
+        <div class="p-price">€10<span data-i18n="lp_monthPer">/maand</span></div>
         <ul>
-          <li>Alles uit WEEK</li>
-          <li>Haul → kasboek in 1 klik</li>
-          <li>Goedkoopst: ~€2,50/week</li>
+          <li data-i18n="lp_m1">Alles uit PRO WEEK</li>
+          <li data-i18n="lp_m2">Haul → kasboek in 1 klik</li>
+          <li data-i18n="lp_m3">Goedkoopst: ~€2,50 per week</li>
         </ul>
-        <button class="btn" onclick="openAuth('register')">Kies Maandelijks</button>
+        <button class="btn" onclick="openAuth('register')" data-i18n="lp_chooseMonth">Kies Maand</button>
       </div>
     </div>
   </section>
 
-  <footer>© 2026 Guidsell — prijzen zijn indicatief. Gemaakt voor Vinted resellers.</footer>
+  <footer data-i18n="lp_footer">© 2026 Guidsell — prijzen zijn indicatief. Gemaakt voor Vinted-resellers.</footer>
 </div>
 
 <!-- ==================================================
@@ -1146,7 +1202,7 @@
 ================================================== -->
 <div id="page-auth" hidden>
   <nav class="topnav">
-    <button class="brand" onclick="goLanding()"><span class="brand-mark">G</span> Guidsell</button>
+    <button class="brand" onclick="goLanding()"><span class="brand-mark"><svg aria-hidden="true"><use href="#gs-logo"/></svg></span> Guidsell</button>
   </nav>
   <div class="auth-wrap">
     <div class="auth-card">
@@ -1223,7 +1279,7 @@
   <!-- desktop + mobile topbar (burger/brand/actions) -->
   <nav class="topnav" id="appTopnav">
     <button class="nav-burger" id="burgerApp" onclick="toggleMobileNav()" aria-label="Menu" aria-expanded="false">☰</button>
-    <button class="brand" onclick="switchView('dashboard')"><span class="brand-mark">G</span> Guidsell</button>
+    <button class="brand" onclick="switchView('dashboard')"><span class="brand-mark"><svg aria-hidden="true"><use href="#gs-logo"/></svg></span> Guidsell</button>
     <div class="nav-spacer"></div>
     <div class="app-actions">
       <button class="btn-ghost theme-toggle" onclick="toggleTheme()" title="Donker/licht">🌙</button>
@@ -1239,7 +1295,7 @@
   <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleMobileNav()" aria-hidden="true"></div>
   <div class="app-shell">
   <aside class="app-sidebar" id="appSidebar" aria-label="Navigatie">
-    <button class="brand" onclick="switchView('dashboard')"><span class="brand-mark">G</span> Guidsell</button>
+    <button class="brand" onclick="switchView('dashboard')"><span class="brand-mark"><svg aria-hidden="true"><use href="#gs-logo"/></svg></span> Guidsell</button>
     <nav class="side-links" id="appLinks">
       <button class="navlink active" data-view="dashboard" onclick="switchView('dashboard')"><span class="nav-ico">▦</span> Dashboard</button>
       <button class="navlink" data-view="check" onclick="switchView('check')"><span class="nav-ico">◧</span> Waardecheck</button>
@@ -1258,7 +1314,7 @@
   <div class="app-main-wrap">
   <div class="app-topbar" id="appTopbar">
     <button class="nav-burger" onclick="toggleMobileNav()" aria-label="Menu" aria-expanded="false">☰</button>
-    <button class="brand" onclick="switchView('dashboard')"><span class="brand-mark">G</span> Guidsell</button>
+    <button class="brand" onclick="switchView('dashboard')"><span class="brand-mark"><svg aria-hidden="true"><use href="#gs-logo"/></svg></span> Guidsell</button>
     <div class="nav-spacer"></div>
     <span class="quota-chip" id="quotaChipTop" style="display:none"></span>
   </div>
@@ -1320,7 +1376,7 @@
       </div>
 
       <div class="card">
-        <div class="card-head">PROFIT CURVE <span id="curveMeta" style="margin-left:auto;font-size:11px;color:var(--muted);font-weight:500;letter-spacing:0"></span></div>
+        <div class="card-head">WINSTCURVE <span id="curveMeta" style="margin-left:auto;font-size:11px;color:var(--muted);font-weight:500;letter-spacing:0"></span></div>
         <div class="card-body">
           <canvas id="profitCanvas" class="profit-chart" width="720" height="160"></canvas>
           <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;font-size:12px;color:var(--muted)">
@@ -1512,7 +1568,7 @@
           </div>
           <div class="ship-sel" id="shipCurrSel">
             <button class="ship-sel-pill" onclick="shipToggleDropdown('curr')" type="button">
-              <small>CURRENCY</small>
+              <small>VALUTA</small>
               <span id="shipCurrName">€ EUR</span>
               <span class="arrow">▾</span>
             </button>
@@ -1646,6 +1702,7 @@
           </div>
         </div>
       </div>
+      </div>
     </section>
 
     <!-- ---------- MIJN ITEMS ---------- -->
@@ -1726,7 +1783,7 @@
           <ul>
             <li>Taal-detectie (NL/EN/DE/FR)</li>
             <li>Vloer = kostprijs + min. netto (nooit eronder)</li>
-            <li>3 tonen: vriendelijk / stevig / best Bod</li>
+            <li>3 tonen: vriendelijk / stevig / beste bod</li>
             <li>1-klik kopiëren</li>
           </ul>
           <button class="btn btn-lg" onclick="switchView('upgrade')">Ontgrendel met PRO — vanaf €3/week</button>
@@ -1812,16 +1869,16 @@
         <span style="font-size:11px;letter-spacing:1px;font-weight:700;color:var(--muted)">KIES JE PLAN</span>
         <span style="font-size:11px;color:var(--green);font-weight:700">· Maand bespaart 18% vs 4× week</span>
       </div>
-      <div class="plans" style="grid-template-columns: repeat(3,1fr); max-width:980px">
+      <div class="plans plans-3">
         <div class="plan" id="planFree">
-          <h3>FREE</h3>
+          <h3>GRATIS</h3>
           <div class="p-price">€0<span>/altijd</span></div>
           <ul>
             <li>5 waardechecks per week</li>
             <li>Tot 8 foto's per check</li>
             <li>Verkoopklare beschrijvingen</li>
           </ul>
-          <button class="btn btn-outline" onclick="downgradeDemo()">Terug naar FREE (demo)</button>
+          <button class="btn btn-outline" onclick="downgradeDemo()">Terug naar GRATIS (demo)</button>
         </div>
         <div class="plan" id="planWeekly">
           <div class="plan-current-tag" id="weeklyCurrent" hidden>✓ JOUW HUIDIGE PLAN</div>
@@ -1937,20 +1994,20 @@
 <div class="modal-back" id="settingsModal" onclick="if(event.target===this) closeSettings()">
   <div class="modal settings-modal" style="text-align:left">
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:4px">
-      <div><h2 style="margin:0" id="setH2">Settings</h2><div id="settingsSub" style="font-size:12.5px;color:var(--muted);margin-top:2px"></div></div>
+      <div><h2 style="margin:0" id="setH2">Instellingen</h2><div id="settingsSub" style="font-size:12.5px;color:var(--muted);margin-top:2px"></div></div>
       <div style="display:flex;gap:8px;align-items:center">
-        <button class="btn" id="setSaveAllBtn" style="background:#10b981" onclick="saveAllSettings()">Save</button>
+        <button class="btn" id="setSaveAllBtn" style="background:#10b981" onclick="saveAllSettings()">Opslaan</button>
         <button class="btn-ghost" onclick="closeSettings()" aria-label="Sluiten">✕</button>
       </div>
     </div>
 
     <!-- BILLING + THIS MONTH -->
     <div class="settings-grid" style="margin-top:14px">
-      <div class="settings-section"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><h3 style="margin:0" id="lblBilling">BILLING</h3><span class="set-badge" id="billBadge">FREE</span></div>
+      <div class="settings-section"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><h3 style="margin:0" id="lblBilling">FACTURERING</h3><span class="set-badge" id="billBadge">GRATIS</span></div>
         <div style="display:flex;align-items:center;justify-content:space-between;gap:10px"><span id="billText" style="font-size:13px">You're on the Free plan.</span><button class="btn" style="background:#10b981;font-size:12.5px;padding:8px 12px" onclick="closeSettings();switchView('upgrade')" id="billBtn">See plans</button></div>
       </div>
-      <div class="settings-section"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><h3 style="margin:0" id="lblThisMonth">THIS MONTH</h3><span class="set-badge" id="monthBadge">FREE</span></div>
-        <div style="font-size:10px;letter-spacing:.8px;color:var(--muted);font-weight:700" id="lblCredits">CREDITS USED</div>
+      <div class="settings-section"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><h3 style="margin:0" id="lblThisMonth">DEZE MAAND</h3><span class="set-badge" id="monthBadge">GRATIS</span></div>
+        <div style="font-size:10px;letter-spacing:.8px;color:var(--muted);font-weight:700" id="lblCredits">CHECKS GEBRUIKT</div>
         <div style="font-size:22px;font-weight:800;letter-spacing:-.5px" id="creditUsed">0.0 / 5</div>
         <div style="font-size:11px;color:var(--muted)" id="creditLeft">5.0 left</div>
       </div>
@@ -1959,31 +2016,31 @@
     <!-- GENERAL + ECONOMICS -->
     <div class="settings-grid" style="margin-top:10px">
       <div class="settings-section">
-        <h3 id="lblGeneral">GENERAL</h3>
-        <div class="set-field"><label id="lblLang">Interface Language</label>
+        <h3 id="lblGeneral">ALGEMEEN</h3>
+        <div class="set-field"><label id="lblLang">Taal</label>
           <div class="seg" role="group"><button id="segLangNL" onclick="setLang('nl')">NL</button><button id="segLangEN" onclick="setLang('en')">EN</button><button id="segLangDE" onclick="setLang('de')">DE</button><button id="segLangFR" onclick="setLang('fr')">FR</button></div>
           <div class="set-hint" id="lblLangHint"></div>
         </div>
-        <div class="set-field"><label id="lblTheme">Appearance</label>
+        <div class="set-field"><label id="lblTheme">Weergave</label>
           <div class="seg" role="group"><button id="segThemeLight" onclick="setThemePref('light')">☀️</button><button id="segThemeDark" onclick="setThemePref('dark')">🌙</button><button id="segThemeAuto" onclick="setThemePref('auto')">◐</button></div>
         </div>
-        <div class="set-field"><label id="lblCurrency">Currency</label><select id="setCurrency" onchange="setPref('currency',this.value)"></select></div>
-        <div class="set-field"><label id="lblShipFrom">Ship From</label><input id="setShipFrom" type="text" placeholder="bv. Amsterdam of China" onchange="setPref('shipFrom',this.value)"></div>
-        <div class="set-field"><label id="lblCatMode">Category Mode</label><select id="setCategoryMode" onchange="setPref('categoryMode',this.value)"><option value="clothing">Clothing only</option><option value="all">All categories</option></select></div>
-        <div class="set-field"><label id="lblFixedLines">Fixed lines on every listing</label><textarea id="setFixedLines" rows="3" placeholder="bv. Verzending binnen 1 werkdag&#10;Vraag gerust om extra foto's" onchange="setPref('fixedLines',this.value)"></textarea><div class="set-hint" id="lblFixedLinesHint"></div></div>
+        <div class="set-field"><label id="lblCurrency">Valuta</label><select id="setCurrency" onchange="setPref('currency',this.value)"></select></div>
+        <div class="set-field"><label id="lblShipFrom">Verzend vanuit</label><input id="setShipFrom" type="text" placeholder="bv. Amsterdam of China" onchange="setPref('shipFrom',this.value)"></div>
+        <div class="set-field"><label id="lblCatMode">Categorie-modus</label><select id="setCategoryMode" onchange="setPref('categoryMode',this.value)"><option value="clothing">Alleen kleding</option><option value="all">Alle categorieën</option></select></div>
+        <div class="set-field"><label id="lblFixedLines">Vaste regels op elke listing</label><textarea id="setFixedLines" rows="3" placeholder="bv. Verzending binnen 1 werkdag&#10;Vraag gerust om extra foto's" onchange="setPref('fixedLines',this.value)"></textarea><div class="set-hint" id="lblFixedLinesHint"></div></div>
       </div>
       <div class="settings-section">
-        <h3 id="lblEcon">ECONOMICS</h3>
+        <h3 id="lblEcon">ECONOMIE</h3>
         <div class="set-grid2">
-          <div class="set-field"><label id="lblVF">VINTED FEE %</label><input id="setVintedFee" type="number" step="0.1" min="0"></div>
-          <div class="set-field"><label id="lblVFF">VINTED FIXED FEE</label><input id="setVintedFixed" type="number" step="0.01" min="0"></div>
-          <div class="set-field"><label id="lblDF">DEPOP FEE %</label><input id="setDepopFee" type="number" step="0.1" min="0"></div>
-          <div class="set-field"><label id="lblDFF">DEPOP FIXED FEE</label><input id="setDepopFixed" type="number" step="0.01" min="0"></div>
-          <div class="set-field"><label id="lblHour">YOUR HOURLY RATE</label><input id="setHourly" type="number" step="0.5" min="0"></div>
-          <div class="set-field"><label id="lblMin">MINUTES PER ITEM</label><input id="setMinutes" type="number" step="1" min="0"><div class="set-hint" id="lblMinHint"></div></div>
-          <div class="set-field"><label id="lblDead">DEAD STOCK AFTER (DAYS)</label><input id="setDeadStock" type="number" step="1" min="1"></div>
-          <div class="set-field"><label id="lblMinNet">MIN. NET</label><input id="setMinNet" type="number" step="0.5" min="0"><div class="set-hint" id="lblMinNetHint"></div></div>
-          <div class="set-field"><label id="lblDefShip">DEFAULT SHIPPING COST</label><input id="setDefShip" type="number" step="0.01" min="0"></div>
+          <div class="set-field"><label id="lblVF">VINTED-KOSTEN %</label><input id="setVintedFee" type="number" step="0.1" min="0"></div>
+          <div class="set-field"><label id="lblVFF">VINTED VASTE KOSTEN</label><input id="setVintedFixed" type="number" step="0.01" min="0"></div>
+          <div class="set-field"><label id="lblDF">DEPOP-KOSTEN %</label><input id="setDepopFee" type="number" step="0.1" min="0"></div>
+          <div class="set-field"><label id="lblDFF">DEPOP VASTE KOSTEN</label><input id="setDepopFixed" type="number" step="0.01" min="0"></div>
+          <div class="set-field"><label id="lblHour">JE UURTARIEF</label><input id="setHourly" type="number" step="0.5" min="0"></div>
+          <div class="set-field"><label id="lblMin">MINUTEN PER ITEM</label><input id="setMinutes" type="number" step="1" min="0"><div class="set-hint" id="lblMinHint"></div></div>
+          <div class="set-field"><label id="lblDead">TRAAG LOPEND NA (DAGEN)</label><input id="setDeadStock" type="number" step="1" min="1"></div>
+          <div class="set-field"><label id="lblMinNet">MIN. NETTO</label><input id="setMinNet" type="number" step="0.5" min="0"><div class="set-hint" id="lblMinNetHint"></div></div>
+          <div class="set-field"><label id="lblDefShip">STANDAARD VERZENDKOSTEN</label><input id="setDefShip" type="number" step="0.01" min="0"></div>
         </div>
       </div>
     </div>
@@ -1991,11 +2048,11 @@
     <!-- PLATFORMS -->
     <div class="settings-section" style="margin-top:10px">
       <h3 id="lblPlatforms">PLATFORMS</h3>
-      <div class="set-field"><label id="lblWhenSale">When a sale comes in</label>
-        <select id="setSaleAction"><option value="reserved">Flag as reserved</option><option value="remove">Mark as sold</option><option value="nothing">Do nothing</option></select>
+      <div class="set-field"><label id="lblWhenSale">Bij een verkoop</label>
+        <select id="setSaleAction"><option value="reserved">Markeer als gereserveerd</option><option value="remove">Markeer als verkocht</option><option value="nothing">Niets doen</option></select>
         <div class="set-hint" id="lblWhenSaleHint"></div>
       </div>
-      <div class="set-field"><label id="lblPreSel">Pre-selected Platforms</label>
+      <div class="set-field"><label id="lblPreSel">Voorgeselecteerde platforms</label>
         <label class="set-check"><input id="setPreVinted" type="checkbox"> Vinted</label>
         <label class="set-check"><input id="setPreDepop" type="checkbox"> Depop</label>
         <div class="set-hint" id="lblPreSelHint"></div>
@@ -2004,18 +2061,18 @@
 
     <!-- LISTING EDITOR -->
     <div class="settings-section" style="margin-top:10px">
-      <h3 id="lblListingEditor">LISTING EDITOR</h3>
-      <div class="set-field"><label id="lblTone">Tone</label><div class="seg" role="group" id="segTone"><button data-tone="clean" onclick="setTone('clean')">Clean</button><button data-tone="hype" onclick="setTone('hype')">Hype</button><button data-tone="luxury" onclick="setTone('luxury')">Luxury</button><button data-tone="minimal" onclick="setTone('minimal')">Minimal</button></div></div>
-      <div class="set-field"><label id="lblLength">Length</label><div class="seg" role="group" id="segLength"><button data-len="short" onclick="setLength('short')">Short</button><button data-len="standard" onclick="setLength('standard')">Standard</button><button data-len="detailed" onclick="setLen('detailed')">Detailed</button></div></div>
+      <h3 id="lblListingEditor">ADVERTENTIE-EDITOR</h3>
+      <div class="set-field"><label id="lblTone">Toon</label><div class="seg" role="group" id="segTone"><button data-tone="clean" onclick="setTone('clean')">Strak</button><button data-tone="hype" onclick="setTone('hype')">Wervend</button><button data-tone="luxury" onclick="setTone('luxury')">Luxe</button><button data-tone="minimal" onclick="setTone('minimal')">Minimalistisch</button></div></div>
+      <div class="set-field"><label id="lblLength">Lengte</label><div class="seg" role="group" id="segLength"><button data-len="short" onclick="setLength('short')">Kort</button><button data-len="standard" onclick="setLength('standard')">Standaard</button><button data-len="detailed" onclick="setLen('detailed')">Uitgebreid</button></div></div>
     </div>
 
     <!-- PLATFORM CONNECTIONS -->
     <div class="settings-section" style="margin-top:10px">
-      <h3 id="lblConnections">PLATFORM CONNECTIONS</h3>
+      <h3 id="lblConnections">PLATFORM-VERBINDINGEN</h3>
       <div class="set-conn-grid">
-        <div class="set-conn"><div class="set-conn-top"><b id="lblVinted">Vinted</b><span class="set-badge" id="lblManual1">MANUAL</span></div><div class="set-hint" id="lblVintedDesc"></div></div>
-        <div class="set-conn"><div class="set-conn-top"><b id="lblDepop">Depop</b><span class="set-badge" id="lblManual2">MANUAL</span></div><div class="set-hint" id="lblDepopDesc"></div></div>
-        <div class="set-conn"><div class="set-conn-top"><b id="lblAi">AI analysis</b><span class="set-badge ok" id="connAiBadge">CONNECTED</span></div><div class="set-hint" id="lblAiDesc"></div></div>
+        <div class="set-conn"><div class="set-conn-top"><b id="lblVinted">Vinted</b><span class="set-badge" id="lblManual1">HANDMATIG</span></div><div class="set-hint" id="lblVintedDesc"></div></div>
+        <div class="set-conn"><div class="set-conn-top"><b id="lblDepop">Depop</b><span class="set-badge" id="lblManual2">HANDMATIG</span></div><div class="set-hint" id="lblDepopDesc"></div></div>
+        <div class="set-conn"><div class="set-conn-top"><b id="lblAi">AI-analyse</b><span class="set-badge ok" id="connAiBadge">VERBONDEN</span></div><div class="set-hint" id="lblAiDesc"></div></div>
       </div>
     </div>
 
@@ -2030,7 +2087,7 @@
       <div id="changePassBox" hidden style="margin-top:12px;border-top:1px solid var(--line);padding-top:12px">
         <div class="set-field"><label id="lblNewPass">Nieuw wachtwoord</label><input id="setPass1" type="password" minlength="4"></div>
         <div class="set-field"><label id="lblRepPass">Herhaal nieuw wachtwoord</label><input id="setPass2" type="password"></div>
-        <div style="display:flex;gap:8px"><button class="btn" onclick="saveNewPassword()">Opslaan</button><button class="btn-ghost" onclick="closeChangePass()">Annuleren</button></div>
+        <div style="display:flex;gap:8px"><button class="btn" onclick="saveNewPassword()" id="btnSavePass">Opslaan</button><button class="btn-ghost" onclick="closeChangePass()" id="btnCancelPass">Annuleren</button></div>
       </div>
     </div>
 
@@ -2045,7 +2102,7 @@
 
     <!-- SHIPPING DEFAULTS -->
     <div class="settings-section" style="margin-top:10px">
-      <h3 id="lblShipDefaults">VERZENDING — DEFAULTS</h3>
+      <h3 id="lblShipDefaults">VERZENDING — STANDAARD</h3>
       <p class="set-hint" style="margin-bottom:8px" id="lblShipDefaultsHint"></p>
       <div class="set-grid2">
         <div class="set-field"><label id="lblDefAgent">Standaard agent</label><select id="setShipAgent"></select></div>
@@ -2062,13 +2119,13 @@
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
         <button class="btn btn-outline" style="font-size:12.5px" onclick="exportAllData()" id="btnExpJson">⬇ Exporteer JSON</button>
         <button class="btn btn-outline" style="font-size:12.5px" onclick="exportLedgerCsv()" id="btnExpCsv">⬇ Exporteer CSV (boekhouder)</button>
-        <label class="btn btn-outline" style="font-size:12.5px;cursor:pointer">⬆ Importeer CSV<input type="file" accept=".csv,text/csv" hidden onchange="importLedgerCsv(this)"></label>
+        <label class="btn btn-outline" style="font-size:12.5px;cursor:pointer"><span id="lblImpCsv">⬆ Importeer CSV</span><input type="file" accept=".csv,text/csv" hidden onchange="importLedgerCsv(this)"></label>
         <button class="btn btn-outline" style="font-size:12.5px;color:var(--red);border-color:#fecaca" onclick="wipeMyData()" id="btnWipe">🗑 Wis mijn data (dit apparaat)</button>
         <span style="font-size:11px;color:var(--muted)" id="lblWipeHint"></span>
       </div>
     </div>
 
-    <div style="margin-top:14px;display:flex;justify-content:flex-end;gap:8px"><button class="btn" style="background:#10b981" onclick="saveAllSettings()">Save</button><button class="btn-ghost" onclick="closeSettings()" id="btnDone">Done</button></div>
+    <div style="margin-top:14px;display:flex;justify-content:flex-end;gap:8px"><button class="btn" style="background:#10b981" onclick="saveAllSettings()" id="btnSaveBottom">Opslaan</button><button class="btn-ghost" onclick="closeSettings()" id="btnDone">Klaar</button></div>
   </div>
 </div>
 
@@ -2175,7 +2232,7 @@ const I18N = {
     listingEditor: "INSERAT-EDITOR", tone: "Ton", length: "Länge", clean:"Clean", hype:"Hype", luxury2:"Luxury", minimal:"Minimal", short:"Kurz", standard:"Standard", detailed:"Detailliert",
     connections: "VERBINDUNGEN", vinted: "Vinted", depop: "Depop", aiAnalysis: "KI-Analyse", manual: "MANUELL", connected: "VERBUNDEN",
     vintedManualDesc: "Kein automatisches Veröffentlichen.", depopManualDesc: "Kein automatisches Veröffentlichen.", aiConnectedDesc: "Foto-Analyse und Texte laufen hierüber.",
-    billing: "ABRECHNUNG", thisMonth: "DIESEN MONAT", creditsUsed: "CREDITS VERBRAUCHT", free: "FREE", seePlans: "Pläne ansehen", left: "übrig",
+    billing: "ABRECHNUNG", thisMonth: "DIESEN MONAT", creditsUsed: "CREDITS VERBRAUCHT", free: "GRATIS", seePlans: "Pläne ansehen", left: "übrig",
     shipDefaults: "VERSAND — DEFAULTS", shipDefaultsHint: "Wird gespeichert.", data: "DATEN", exportJson: "⬇ JSON exportieren", importCsv: "⬆ CSV importieren", exportCsv: "⬇ CSV exportieren", wipeMe: "🗑 Daten löschen", save: "Speichern", saveGreen: "Speichern", cancel: "Abbrechen", close: "Schließen", ready: "Fertig", changePass: "Passwort ändern", nameSaved: "Name gespeichert", passSaved: "Passwort geändert",
     navDashboard: "Dashboard", navCheck: "Wertcheck", navShip: "Versand", navItems: "Artikel", navLedger: "Kassenbuch", navBundles: "Bundles", navReplies: "Antworten", navUpgrade: "Upgrade", themeLight: "Hell", themeDark: "Dunkel", themeAuto: "Auto", compactOn: "An", defAgent: "Standard Agent", defCountry: "Standard Ziel", defMode: "Standard Geschwindigkeit", defCurr: "Standard Währung", defaultsSaved: "Gespeichert", langSwitched: "Sprache: Deutsch", keySaved: "KI verbunden", keyRemoved: "Schlüssel entfernt", keyTooShort: "Zu kurz", keyRejected: "Abgelehnt", wipeConfirm: "Wirklich löschen?", wiped: "Gelöscht", exported: "Exportiert", imported: "Importiert", name: "Name", email: "E-Mail", newPass: "Neues Passwort", repeatPass: "Wiederholen"
   },
@@ -2187,11 +2244,168 @@ const I18N = {
     listingEditor: "ÉDITEUR D'ANNONCE", tone: "Ton", length: "Longueur", clean:"Clean", hype:"Hype", luxury2:"Luxury", minimal:"Minimal", short:"Court", standard:"Standard", detailed:"Détaillé",
     connections: "CONNEXIONS", vinted: "Vinted", depop: "Depop", aiAnalysis: "Analyse IA", manual: "MANUEL", connected: "CONNECTÉ",
     vintedManualDesc: "Pas de publication automatique.", depopManualDesc: "Pas de publication automatique.", aiConnectedDesc: "L'analyse passe par ici.",
-    billing: "FACTURATION", thisMonth: "CE MOIS", creditsUsed: "CRÉDITS UTILISÉS", free: "FREE", seePlans: "Voir les plans", left: "restants",
+    billing: "FACTURATION", thisMonth: "CE MOIS", creditsUsed: "CRÉDITS UTILISÉS", free: "GRATUIT", seePlans: "Voir les plans", left: "restants",
     shipDefaults: "LIVRAISON — DÉFAUTS", shipDefaultsHint: "Enregistré.", data: "DONNÉES", exportJson: "⬇ Exporter JSON", importCsv: "⬆ Importer CSV", exportCsv: "⬇ Exporter CSV", wipeMe: "🗑 Effacer mes données", save: "Enregistrer", saveGreen: "Enregistrer", cancel: "Annuler", close: "Fermer", ready: "Terminé", changePass: "Changer mot de passe", nameSaved: "Nom enregistré", passSaved: "Mot de passe modifié",
     navDashboard: "Tableau de bord", navCheck: "Vérification", navShip: "Livraison", navItems: "Articles", navLedger: "Livre de caisse", navBundles: "Lots", navReplies: "Réponses", navUpgrade: "Upgrade", themeLight: "Clair", themeDark: "Sombre", themeAuto: "Auto", compactOn: "Oui", defAgent: "Agent par défaut", defCountry: "Destination", defMode: "Vitesse", defCurr: "Devise", defaultsSaved: "Enregistré", langSwitched: "Langue: Français", keySaved: "IA connectée", keyRemoved: "Clé supprimée", keyTooShort: "Trop court", keyRejected: "Rejetée", wipeConfirm: "Effacer?", wiped: "Effacé", exported: "Exporté", imported: "Importé", name: "Nom", email: "E-mail", newPass: "Nouveau mot de passe", repeatPass: "Répéter"
   }
 };
+
+/* =====================================================
+   FRONTPAGE + UI COPY PER LANGUAGE
+   The landing page is fully translated, so a visitor can
+   switch language before logging in. No NL/EN mixing.
+===================================================== */
+const EXTRA_I18N = {
+  nl: {
+    lp_navHow: "Hoe het werkt", lp_navWhat: "Wat je krijgt", lp_navPricing: "Prijzen", lp_login: "Inloggen", lp_start: "Begin gratis",
+    lp_heroBadge: "VINTED RESELLING, SLIMMER",
+    lp_heroH1: "Weten wat jouw item écht waard is. In 30 seconden.",
+    lp_heroSub: "Upload een foto — de AI herkent je item, vergelijkt het met live Vinted-prijzen en schrijft een beschrijving die verkoopt.",
+    lp_heroCta: "Begin gratis — 5 checks per week",
+    lp_heroNote: "Gratis · 5 checks per week · PRO vanaf €3/week of €10/maand — de maand is het voordeligst",
+    lp_howTitle: "Zo werkt het", lp_howSub: "Van foto tot verkoopklare listing in drie stappen.",
+    lp_s1t: "📸 Upload je foto", lp_s1p: "Sleep, klik of plak tot 8 foto's van je item. De eerste foto wordt automatisch je cover.",
+    lp_s2t: "🏷️ Kies item & staat", lp_s2p: "Wat is het, welk merk, welke maat en hoe mooi is het nog? Dat bepaalt de prijs.",
+    lp_s3t: "💰 Krijg prijs + beschrijving", lp_s3p: "De AI taxeert je item op basis van echte Vinted-verkopen en schrijft een beschrijving die kopers overtuigt.",
+    lp_whatTitle: "Wat je krijgt", lp_whatSub: "Alles hieronder is live in de app — klik een kaart om direct naar die functie te gaan.",
+    lp_badge: "VANAF GRATIS",
+    lp_c1t: "Listing-tool →", lp_c1p: "Gestructureerde analyse, een vast tekstblok en een prijsadvies met laag, voorgesteld en hoog bereik plus de verwachte verkooptijd.",
+    lp_c2t: "Waardecheck →", lp_c2p: "Op de rommelmarkt: foto erin, een duidelijk koop-of-laat-maar oordeel eruit, met de maximale prijs en een zin om mee te onderhandelen.",
+    lp_c3t: "Voorraadsysteem →", lp_c3p: "Elk item met foto, prijs en platform — én de plank waar het echt ligt. Doorzoekbaar en sorteerbaar, met marge en dagen online op elke regel.",
+    lp_c4t: "Winstcurve →", lp_c4p: "Cumulatieve nettowinst als een koerslijn, één stap per verkoop, met piek en maximale daling zodat een verliesreeks opvalt vóór het einde van de maand.",
+    lp_c5t: "Echte nettowinst →", lp_c5p: "Inkoop, verzending, platformkosten en je eigen uurtarief er per item vanaf. Wat je ziet is wat je overhoudt.",
+    lp_c6t: "Bundel-suggesties →", lp_c6p: "Koppelt traag lopende voorraad aan een item dat wél verkoopt, 10 tot 20 procent onder de som, zodat blijven liggen verandert in samen vertrekken.",
+    lp_c7t: "Koperreacties →", lp_c7p: "Plak wat een koper schreef en krijg kant-en-klare antwoorden in hun taal. Het kent je ondergrens en zakt daar nooit onder.",
+    lp_c8t: "Kasboek →", lp_c8p: "Inkomsten en uitgaven in één boek, automatisch gevuld vanuit je verkopen. Importeer je bestaande spreadsheet, exporteer voor je boekhouder.",
+    lp_whatCta: "Probeer de listing-tool →",
+    lp_priceTitle: "Eenvoudige prijzen", lp_priceSub: "Begin gratis. Upgrade wanneer je klaar bent om te schalen.",
+    lp_free: "GRATIS", lp_freePer: "/altijd", lp_f1: "5 waardechecks per week", lp_f2: "Tot 8 foto's per check", lp_f3: "Verkoopklare beschrijvingen",
+    lp_week: "PRO WEEK", lp_weekPer: "/week", lp_w1: "Onbeperkt waardechecks & foto's", lp_w2: "Verzendcalculator + agent-vergelijking", lp_w3: "Voorraad & kasboek", lp_chooseWeek: "Kies Week",
+    lp_month: "PRO MAAND", lp_monthPer: "/maand", lp_monthTag: "BESTE DEAL · BESPAAR 18%", lp_m1: "Alles uit PRO WEEK", lp_m2: "Haul → kasboek in 1 klik", lp_m3: "Goedkoopst: ~€2,50 per week", lp_chooseMonth: "Kies Maand",
+    lp_footer: "© 2026 Guidsell — prijzen zijn indicatief. Gemaakt voor Vinted-resellers.",
+    apiKeyLabel: "Gemini API-sleutel", freePlan: "Je zit op het gratis plan.", unlimited: "Onbeperkt", keySavedLocally: "Sleutel lokaal opgeslagen",
+    serverAiReady: "Server-AI: actief — werkt ook zonder eigen sleutel", serverAiOff: "Server-AI: niet geconfigureerd — eigen sleutel nodig",
+    saleReserved: "Markeer als gereserveerd", saleSold: "Markeer als verkocht", saleNothing: "Niets doen",
+    catClothing: "Alleen kleding", catAll: "Alle categorieën"
+  },
+  en: {
+    lp_navHow: "How it works", lp_navWhat: "What you get", lp_navPricing: "Pricing", lp_login: "Log in", lp_start: "Start free",
+    lp_heroBadge: "VINTED RESELLING, SMARTER",
+    lp_heroH1: "Know what your item is really worth. In 30 seconds.",
+    lp_heroSub: "Upload a photo — the AI recognises your item, compares it with live Vinted prices and writes a description that sells.",
+    lp_heroCta: "Start free — 5 checks per week",
+    lp_heroNote: "Free · 5 checks per week · PRO from €3/week or €10/month — the monthly plan is the cheapest",
+    lp_howTitle: "How it works", lp_howSub: "From photo to a ready-to-post listing in three steps.",
+    lp_s1t: "📸 Upload your photo", lp_s1p: "Drag, click or paste up to 8 photos of your item. The first photo automatically becomes your cover.",
+    lp_s2t: "🏷️ Pick item & condition", lp_s2p: "What is it, which brand, what size and how good is it still? That decides the price.",
+    lp_s3t: "💰 Get price + description", lp_s3p: "The AI values your item from real Vinted sales and writes a description that convinces buyers.",
+    lp_whatTitle: "What you get", lp_whatSub: "Everything below is live in the app — click a card to jump straight to that feature.",
+    lp_badge: "FREE AND UP",
+    lp_c1t: "Listing tool →", lp_c1p: "Structured analysis, a fixed-format block and a price call with a low, suggested and high range plus expected days to sell.",
+    lp_c2t: "Value check →", lp_c2p: "At a flea market stall: a photo in, a clear buy-or-pass verdict out, with the most you should pay and a line to negotiate with.",
+    lp_c3t: "Storage system →", lp_c3p: "Every item with photo, price and platform — and the shelf it is actually on. Searchable and sortable, with margin and days online on every row.",
+    lp_c4t: "Profit curve →", lp_c4p: "Cumulative net profit charted like a price line, one step per sale, with peak and maximum drawdown so a losing run shows up before the month closes.",
+    lp_c5t: "Real net profit →", lp_c5p: "Purchase, shipping, platform fees and your own hourly rate subtracted per item. What you see is what you keep.",
+    lp_c6t: "Bundle suggestions →", lp_c6p: "Pairs slow-moving stock with a piece that actually sells, priced 10 to 20 percent under the sum, so items that would sit for months move together instead.",
+    lp_c7t: "Buyer replies →", lp_c7p: "Paste what a buyer wrote and get send-ready answers in their language. It knows your floor and will never go below it.",
+    lp_c8t: "Cash book →", lp_c8p: "Income and expenses in one ledger, filled automatically from your sales. Import the spreadsheet you already keep, export for your accountant.",
+    lp_whatCta: "Try the listing tool →",
+    lp_priceTitle: "Simple pricing", lp_priceSub: "Start free. Upgrade when you are ready to scale.",
+    lp_free: "FREE", lp_freePer: "/forever", lp_f1: "5 value checks per week", lp_f2: "Up to 8 photos per check", lp_f3: "Ready-to-post descriptions",
+    lp_week: "PRO WEEK", lp_weekPer: "/week", lp_w1: "Unlimited checks & photos", lp_w2: "Shipping calculator + agent compare", lp_w3: "Storage & cash book", lp_chooseWeek: "Choose Weekly",
+    lp_month: "PRO MONTH", lp_monthPer: "/month", lp_monthTag: "BEST DEAL · SAVE 18%", lp_m1: "Everything in PRO WEEK", lp_m2: "Haul → cash book in 1 click", lp_m3: "Cheapest: ~€2.50 per week", lp_chooseMonth: "Choose Monthly",
+    lp_footer: "© 2026 Guidsell — prices are indicative. Built for Vinted resellers.",
+    apiKeyLabel: "Gemini API key", freePlan: "You're on the Free plan.", unlimited: "Unlimited", keySavedLocally: "Key saved locally",
+    serverAiReady: "Server AI: ready — works without a personal key", serverAiOff: "Server AI: not configured — personal key needed",
+    saleReserved: "Flag as reserved", saleSold: "Mark as sold", saleNothing: "Do nothing",
+    catClothing: "Clothing only", catAll: "All categories"
+  },
+  de: {
+    lp_navHow: "So funktioniert's", lp_navWhat: "Was du bekommst", lp_navPricing: "Preise", lp_login: "Anmelden", lp_start: "Gratis starten",
+    lp_heroBadge: "VINTED-RESELLING, SCHLAUER",
+    lp_heroH1: "Wisse, was dein Artikel wirklich wert ist. In 30 Sekunden.",
+    lp_heroSub: "Lade ein Foto hoch — die KI erkennt deinen Artikel, vergleicht ihn mit Live-Vinted-Preisen und schreibt eine Beschreibung, die verkauft.",
+    lp_heroCta: "Gratis starten — 5 Checks pro Woche",
+    lp_heroNote: "Gratis · 5 Checks pro Woche · PRO ab 3 €/Woche oder 10 €/Monat — der Monat ist am günstigsten",
+    lp_howTitle: "So funktioniert's", lp_howSub: "Vom Foto zum fertigen Inserat in drei Schritten.",
+    lp_s1t: "📸 Foto hochladen", lp_s1p: "Ziehe, klicke oder füge bis zu 8 Fotos deines Artikels ein. Das erste Foto wird automatisch dein Titelbild.",
+    lp_s2t: "🏷️ Artikel & Zustand wählen", lp_s2p: "Was ist es, welche Marke, welche Größe und wie gut ist es noch? Das bestimmt den Preis.",
+    lp_s3t: "💰 Preis + Beschreibung erhalten", lp_s3p: "Die KI schätzt deinen Artikel anhand echter Vinted-Verkäufe und schreibt eine überzeugende Beschreibung.",
+    lp_whatTitle: "Was du bekommst", lp_whatSub: "Alles unten ist live in der App — klicke eine Karte an, um direkt zur Funktion zu springen.",
+    lp_badge: "AB GRATIS",
+    lp_c1t: "Inserat-Tool →", lp_c1p: "Strukturierte Analyse, ein fester Textblock und eine Preisempfehlung mit niedrigem, vorgeschlagenem und hohem Bereich plus erwarteter Verkaufsdauer.",
+    lp_c2t: "Wertcheck →", lp_c2p: "Auf dem Flohmarkt: Foto rein, klares Kaufen-oder-Lassen-Urteil raus, mit dem Höchstpreis und einem Satz zum Verhandeln.",
+    lp_c3t: "Lagerverwaltung →", lp_c3p: "Jeder Artikel mit Foto, Preis und Plattform — und dem Regal, in dem er wirklich liegt. Durchsuchbar und sortierbar, mit Marge und Tagen online pro Zeile.",
+    lp_c4t: "Gewinnkurve →", lp_c4p: "Kumulierter Nettogewinn als Kurslinie, ein Schritt pro Verkauf, mit Höchststand und maximalem Rückgang, damit eine Verlustserie vor Monatsende auffällt.",
+    lp_c5t: "Echter Nettogewinn →", lp_c5p: "Einkauf, Versand, Plattformgebühren und dein eigener Stundensatz pro Artikel abgezogen. Was du siehst, behältst du.",
+    lp_c6t: "Bundle-Vorschläge →", lp_c6p: "Kombiniert langsam laufende Ware mit einem Artikel, der sich wirklich verkauft, 10 bis 20 Prozent unter der Summe.",
+    lp_c7t: "Käufer-Antworten →", lp_c7p: "Füge ein, was ein Käufer geschrieben hat, und erhalte fertige Antworten in seiner Sprache. Es kennt deine Untergrenze und geht nie darunter.",
+    lp_c8t: "Kassenbuch →", lp_c8p: "Einnahmen und Ausgaben in einem Buch, automatisch aus deinen Verkäufen gefüllt. Importiere deine Tabelle, exportiere für den Steuerberater.",
+    lp_whatCta: "Inserat-Tool ausprobieren →",
+    lp_priceTitle: "Einfache Preise", lp_priceSub: "Starte gratis. Upgrade, wenn du skalieren willst.",
+    lp_free: "FREE", lp_freePer: "/für immer", lp_f1: "5 Wertchecks pro Woche", lp_f2: "Bis zu 8 Fotos pro Check", lp_f3: "Fertige Beschreibungen",
+    lp_week: "PRO WOCHE", lp_weekPer: "/Woche", lp_w1: "Unbegrenzte Checks & Fotos", lp_w2: "Versandrechner + Agenten-Vergleich", lp_w3: "Lager & Kassenbuch", lp_chooseWeek: "Woche wählen",
+    lp_month: "PRO MONAT", lp_monthPer: "/Monat", lp_monthTag: "BESTES ANGEBOT · 18% SPAREN", lp_m1: "Alles aus PRO WOCHE", lp_m2: "Haul → Kassenbuch in 1 Klick", lp_m3: "Günstigste: ~2,50 € pro Woche", lp_chooseMonth: "Monat wählen",
+    lp_footer: "© 2026 Guidsell — Preise sind Richtwerte. Gebaut für Vinted-Reseller.",
+    apiKeyLabel: "Gemini-API-Schlüssel", freePlan: "Du bist im Free-Plan.", unlimited: "Unbegrenzt", keySavedLocally: "Schlüssel lokal gespeichert",
+    serverAiReady: "Server-KI: bereit — funktioniert ohne eigenen Schlüssel", serverAiOff: "Server-KI: nicht konfiguriert — eigener Schlüssel nötig",
+    saleReserved: "Als reserviert markieren", saleSold: "Als verkauft markieren", saleNothing: "Nichts tun",
+    catClothing: "Nur Kleidung", catAll: "Alle Kategorien"
+  },
+  fr: {
+    lp_navHow: "Comment ça marche", lp_navWhat: "Ce que tu obtiens", lp_navPricing: "Tarifs", lp_login: "Connexion", lp_start: "Commencer gratuitement",
+    lp_heroBadge: "REVENTE VINTED, PLUS MALIN",
+    lp_heroH1: "Sache ce que ton article vaut vraiment. En 30 secondes.",
+    lp_heroSub: "Télécharge une photo — l'IA reconnaît ton article, le compare aux prix Vinted en direct et écrit une description qui vend.",
+    lp_heroCta: "Commencer gratuitement — 5 vérifications par semaine",
+    lp_heroNote: "Gratuit · 5 vérifications/semaine · PRO dès 3 €/semaine ou 10 €/mois — le mois est le moins cher",
+    lp_howTitle: "Comment ça marche", lp_howSub: "De la photo à l'annonce prête en trois étapes.",
+    lp_s1t: "📸 Télécharge ta photo", lp_s1p: "Glisse, clique ou colle jusqu'à 8 photos de ton article. La première devient automatiquement ta couverture.",
+    lp_s2t: "🏷️ Choisis article & état", lp_s2p: "Qu'est-ce que c'est, quelle marque, quelle taille et dans quel état ? C'est ce qui fixe le prix.",
+    lp_s3t: "💰 Obtiens prix + description", lp_s3p: "L'IA estime ton article à partir de vraies ventes Vinted et écrit une description qui convainc les acheteurs.",
+    lp_whatTitle: "Ce que tu obtiens", lp_whatSub: "Tout ce qui suit est actif dans l'app — clique une carte pour aller directement à la fonction.",
+    lp_badge: "DÈS GRATUIT",
+    lp_c1t: "Outil d'annonce →", lp_c1p: "Analyse structurée, un bloc de texte fixe et une estimation avec fourchette basse, suggérée et haute, plus le délai de vente prévu.",
+    lp_c2t: "Vérification de valeur →", lp_c2p: "Au marché aux puces : une photo entre, un verdict clair acheter-ou-passer sort, avec le prix maximum et une phrase pour négocier.",
+    lp_c3t: "Gestion du stock →", lp_c3p: "Chaque article avec photo, prix et plateforme — et l'étagère où il se trouve vraiment. Recherchable et triable, avec marge et jours en ligne par ligne.",
+    lp_c4t: "Courbe de profit →", lp_c4p: "Profit net cumulé comme une courbe de cours, un pas par vente, avec sommet et baisse maximale pour repérer une série perdante avant la fin du mois.",
+    lp_c5t: "Vrai profit net →", lp_c5p: "Achat, livraison, frais de plateforme et ton taux horaire déduits par article. Ce que tu vois est ce que tu gardes.",
+    lp_c6t: "Suggestions de lots →", lp_c6p: "Associe le stock qui dort à une pièce qui se vend vraiment, 10 à 20 % sous la somme, pour qu'ils partent ensemble.",
+    lp_c7t: "Réponses acheteurs →", lp_c7p: "Colle le message d'un acheteur et reçois des réponses prêtes dans sa langue. Il connaît ton plancher et n'ira jamais en dessous.",
+    lp_c8t: "Livre de caisse →", lp_c8p: "Revenus et dépenses dans un seul livre, rempli automatiquement depuis tes ventes. Importe ton tableur, exporte pour ton comptable.",
+    lp_whatCta: "Essayer l'outil d'annonce →",
+    lp_priceTitle: "Tarifs simples", lp_priceSub: "Commence gratuitement. Passe au PRO quand tu veux évoluer.",
+    lp_free: "GRATUIT", lp_freePer: "/toujours", lp_f1: "5 vérifications par semaine", lp_f2: "Jusqu'à 8 photos par vérification", lp_f3: "Descriptions prêtes à publier",
+    lp_week: "PRO SEMAINE", lp_weekPer: "/semaine", lp_w1: "Vérifications & photos illimitées", lp_w2: "Calculateur d'envoi + comparateur d'agents", lp_w3: "Stock & livre de caisse", lp_chooseWeek: "Choisir Semaine",
+    lp_month: "PRO MOIS", lp_monthPer: "/mois", lp_monthTag: "MEILLEURE OFFRE · -18%", lp_m1: "Tout du PRO SEMAINE", lp_m2: "Haul → livre de caisse en 1 clic", lp_m3: "Le moins cher : ~2,50 € par semaine", lp_chooseMonth: "Choisir Mois",
+    lp_footer: "© 2026 Guidsell — prix indicatifs. Conçu pour les revendeurs Vinted.",
+    apiKeyLabel: "Clé API Gemini", freePlan: "Tu es sur le plan gratuit.", unlimited: "Illimité", keySavedLocally: "Clé enregistrée localement",
+    serverAiReady: "IA serveur : prête — sans clé personnelle", serverAiOff: "IA serveur : non configurée — clé personnelle requise",
+    saleReserved: "Marquer comme réservé", saleSold: "Marquer comme vendu", saleNothing: "Ne rien faire",
+    catClothing: "Vêtements uniquement", catAll: "Toutes catégories"
+  }
+};
+Object.keys(EXTRA_I18N).forEach(l=>{ I18N[l] = Object.assign(I18N[l]||{}, EXTRA_I18N[l]); });
+
+/* NL UI polish — the Dutch interface must not contain English labels */
+Object.assign(I18N.nl, {
+  billing: "FACTURERING", thisMonth: "DEZE MAAND", creditsUsed: "CHECKS GEBRUIKT", free: "GRATIS", seePlans: "Bekijk abonnementen", left: "over",
+  vintedFeePct: "VINTED-KOSTEN %", vintedFixedFee: "VINTED VASTE KOSTEN", depopFeePct: "DEPOP-KOSTEN %", depopFixedFee: "DEPOP VASTE KOSTEN",
+  hourlyRate: "JE UURTARIEF", minutesPerItem: "MINUTEN PER ITEM", deadStock: "TRAAG LOPEND NA (DAGEN)", minNet: "MIN. NETTO", defaultShip: "STANDAARD VERZENDKOSTEN",
+  whenSale: "Bij een verkoop", preSelPlatforms: "Voorgeselecteerde platforms",
+  listingEditor: "ADVERTENTIE-EDITOR", tone: "Toon", length: "Lengte",
+  clean: "Strak", hype: "Wervend", luxury2: "Luxe", minimal: "Minimalistisch", short: "Kort", standard: "Standaard", detailed: "Uitgebreid",
+  connections: "PLATFORM-VERBINDINGEN", aiAnalysis: "AI-analyse", manual: "HANDMATIG", connected: "VERBONDEN",
+  shipDefaults: "VERZENDING — STANDAARD", saveKey: "Sleutel opslaan"
+});
+Object.assign(I18N.en, { saveKey: "Save key" });
+Object.assign(I18N.de, { saveKey: "Schlüssel speichern" });
+Object.assign(I18N.fr, { saveKey: "Enregistrer la clé" });
+/* per-card badges — the frontpage must not promise PRO features as free */
+Object.assign(I18N.nl, { lp_badgeFree: "GRATIS", lp_badgePro: "PRO" });
+Object.assign(I18N.en, { lp_badgeFree: "FREE", lp_badgePro: "PRO" });
+Object.assign(I18N.de, { lp_badgeFree: "GRATIS", lp_badgePro: "PRO" });
+Object.assign(I18N.fr, { lp_badgeFree: "GRATUIT", lp_badgePro: "PRO" });
 const ECON_DEFAULTS = { vintedFeePct:0, vintedFixedFee:0, depopFeePct:0, depopFixedFee:0, hourlyRate:20, minutesPerItem:12, deadStockDays:21, minNet:3, defaultShipCost:0 };
 const LISTING_DEFAULTS = { tone:"clean", length:"standard" };
 const PLATFORM_DEFAULTS = { saleAction:"reserved", preVinted:true, preDepop:false };
@@ -2227,6 +2441,20 @@ function t(key){ const lang=getPrefs().lang; return (I18N[lang]&&I18N[lang][key]
 function applyI18n(){
   const L = getPrefs().lang;
   document.documentElement.lang = L;
+  const titles = {
+    nl: "Guidsell — Wat is jouw item waard?",
+    en: "Guidsell — What is your item worth?",
+    de: "Guidsell — Was ist dein Artikel wert?",
+    fr: "Guidsell — Combien vaut ton article ?"
+  };
+  if(titles[L]) document.title = titles[L];
+  // any element tagged with a translation key (frontpage, buttons, hints)
+  document.querySelectorAll("[data-i18n]").forEach(el=>{
+    const k = el.getAttribute("data-i18n"); if(!k) return;
+    const v = t(k); if(v) el.textContent = v;
+  });
+  // language switcher active state (landing + settings)
+  document.querySelectorAll(".lang-seg button").forEach(b=> b.classList.toggle("active", b.dataset.lang===L));
   const navMap = { dashboard: t("navDashboard"), check: t("navCheck"), ship: t("navShip"), items: t("navItems"), ledger: t("navLedger"), bundles: t("navBundles"), replies: t("navReplies"), upgrade: t("navUpgrade") };
   document.querySelectorAll("#appLinks .navlink").forEach(b=>{
     const v=b.dataset.view; const label=navMap[v]; if(!label) return;
@@ -2246,6 +2474,7 @@ function setLang(lang){
   toast(t("langSwitched"));
 }
 function currentCurrencySymbol(){ const c=getPrefs().currency; return c==="USD"?"$": c==="GBP"?"£": c==="PLN"?"zł":"€"; }
+function uiLocale(){ const l=getPrefs().lang; return l==="en"?"en-GB": l==="de"?"de-DE": l==="fr"?"fr-FR":"nl-NL"; }
 /* Economics helpers — fees, time, net, floor, margin, days */
 function ecoTimeCost(){ const p=getPrefs(); return (p.hourlyRate * p.minutesPerItem)/60; }
 function ecoPlatformFee(price, plat){
@@ -2650,7 +2879,7 @@ function renderQuota() {
     setChip(chip, txt, true);
     setChip(chipTop, txt, true);
     if(chipTop) chipTop.style.display = "inline-flex";
-    const until = data.proUntil ? new Date(data.proUntil).toLocaleDateString("nl-NL") : "";
+    const until = data.proUntil ? new Date(data.proUntil).toLocaleDateString(uiLocale()) : "";
     wbLabel.textContent = label + ": onbeperkt waardechecks 💎" + (until ? " · tot " + until : "");
     wbFill.style.width = "100%";
     wbFill.classList.remove("full");
@@ -2800,19 +3029,19 @@ function syncSettingsUI(){
     // BILLING + THIS MONTH credits
     const pro=isPro(); const used=data? (data.usedThisWeek||0):0; const left=Math.max(0, QUOTA-used);
     const billBadge=document.getElementById("billBadge"), monthBadge=document.getElementById("monthBadge");
-    if(billBadge) billBadge.textContent = pro ? getProLabel().toUpperCase() : "FREE";
-    if(monthBadge) monthBadge.textContent = pro? getProLabel().toUpperCase() : "FREE";
-    const billText=document.getElementById("billText"); if(billText) billText.textContent = pro ? (getProLabel() + " — onbeperkt 💎" + (data.proUntil? " · tot "+new Date(data.proUntil).toLocaleDateString("nl-NL"):"")) : (prefs.lang==="en"?"You're on the Free plan.":"Je zit op het Free plan.");
+    if(billBadge) billBadge.textContent = pro ? getProLabel().toUpperCase() : t("free");
+    if(monthBadge) monthBadge.textContent = pro? getProLabel().toUpperCase() : t("free");
+    const billText=document.getElementById("billText"); if(billText) billText.textContent = pro ? (getProLabel() + " — " + t("unlimited") + " 💎" + (data.proUntil? " · " + new Date(data.proUntil).toLocaleDateString(uiLocale()):"")) : t("freePlan");
     const cu=document.getElementById("creditUsed"); if(cu) cu.textContent = (pro? "∞ / ∞" : (used.toFixed(1)+" / "+QUOTA));
-    const cl=document.getElementById("creditLeft"); if(cl) cl.textContent = pro ? (prefs.lang==="en"?"Unlimited":"Onbeperkt") : (left.toFixed(1)+" "+t("left"));
+    const cl=document.getElementById("creditLeft"); if(cl) cl.textContent = pro ? t("unlimited") : (left.toFixed(1)+" "+t("left"));
     // PLATFORM CONNECTIONS status
     const aiBadge=document.getElementById("connAiBadge");
-    if(aiBadge){ const ready = serverAiReady===true || !!getApiKey(); aiBadge.textContent = ready ? (prefs.lang==="en"?"CONNECTED":"VERBONDEN") : "MANUAL"; aiBadge.classList.toggle("ok", ready); }
+    if(aiBadge){ const ready = serverAiReady===true || !!getApiKey(); aiBadge.textContent = ready ? t("connected") : t("manual"); aiBadge.classList.toggle("ok", ready); }
     // AI key
     const kIn=document.getElementById("setKey"); if(kIn) kIn.value = getApiKey();
-    const kState=document.getElementById("setKeyState"); if(kState){ const has=!!getApiKey(); kState.textContent = has ? (prefs.lang==="en"?"Key saved locally":"Sleutel lokaal opgeslagen") : ""; }
+    const kState=document.getElementById("setKeyState"); if(kState){ const has=!!getApiKey(); kState.textContent = has ? t("keySavedLocally") : ""; }
     const srvRow=document.getElementById("serverAiRow");
-    if(srvRow){ srvRow.textContent = serverAiReady===null ? "" : (serverAiReady ? (prefs.lang==="en"?"Server AI: ready — works without personal key":"Server AI: actief — werkt ook zonder eigen sleutel") : (prefs.lang==="en"?"Server AI: not configured":"Server AI: niet geconfigureerd — eigen sleutel nodig")); }
+    if(srvRow){ srvRow.textContent = serverAiReady===null ? "" : (serverAiReady ? t("serverAiReady") : t("serverAiOff")); }
     // ship defaults selects
     const agSel=document.getElementById("setShipAgent"), coSel=document.getElementById("setShipCountry"), moSel=document.getElementById("setShipMode"), cuSel=document.getElementById("setShipCurr");
     if(agSel && !agSel.dataset.filled){ agSel.innerHTML = SHIP_AGENTS.map(a=>`<option value="${a.id}">${a.name}</option>`).join(""); agSel.dataset.filled="1"; }
@@ -2840,6 +3069,18 @@ function syncSettingsUI(){
       el("lblAiKey", "AI — GEMINI"); el("lblShipDefaults", t("shipDefaults")); el("lblShipDefaultsHint", t("shipDefaultsHint"));
       el("lblData", t("data")); el("btnSaveKey", t("save")); el("btnClearKey", prefs.lang==="nl"?"Wissen":"Clear");
       el("billBtn", t("seePlans")); el("btnDone", t("ready")); el("btnChangePass", t("changePass"));
+      el("setSaveAllBtn", t("save")); el("btnSaveBottom", t("save")); el("btnSaveName", t("save")); el("btnSavePass", t("save")); el("btnCancelPass", t("cancel")); el("btnSaveDefaults", t("save"));
+      el("lblKeyLbl", t("apiKeyLabel")); el("btnSaveKey", t("saveKey"));
+      el("btnExpJson", t("exportJson")); el("btnExpCsv", t("exportCsv")); el("lblImpCsv", t("importCsv")); el("btnWipe", t("wipeMe"));
+      // tone / length / sale action / category options
+      const toneMap={clean:t("clean"),hype:t("hype"),luxury:t("luxury2"),minimal:t("minimal")};
+      document.querySelectorAll("#segTone button").forEach(b=>{ const v=b.dataset.tone; if(toneMap[v]) b.textContent=toneMap[v]; });
+      const lenMap={short:t("short"),standard:t("standard"),detailed:t("detailed")};
+      document.querySelectorAll("#segLength button").forEach(b=>{ const v=b.dataset.len||b.getAttribute("data-len"); if(lenMap[v]) b.textContent=lenMap[v]; });
+      const saSel=document.getElementById("setSaleAction");
+      if(saSel){ [["reserved",t("saleReserved")],["remove",t("saleSold")],["nothing",t("saleNothing")]].forEach(([v,lbl],i)=>{ if(saSel.options[i]) saSel.options[i].textContent=lbl; }); }
+      const catSel=document.getElementById("setCategoryMode");
+      if(catSel){ if(catSel.options[0]) catSel.options[0].textContent=t("catClothing"); if(catSel.options[1]) catSel.options[1].textContent=t("catAll"); }
     }catch(e){}
     applyI18n();
   }catch(e){}
@@ -3463,12 +3704,12 @@ function renderItems() {
       <div class="item-photo">
         ${it.cover ? `<img src="${it.cover}" alt="">` : "📦"}
         <span class="status-badge ${it.status}">${it.status === "sold" ? "VERKOCHT" : "IN VOORRAAD"}</span>
-        ${dead && it.status==="stock" ? `<span style="position:absolute;bottom:8px;left:8px;font-size:10px;font-weight:800;background:#fef2f2;color:#dc2626;border:1px solid #fecaca;padding:3px 8px;border-radius:20px">DEAD STOCK</span>`:""}
+        ${dead && it.status==="stock" ? `<span style="position:absolute;bottom:8px;left:8px;font-size:10px;font-weight:800;background:#fef2f2;color:#dc2626;border:1px solid #fecaca;padding:3px 8px;border-radius:20px">TRAAG LOPEND</span>`:""}
         ${it.vintedUrl? `<a href="${esc(it.vintedUrl)}" target="_blank" rel="noopener" title="Open op Vinted" style="position:absolute;top:10px;right:10px;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:4px 8px;font-size:10px;font-weight:700;color:var(--brand-dark);text-decoration:none">Vinted ↗</a>`:""}
       </div>
       <div class="item-body">
         <div class="item-title">${esc(it.title)} ${it.source==="vinted"?`<span style="font-size:10px;background:#eaf7ef;color:var(--green);border:1px solid #d3eedd;padding:2px 6px;border-radius:20px;vertical-align:middle">VINTED</span>`:""}</div>
-        <div class="item-meta">${esc(it.brand || "geen merk")} · ${esc(it.cond || "")} · ${esc(it.shelf||"geen plank")} · ${esc(it.platform||"vinted")} · ${new Date(it.date).toLocaleDateString("nl-NL")}</div>
+        <div class="item-meta">${esc(it.brand || "geen merk")} · ${esc(it.cond || "")} · ${esc(it.shelf||"geen plank")} · ${esc(it.platform||"vinted")} · ${new Date(it.date).toLocaleDateString(uiLocale())}</div>
         <div class="item-price ${it.status === "sold" ? "green" : ""}">${it.status === "sold" ? fmt(it.soldPrice || 0) + " verkocht" : "schatting " + fmt(it.estPrice || 0)}</div>
         <div style="font-size:11px;color:${m>=0?'var(--green)':'var(--red)'};margin-bottom:8px">marge ${fmt(m)} · ${d} dagen online${dead?' · dead stock':''} · kost ${fmt(itemPurchase(it))} + ship ${fmt(itemShip(it))} + fee ≈ ${fmt(ecoPlatformFee(it.status==="sold"?it.soldPrice:it.estPrice, itemPlatform(it)))}</div>
         <div class="item-actions">
@@ -3576,7 +3817,7 @@ function renderLedger() {
     <div class="ledger-row">
       <div class="ledger-ico ${e.type}">${e.type === "in" ? "＋" : "－"}</div>
       <div class="ledger-label">${esc(e.label)}</div>
-      <div class="ledger-date">${new Date(e.date).toLocaleDateString("nl-NL")}</div>
+      <div class="ledger-date">${new Date(e.date).toLocaleDateString(uiLocale())}</div>
       <div class="ledger-amount ${e.type}">${e.type === "in" ? "+" : "−"}${fmt(e.amount)}</div>
       <button class="btn-ghost" onclick="deleteLedger('${e.id}')" title="Verwijderen">🗑</button>
     </div>`).join("");
@@ -3694,8 +3935,8 @@ function renderProfitCurve(){
   ctx.fillStyle=document.body.classList.contains("dark")?"#8b93a3":"#6b7280";
   ctx.font="11px system-ui,sans-serif";
   ctx.textAlign="left"; ctx.fillText(fmt(maxV),4,pad.t+10); ctx.fillText(fmt(minV),4,pad.t+plotH+2);
-  ctx.textAlign="left"; try{ ctx.fillText(new Date(points[0].date).toLocaleDateString("nl-NL",{day:"2-digit",month:"short"}),pad.l,H-6); }catch(e){}
-  ctx.textAlign="right"; try{ ctx.fillText(new Date(points[points.length-1].date).toLocaleDateString("nl-NL",{day:"2-digit",month:"short"}),W-pad.r,H-6); }catch(e){}
+  ctx.textAlign="left"; try{ ctx.fillText(new Date(points[0].date).toLocaleDateString(uiLocale(),{day:"2-digit",month:"short"}),pad.l,H-6); }catch(e){}
+  ctx.textAlign="right"; try{ ctx.fillText(new Date(points[points.length-1].date).toLocaleDateString(uiLocale(),{day:"2-digit",month:"short"}),W-pad.r,H-6); }catch(e){}
   if(meta) meta.textContent=points.length+" stappen \u00B7 "+fmt(net)+" netto";
   if(peakEl) peakEl.textContent="Peak "+fmt(peak);
   if(ddEl) ddEl.textContent="Max drawdown "+fmt(maxDD);
@@ -3728,7 +3969,7 @@ function renderRealProfit(){
       <div style="width:42px;height:42px;border-radius:9px;overflow:hidden;background:#eef0f7;flex-shrink:0;display:flex;align-items:center;justify-content:center">${it.cover?`<img src="${it.cover}" style="width:100%;height:100%;object-fit:cover" alt="">`:"\uD83D\uDCE6"}</div>
       <div style="flex:1;min-width:0">
         <div style="font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(it.title)}</div>
-        <div style="font-size:11px;color:var(--muted)">${esc(it.brand||"geen merk")} \u00B7 ${esc(plat)} \u00B7 ${new Date(it.date).toLocaleDateString("nl-NL")}</div>
+        <div style="font-size:11px;color:var(--muted)">${esc(it.brand||"geen merk")} \u00B7 ${esc(plat)} \u00B7 ${new Date(it.date).toLocaleDateString(uiLocale())}</div>
         <div style="font-size:11px;color:var(--muted)">aankoop ${fmt(purchase)} \u00B7 ship ${fmt(ship)} \u00B7 fee ${fmt(fee)} \u00B7 tijd ${fmt(time)}</div>
       </div>
       <div style="text-align:right;min-width:86px">
@@ -3991,7 +4232,7 @@ function renderUpgrade() {
   if(mBtn){ mBtn.disabled = moCur; mBtn.textContent = moCur ? "✓ Actief — PRO Maand" : "Kies Maand — €10/maand"; }
   const meta=document.getElementById("proMeta");
   if(meta){
-    if(pro && data.proUntil){ meta.hidden=false; const d=new Date(data.proUntil).toLocaleDateString("nl-NL",{day:"2-digit",month:"long",year:"numeric"}); meta.textContent = getProLabel() + " actief tot " + d + " — demo: verloopt automatisch."; }
+    if(pro && data.proUntil){ meta.hidden=false; const d=new Date(data.proUntil).toLocaleDateString(uiLocale(),{day:"2-digit",month:"long",year:"numeric"}); meta.textContent = getProLabel() + " actief tot " + d + " — demo: verloopt automatisch."; }
     else if(pro && !data.proUntil){ meta.hidden=false; meta.textContent = "PRO actief (geen vervaldatum — oude demo-activering)."; }
     else { meta.hidden=true; meta.textContent=""; }
   }
@@ -4015,7 +4256,7 @@ function downgradeDemo() {
   delete data.proUntil;
   saveData();
   renderAll();
-  toast("Terug naar FREE");
+  toast("Terug naar GRATIS");
 }
 function openPaywall() { document.getElementById("paywall").classList.add("show"); }
 function closePaywall() { document.getElementById("paywall").classList.remove("show"); }
@@ -4689,7 +4930,7 @@ function shipCopy(){
     "Valuta: " + shipCurrency,
     "Items: " + s.itemsLabel,
     "Werkelijk gewicht: " + s.realKg.toFixed(2) + " kg",
-    "Pakketvolume: " + s.volumeDm3.toFixed(1) + " dm³ ("+Math.round(s.volumeCm3).toLocaleString("nl-NL")+" cm³)",
+    "Pakketvolume: " + s.volumeDm3.toFixed(1) + " dm³ ("+Math.round(s.volumeCm3).toLocaleString(uiLocale())+" cm³)",
     "Volumetrisch gewicht: " + s.volKg.toFixed(2) + " kg (L×B×H/5000)",
     "Rekengewicht: " + s.chargeKg.toFixed(2) + " kg",
     "Pakket: " + s.packLabel,
@@ -4751,7 +4992,7 @@ function shipRender(){
     emptyEl.hidden=true;
     cartEl.innerHTML = shipCart.map((r,i)=>{
       const p = SHIP_PRESETS[r.typeKey];
-      const vol = (r.l*r.w2*r.h).toLocaleString("nl-NL");
+      const vol = (r.l*r.w2*r.h).toLocaleString(uiLocale());
       const price = r.unitPrice ? fmt(r.unitPrice)+"/st" : "";
       const title = r.title ? esc(r.title.slice(0,38)) : "";
       return `<div class="ship-item-row">

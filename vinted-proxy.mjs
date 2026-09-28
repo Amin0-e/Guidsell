@@ -135,10 +135,9 @@ function parseCatalogHtml(html) {
 function readApiKey() {
   try {
     const k = fs.readFileSync(path.join(__dirname, "ai-key.txt"), "utf8").trim();
-    return k || null;
-  } catch {
-    return process.env.GEMINI_API_KEY || null;
-  }
+    if (k) return k;
+  } catch { /* geen bestand → val terug op env var */ }
+  return process.env.GEMINI_API_KEY || null;
 }
 
 // Volgorde: meest capabel eerst, dan steeds lichtere/less-drukte varianten.
@@ -165,7 +164,12 @@ async function callGeminiServer(prompt, imagesBase64) {
     generationConfig: { temperature: 0.6, responseMimeType: "application/json" },
   });
 
-  for (const model of AI_MODELS) {
+  // Twee rondes langs de modellen: "high demand" is meestal een korte piek,
+  // dus na één ronde wachten we even en proberen we alles nog eens.
+  const queue = [...AI_MODELS, ...AI_MODELS];
+  for (let i = 0; i < queue.length; i++) {
+    const model = queue[i];
+    const isLast = i === queue.length - 1;
     try {
       const res = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
@@ -180,7 +184,7 @@ async function callGeminiServer(prompt, imagesBase64) {
         const errText = await res.text().catch(() => "");
         console.log(`[ai] ${model} geweigerd (${res.status}):`, errText.slice(0, 120));
         // high demand / overload → korte wachttijd en volgend model proberen
-        if (RETRYABLE_STATUS.has(res.status) && model !== AI_MODELS[AI_MODELS.length - 1]) {
+        if (RETRYABLE_STATUS.has(res.status) && !isLast) {
           await new Promise(r => setTimeout(r, 1200));
         }
         continue;
