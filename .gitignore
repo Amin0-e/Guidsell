@@ -1,0 +1,11 @@
+# Geheimen — NOOIT naar GitHub pushen
+ai-key.txt
+.env
+.env.*
+
+# Logs en tijdelijke bestanden
+*.log
+proxy.log
+proxy_new.log
+_tmp_check*.js
+_g.json
