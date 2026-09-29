@@ -25,6 +25,7 @@ import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
+import crypto from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
@@ -33,6 +34,132 @@ const PORT = Number(process.env.PORT) > 0 ? Number(process.env.PORT) : 8787;
 const VINTED_HOST = process.env.VINTED_HOST || "https://www.vinted.nl";
 
 const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36";
+
+/* =====================================================
+   ACCOUNTS — server-side, zodat inloggen op ELK apparaat werkt
+   -----------------------------------------------------
+   Vroeger stonden accounts alleen in de localStorage van één browser. Nu
+   staat elke account (+ de app-data: items, kasboek, plan/quota) in één
+   JSON-bestand naast de server. Wachtwoorden worden gehasht met scrypt en
+   van de beveiligingsvraag bewaren we alleen een hash.
+
+   Bestand: DATA_DIR/guidsell-accounts.json  (DATA_DIR = env var, anders de
+   map van de server). LET OP op Render: het gratis bestandssysteem is
+   vluchtig — koppel een persistent disk en zet DATA_DIR naar die mount
+   (bijv. /var/data), anders ben je accounts kwijt na een redeploy.
+===================================================== */
+const DATA_DIR = process.env.DATA_DIR || __dirname;
+const ACCOUNTS_FILE = path.join(DATA_DIR, "guidsell-accounts.json");
+const SESSION_TTL = 90 * 24 * 60 * 60 * 1000;   // sessie 90 dagen geldig
+const MAX_STATE_BYTES = 8 * 1024 * 1024;         // max app-data per account
+
+let store = { users: {}, sessions: {} };
+
+function loadStore() {
+  try {
+    const parsed = JSON.parse(fs.readFileSync(ACCOUNTS_FILE, "utf8"));
+    if (parsed && typeof parsed === "object") {
+      store = { users: parsed.users || {}, sessions: parsed.sessions || {} };
+      console.log(`[auth] ${Object.keys(store.users).length} account(s) geladen uit ${ACCOUNTS_FILE}`);
+    }
+  } catch (e) {
+    if (e.code !== "ENOENT") console.log("[auth] accounts laden mislukt:", e.message);
+  }
+}
+
+let storeTimer = null;
+function saveStore(immediate) {
+  const write = () => {
+    storeTimer = null;
+    try {
+      if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+      const tmp = ACCOUNTS_FILE + ".tmp";
+      fs.writeFileSync(tmp, JSON.stringify(store), "utf8");
+      fs.renameSync(tmp, ACCOUNTS_FILE);
+    } catch (e) {
+      console.log("[auth] accounts opslaan mislukt:", e.message);
+    }
+  };
+  if (immediate) {
+    if (storeTimer) clearTimeout(storeTimer);
+    return write();
+  }
+  if (storeTimer) return;
+  storeTimer = setTimeout(write, 400);
+}
+
+function hashSecret(value, salt) {
+  const s = salt || crypto.randomBytes(16).toString("hex");
+  return { salt: s, hash: crypto.scryptSync(String(value), s, 64).toString("hex") };
+}
+function verifySecret(value, rec) {
+  if (!rec || !rec.salt || !rec.hash) return false;
+  const calc = crypto.scryptSync(String(value), rec.salt, 64);
+  const want = Buffer.from(rec.hash, "hex");
+  return calc.length === want.length && crypto.timingSafeEqual(calc, want);
+}
+function normEmail(v) { return String(v || "").trim().toLowerCase(); }
+function normAnswer(v) { return String(v || "").trim().toLowerCase().replace(/\s+/g, " "); }
+function validEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v); }
+
+function pruneSessions() {
+  const now = Date.now();
+  for (const [t, s] of Object.entries(store.sessions)) {
+    if (!s || !s.email || !store.users[s.email] || now - s.created > SESSION_TTL) delete store.sessions[t];
+  }
+}
+function createSession(email) {
+  pruneSessions();
+  const token = crypto.randomBytes(32).toString("hex");
+  store.sessions[token] = { email, created: Date.now() };
+  return token;
+}
+function tokenEmail(token) {
+  if (!token) return null;
+  const s = store.sessions[token];
+  if (!s) return null;
+  if (Date.now() - s.created > SESSION_TTL || !store.users[s.email]) { delete store.sessions[token]; return null; }
+  return s.email;
+}
+function publicUser(u) { return { email: u.email, name: u.name, hasSec: !!(u.secQ && u.secHash) }; }
+
+// zeer lichte rem op wachtwoord-raden (per ip+e-mail)
+const loginFails = new Map();
+function clientIp(req) {
+  const fwd = String(req.headers["x-forwarded-for"] || "").split(",")[0].trim();
+  return fwd || req.socket.remoteAddress || "?";
+}
+function failLeft(key) {
+  const rec = loginFails.get(key);
+  if (!rec) return { blocked: false, left: 10 };
+  if (Date.now() - rec.at > 10 * 60 * 1000) { loginFails.delete(key); return { blocked: false, left: 10 }; }
+  return { blocked: rec.n >= 10, left: Math.max(0, 10 - rec.n) };
+}
+function noteFail(key) {
+  const rec = loginFails.get(key);
+  if (!rec || Date.now() - rec.at > 10 * 60 * 1000) loginFails.set(key, { n: 1, at: Date.now() });
+  else { rec.n++; rec.at = Date.now(); }
+}
+function clearFails(key) { loginFails.delete(key); }
+
+// korte-lived reset-tokens (beveiligingsvraag correct beantwoord)
+const resetTokens = new Map(); // token -> { email, at }
+const forgotTries = new Map(); // email -> { n, at }
+
+function storeReset(email) {
+  const token = crypto.randomBytes(24).toString("hex");
+  resetTokens.set(token, { email, at: Date.now() });
+  return token;
+}
+function useReset(token) {
+  const rec = resetTokens.get(token);
+  if (!rec) return null;
+  resetTokens.delete(token);
+  if (Date.now() - rec.at > 15 * 60 * 1000) return null;
+  return rec.email;
+}
+
+loadStore();
 
 /* ---------------- curl-gebaseerde Vinted client ---------------- */
 
@@ -216,14 +343,28 @@ function percentile(a, p) {
 const cache = new Map(); // query -> { at, body }
 const CACHE_TTL = 5 * 60 * 1000;
 
-function sendJson(res, status, body) {
+function sendJson(res, status, body, cors = true) {
   const data = JSON.stringify(body);
-  res.writeHead(status, {
+  const headers = {
     "Content-Type": "application/json; charset=utf-8",
-    "Access-Control-Allow-Origin": "*",
     "Cache-Control": "no-store",
-  });
+  };
+  // auth-endpoints bewust zonder wildcard-CORS: alleen de app zelf mag daar bij
+  if (cors) headers["Access-Control-Allow-Origin"] = "*";
+  res.writeHead(status, headers);
   res.end(data);
+}
+
+function readJsonBody(req, maxBytes = 12 * 1024 * 1024) {
+  return new Promise((resolve, reject) => {
+    let raw = "";
+    req.on("data", c => {
+      raw += c;
+      if (raw.length > maxBytes) { reject(new Error("te_groot")); try { req.destroy(); } catch (e) {} }
+    });
+    req.on("end", () => { try { resolve(raw ? JSON.parse(raw) : {}); } catch (e) { reject(new Error("ongeldige_json")); } });
+    req.on("error", reject);
+  });
 }
 
 /* ---------------- HTTP server ---------------- */
@@ -238,6 +379,197 @@ const server = http.createServer(async (req, res) => {
       "Access-Control-Allow-Headers": "Content-Type",
     });
     return res.end();
+  }
+
+  /* ---- Accounts + app-data (server-side → login werkt op elk apparaat) ---- */
+  if (u.pathname.startsWith("/api/auth/") || u.pathname === "/api/state") {
+    let body = {};
+    if (req.method === "POST") {
+      try { body = await readJsonBody(req); }
+      catch (e) { return sendJson(res, 400, { ok: false, error: e.message === "te_groot" ? "te_groot" : "ongeldige_request" }, false); }
+    }
+    const token = String(body.token || u.searchParams.get("token") || "");
+    const action = u.pathname === "/api/state" ? "state" : u.pathname.slice("/api/auth/".length);
+
+    // ---- registreren ----
+    if (action === "register" && req.method === "POST") {
+      const email = normEmail(body.email);
+      const pass = String(body.pass || "");
+      const name = String(body.name || "").trim().slice(0, 60) || email.split("@")[0];
+      const secQ = String(body.secQ || "").trim().slice(0, 200);
+      const secA = normAnswer(body.secA).slice(0, 200);
+      if (!validEmail(email)) return sendJson(res, 200, { ok: false, error: "ongeldig_email" }, false);
+      if (pass.length < 4) return sendJson(res, 200, { ok: false, error: "wachtwoord_te_kort" }, false);
+      if (store.users[email]) return sendJson(res, 200, { ok: false, error: "bestaat_al" }, false);
+      const pw = hashSecret(pass);
+      const sec = secA && secA.length >= 2 ? hashSecret(secA) : null;
+      store.users[email] = {
+        email, name,
+        passHash: pw.hash, passSalt: pw.salt,
+        secQ: sec ? secQ : "", secHash: sec ? sec.hash : "", secSalt: sec ? sec.salt : "",
+        created: Date.now(), data: null, dataUpdatedAt: 0,
+      };
+      const t = createSession(email);
+      saveStore(true);
+      console.log(`[auth] account aangemaakt: ${email}`);
+      return sendJson(res, 200, { ok: true, token: t, user: publicUser(store.users[email]) }, false);
+    }
+
+    // ---- inloggen ----
+    if (action === "login" && req.method === "POST") {
+      const email = normEmail(body.email);
+      const pass = String(body.pass || "");
+      const key = clientIp(req) + "|" + email;
+      const gate = failLeft(key);
+      if (gate.blocked) return sendJson(res, 200, { ok: false, error: "te_vaak" }, false);
+      const user = store.users[email];
+      if (!user) {
+        noteFail(key);
+        return sendJson(res, 200, { ok: false, error: "geen_account", left: failLeft(key).left }, false);
+      }
+      if (!verifySecret(pass, { salt: user.passSalt, hash: user.passHash })) {
+        noteFail(key);
+        return sendJson(res, 200, { ok: false, error: "onjuist", left: failLeft(key).left }, false);
+      }
+      clearFails(key);
+      const t = createSession(email);
+      saveStore(true);
+      return sendJson(res, 200, { ok: true, token: t, user: publicUser(user), dataUpdatedAt: user.dataUpdatedAt || 0 }, false);
+    }
+
+    // ---- sessie controleren (bij het openen van de app) ----
+    if (action === "me") {
+      const email = tokenEmail(token);
+      if (!email) return sendJson(res, 200, { ok: false, error: "geen_sessie" }, false);
+      return sendJson(res, 200, { ok: true, user: publicUser(store.users[email]), dataUpdatedAt: store.users[email].dataUpdatedAt || 0 }, false);
+    }
+
+    // ---- uitloggen ----
+    if (action === "logout" && req.method === "POST") {
+      if (token && store.sessions[token]) { delete store.sessions[token]; saveStore(true); }
+      return sendJson(res, 200, { ok: true }, false);
+    }
+
+    // ---- app-data laden (items, kasboek, plan/quota) ----
+    if (action === "state" && req.method !== "POST") {
+      const email = tokenEmail(token);
+      if (!email) return sendJson(res, 200, { ok: false, error: "geen_sessie" }, false);
+      const user = store.users[email];
+      return sendJson(res, 200, { ok: true, data: user.data || null, updatedAt: user.dataUpdatedAt || 0 }, false);
+    }
+
+    // ---- app-data opslaan ----
+    if (action === "state" && req.method === "POST") {
+      const email = tokenEmail(token);
+      if (!email) return sendJson(res, 200, { ok: false, error: "geen_sessie" }, false);
+      const payload = JSON.stringify(body.data || null);
+      if (payload.length > MAX_STATE_BYTES) return sendJson(res, 200, { ok: false, reason: "te_groot" }, false);
+      const user = store.users[email];
+      user.data = body.data || null;
+      user.dataUpdatedAt = Number(body.updatedAt) || Date.now();
+      saveStore();
+      return sendJson(res, 200, { ok: true, updatedAt: user.dataUpdatedAt }, false);
+    }
+
+    // ---- oude accounts van dit apparaat eenmalig naar de server verhuizen ----
+    if (action === "import" && req.method === "POST") {
+      const list = Array.isArray(body.accounts) ? body.accounts.slice(0, 25) : [];
+      const results = {}; const tokens = {};
+      for (const acc of list) {
+        const email = normEmail(acc && acc.email);
+        const pass = String((acc && acc.pass) || "");
+        if (!validEmail(email) || pass.length < 4) { if (email) results[email] = "overgeslagen"; continue; }
+        const existing = store.users[email];
+        if (existing) {
+          if (verifySecret(pass, { salt: existing.passSalt, hash: existing.passHash })) {
+            results[email] = "bestond_al"; tokens[email] = createSession(email);
+          } else { results[email] = "bestaat_met_ander_wachtwoord"; }
+          continue;
+        }
+        const pw = hashSecret(pass);
+        const secA = normAnswer(acc.secA).slice(0, 200);
+        const sec = secA.length >= 2 ? hashSecret(secA) : null;
+        store.users[email] = {
+          email,
+          name: String(acc.name || "").trim().slice(0, 60) || email.split("@")[0],
+          passHash: pw.hash, passSalt: pw.salt,
+          secQ: sec ? String(acc.secQ || "").trim().slice(0, 200) : "",
+          secHash: sec ? sec.hash : "", secSalt: sec ? sec.salt : "",
+          created: Date.now(), data: null, dataUpdatedAt: 0,
+        };
+        results[email] = "verhuisd";
+        tokens[email] = createSession(email);
+      }
+      // meteen ook de app-data van dit apparaat meenemen
+      const dataEmail = normEmail(body.dataEmail);
+      if (dataEmail && store.users[dataEmail] && body.data && !store.users[dataEmail].data) {
+        store.users[dataEmail].data = body.data;
+        store.users[dataEmail].dataUpdatedAt = Number(body.data.updatedAt) || Date.now();
+      }
+      saveStore(true);
+      const moved = Object.values(results).filter(r => r === "verhuisd").length;
+      if (moved) console.log(`[auth] ${moved} account(s) van dit apparaat verhuisd naar de server`);
+      return sendJson(res, 200, { ok: true, results, tokens }, false);
+    }
+
+    // ---- wachtwoord vergeten: stap 1 — beveiligingsvraag opvragen ----
+    if (action === "forgot/question" && req.method === "POST") {
+      const email = normEmail(body.email);
+      if (!validEmail(email)) return sendJson(res, 200, { ok: false, error: "ongeldig_email" }, false);
+      const user = store.users[email];
+      if (!user) return sendJson(res, 200, { ok: false, error: "geen_account" }, false);
+      if (!user.secQ || !user.secHash) return sendJson(res, 200, { ok: false, error: "geen_vraag" }, false);
+      forgotTries.delete(email);
+      return sendJson(res, 200, { ok: true, secQ: user.secQ }, false);
+    }
+
+    // ---- wachtwoord vergeten: stap 2 — antwoord controleren (max 3 pogingen) ----
+    if (action === "forgot/verify" && req.method === "POST") {
+      const email = normEmail(body.email);
+      const user = store.users[email];
+      if (!user || !user.secHash) return sendJson(res, 200, { ok: false, error: "verlopen" }, false);
+      let rec = forgotTries.get(email);
+      if (!rec || Date.now() - rec.at > 30 * 60 * 1000) rec = { n: 0, at: Date.now() };
+      if (rec.n >= 3) return sendJson(res, 200, { ok: false, error: "te_vaak", left: 0 }, false);
+      if (!verifySecret(normAnswer(body.answer), { salt: user.secSalt, hash: user.secHash })) {
+        rec.n++; rec.at = Date.now(); forgotTries.set(email, rec);
+        const left = Math.max(0, 3 - rec.n);
+        if (left === 0) forgotTries.delete(email);
+        return sendJson(res, 200, { ok: false, error: left === 0 ? "te_vaak" : "onjuist_antwoord", left }, false);
+      }
+      forgotTries.delete(email);
+      return sendJson(res, 200, { ok: true, resetToken: storeReset(email) }, false);
+    }
+
+    // ---- wachtwoord vergeten: stap 3 — nieuw wachtwoord zetten ----
+    if (action === "forgot/reset" && req.method === "POST") {
+      const email = useReset(String(body.resetToken || ""));
+      if (!email) return sendJson(res, 200, { ok: false, error: "verlopen" }, false);
+      const pass = String(body.newPass || "");
+      if (pass.length < 4) return sendJson(res, 200, { ok: false, error: "wachtwoord_te_kort" }, false);
+      const user = store.users[email];
+      if (!user) return sendJson(res, 200, { ok: false, error: "geen_account" }, false);
+      const pw = hashSecret(pass);
+      user.passHash = pw.hash; user.passSalt = pw.salt;
+      // oude sessies van deze account intrekken, behalve de nieuwe hieronder
+      for (const [t, s] of Object.entries(store.sessions)) if (s.email === email) delete store.sessions[t];
+      const t = createSession(email);
+      saveStore(true);
+      return sendJson(res, 200, { ok: true, token: t, user: publicUser(user) }, false);
+    }
+
+    // ---- account + data definitief wissen (instellingen → "Wis mijn data") ----
+    if (action === "wipe" && req.method === "POST") {
+      const email = tokenEmail(token);
+      if (!email) return sendJson(res, 200, { ok: false, error: "geen_sessie" }, false);
+      delete store.users[email];
+      for (const [t, s] of Object.entries(store.sessions)) if (s.email === email) delete store.sessions[t];
+      saveStore(true);
+      console.log(`[auth] account gewist: ${email}`);
+      return sendJson(res, 200, { ok: true }, false);
+    }
+
+    return sendJson(res, 404, { ok: false, error: "onbekend_auth_endpoint" }, false);
   }
 
   // ---- AI-status (voor de app) ----
@@ -722,7 +1054,12 @@ const server = http.createServer(async (req, res) => {
       ".svg": "image/svg+xml",
       ".ico": "image/x-icon",
     };
-    res.writeHead(200, { "Content-Type": types[ext] || "application/octet-stream" });
+    res.writeHead(200, {
+      "Content-Type": types[ext] || "application/octet-stream",
+      // geen oude versies in de browser-cache: de app praat met de API van de
+      // server, dus een verouderde index.html breekt login/analyse.
+      "Cache-Control": ext === ".html" ? "no-store" : "public, max-age=300",
+    });
     res.end(data);
   });
 });
@@ -731,8 +1068,8 @@ server.listen(PORT, () => {
   console.log("");
   console.log("  Guidsell server gestart ✔");
   console.log(`  App + live Vinted-prijzen:  http://localhost:${PORT}`);
-  console.log("");
   console.log("  Open de app via dit adres zodat live Vinted-prijzen werken.");
+  console.log(`  Accounts/app-data:  ${ACCOUNTS_FILE}`);
   console.log("");
   // sessie meteen warmen
   warmSession();

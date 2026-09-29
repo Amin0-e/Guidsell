@@ -2515,26 +2515,18 @@ function daysToSellEstimate(price, low, high){
 ===================================================== */
 const LS_USERS = "guidsell_users";
 const LS_SESSION = "guidsell_session";
+const LS_TOKEN = "guidsell_token";
 const LS_WIPE = "guidsell_wipe_v20260927";
-// HARDE WIPE — op verzoek eigenaar: wis ALLE ooit geregistreerde e-mails/accounts.
-// Draait één keer per browser bij het laden van de nieuwe versie. Daarna kunnen
-// mensen gewoon weer registreren; nieuwe accounts worden niet meer gewist.
-try{
-  if(!localStorage.getItem(LS_WIPE)){
-    const keep = new Set(["guidsell_theme", LS_WIPE]);
-    const toRemove = [];
-    for(let i=0;i<localStorage.length;i++){
-      const k=localStorage.key(i);
-      if(k && k.startsWith("guidsell_") && !keep.has(k)) toRemove.push(k);
-    }
-    toRemove.forEach(k=>localStorage.removeItem(k));
-    localStorage.setItem(LS_WIPE, String(Date.now()));
-    if(toRemove.length) console.log("[Guidsell] wipe — verwijderd:", toRemove.join(", "));
-  }
-}catch(e){}
+// Accounts staan sinds deze versie op de SERVER (zie vinted-proxy.mjs), dus deze
+// oude eenmalige "harde wipe" is niet meer nodig — die zou juist accounts en data
+// per browser blijven weggooien. We zetten alleen nog de vlag zodat hij nooit
+// opnieuw afgaat op apparaten die de oude versie hebben gehad.
+try{ if(!localStorage.getItem(LS_WIPE)) localStorage.setItem(LS_WIPE, String(Date.now())); }catch(e){}
 let users = {};
 try { users = JSON.parse(localStorage.getItem(LS_USERS) || "{}"); } catch (e) { users = {}; }
 let session = localStorage.getItem(LS_SESSION) || null;
+let authToken = null;
+try { authToken = localStorage.getItem(LS_TOKEN) || null; } catch (e) { authToken = null; }
 let data = null;            // data van huidige gebruiker
 let photos = [];            // [{dataUrl, name}]
 let lastResult = null;      // laatst berekende check
@@ -2545,22 +2537,159 @@ let lastCover = null;
 const PLAN_FREE = "free";
 const PLAN_WEEKLY = "pro_weekly";
 const PLAN_MONTHLY = "pro_monthly";
-function saveUsers() { localStorage.setItem(LS_USERS, JSON.stringify(users)); }
+function saveUsers() { try{ localStorage.setItem(LS_USERS, JSON.stringify(users)); }catch(e){} }
 function dataKey() { return "guidsell_data_" + session; }
+function normalizeData(){
+  if(!data || typeof data !== "object") data = { items: [], ledger: [], weekStart: 0, usedThisWeek: 0, plan: PLAN_FREE };
+  if(!Array.isArray(data.items)) data.items = [];
+  if(!Array.isArray(data.ledger)) data.ledger = [];
+  if(!('vinted' in data)) data.vinted = null;
+  return data;
+}
 function loadData() {
   try { data = JSON.parse(localStorage.getItem(dataKey()) || "null"); } catch (e) { data = null; }
-  if (!data) data = { items: [], ledger: [], weekStart: 0, usedThisWeek: 0, plan: PLAN_FREE };
-  if(!('vinted' in data)) data.vinted = null;
+  normalizeData();
   ensureWeek();
   checkProExpiry();
   try{ ensureItemMigration(); }catch(e){}
 }
-function saveData() {
+function writeLocalData(){
   try {
     localStorage.setItem(dataKey(), JSON.stringify(data));
   } catch (e) {
     toast("Opslaan mislukt — opslag vol. Verwijder oude items.", true);
   }
+}
+function saveData() {
+  if(data) data.updatedAt = Date.now();
+  writeLocalData();
+  scheduleCloudSave();
+}
+
+/* =====================================================
+   ACCOUNTS OP DE SERVER — inloggen werkt op ELK apparaat
+   De server (vinted-proxy.mjs) bewaart accounts én de app-data (items,
+   kasboek, plan/quota). De browser houdt alleen een token + een lokale
+   cache bij, zodat de app snel opent en blijft werken als de server even
+   onbereikbaar is. Oude, alleen-lokale accounts worden eenmalig verhuisd.
+===================================================== */
+const AUTH_MSG = {
+  ongeldig_email: "Vul een geldig e-mailadres in.",
+  wachtwoord_te_kort: "Kies een wachtwoord van minimaal 4 tekens.",
+  bestaat_al: "Er bestaat al een account met dit e-mailadres. Log in.",
+  onjuist: "Onjuist e-mailadres of wachtwoord.",
+  te_vaak: "Te veel pogingen — probeer het over een paar minuten opnieuw.",
+  geen_account: "Geen account gevonden met dit e-mailadres. Maak een account aan — of log één keer in op het apparaat waar je je eerder registreerde; je account verhuist dan automatisch naar de server.",
+  geen_vraag: "Dit account heeft nog geen beveiligingsvraag. Neem contact op met de beheerder om je wachtwoord te resetten.",
+  onjuist_antwoord: "Onjuist antwoord — probeer opnieuw.",
+  verlopen: "Sessie verlopen — begin opnieuw.",
+  geen_sessie: "Je sessie is verlopen — log opnieuw in.",
+  te_groot: "Je data is te groot voor de cloud-opslag.",
+  offline: "Server onbereikbaar — controleer je internet en probeer het opnieuw.",
+};
+function authMsg(code, fallback){ return AUTH_MSG[code] || fallback || "Er ging iets mis. Probeer het opnieuw."; }
+
+async function api(path, body, method){
+  const opts = { method: method || (body ? "POST" : "GET") };
+  if(body){ opts.headers = { "Content-Type": "application/json" }; opts.body = JSON.stringify(body); }
+  const res = await fetch(path, opts);
+  let json = null;
+  try { json = await res.json(); } catch(e){}
+  if(!json || typeof json !== "object") throw new Error("geen_antwoord");
+  return json;
+}
+function saveSessionToken(t){
+  authToken = t || null;
+  try{ t ? localStorage.setItem(LS_TOKEN, t) : localStorage.removeItem(LS_TOKEN); }catch(e){}
+}
+
+let cloudReady = false;   // pas syncen nadat we de server-versie hebben bekeken
+let cloudDirty = false;
+let cloudTimer = null;
+let cloudBigWarned = false;
+
+function scheduleCloudSave(){
+  if(!authToken || !session || !data) return;
+  if(!cloudReady){ cloudDirty = true; return; }
+  clearTimeout(cloudTimer);
+  cloudTimer = setTimeout(pushCloudState, 900);
+}
+async function pushCloudState(){
+  if(!authToken || !session || !data) return;
+  try{
+    const r = await api("/api/state", { token: authToken, data: data, updatedAt: data.updatedAt || Date.now() });
+    if(r.ok === false && r.reason === "te_groot" && !cloudBigWarned){
+      cloudBigWarned = true;
+      toast("Let op: je items zijn te groot voor cloud-opslag — deze wijziging staat alleen op dit apparaat.", true);
+    }
+    if(r.ok === false && r.error === "geen_sessie") forceLogout();
+  }catch(e){ /* offline: lokale cache blijft leidend */ }
+}
+async function pullCloudState(){
+  if(!authToken || !session || !data){ cloudReady = true; return; }
+  let server = null;
+  try{ server = await api("/api/state?token=" + encodeURIComponent(authToken)); }
+  catch(e){ cloudReady = true; return; }
+  if(server.ok === false){ forceLogout(); return; }
+  const sData = server.data || null;
+  const sAt = Number(server.updatedAt) || 0;
+  const lAt = Number(data.updatedAt) || 0;
+  const hasStuff = d => !!(d && ((d.items||[]).length || (d.ledger||[]).length));
+  let useServer = false;
+  if(sData){
+    if(hasStuff(sData) && !hasStuff(data)) useServer = true;
+    else if(!hasStuff(sData) && hasStuff(data)) useServer = false;
+    else useServer = sAt > lAt;
+  }
+  if(useServer){
+    data = sData;
+    normalizeData();
+    writeLocalData();
+    try{ ensureWeek(); checkProExpiry(); ensureItemMigration(); }catch(e){}
+    renderAll();
+  }
+  cloudReady = true;
+  const wasDirty = cloudDirty;
+  cloudDirty = false;
+  if(!useServer || wasDirty) pushCloudState();
+}
+
+/* oude accounts die alleen in deze browser stonden eenmalig naar de server tillen */
+async function migrateLocalAccounts(){
+  const list = Object.entries(users)
+    .filter(([email, u]) => email && u && u.pass)
+    .slice(0, 25)
+    .map(([email, u]) => ({ email: email, name: u.name || "", pass: u.pass, secQ: u.secQ || "", secA: u.secA || "" }));
+  if(!list.length) return null;
+  const payload = { accounts: list };
+  if(session && data){ payload.data = data; payload.dataEmail = session; }
+  try{
+    const r = await api("/api/auth/import", payload);
+    if(r && r.ok){
+      // wachtwoord + antwoord staan nu gehasht op de server: lokaal wissen
+      list.forEach(a => { if(users[a.email]){ delete users[a.email].pass; delete users[a.email].secA; } });
+      saveUsers();
+    }
+    console.log("[Guidsell] accounts verhuisd:", Object.keys((r && r.results) || {}).length);
+    return r;
+  }catch(e){ return null; }
+}
+
+function forceLogout(msg){
+  saveSessionToken(null);
+  try{ localStorage.removeItem(LS_SESSION); }catch(e){}
+  session = null; cloudReady = false; cloudDirty = false;
+  goLanding();
+  openAuth("login");
+  authError(msg || AUTH_MSG.geen_sessie);
+}
+
+/* na een geslaagde login/registratie: app openen en de cloud-versie ophalen */
+function startSession(email){
+  session = email;
+  try{ localStorage.setItem(LS_SESSION, email); }catch(e){}
+  cloudReady = false; cloudDirty = false; cloudBigWarned = false;
+  enterApp();
 }
 function checkProExpiry(){
   if(!data) return;
@@ -2620,6 +2749,7 @@ function showPage(id) {
 function goLanding() { showPage("page-landing"); }
 
 function enterApp() {
+  cloudReady = false; cloudDirty = false;
   loadData();
   // betaald via Payment Link? → PRO activeren (weekly/monthly) bij deze account
   const pend = localStorage.getItem("guidsell_pending_pro");
@@ -2644,13 +2774,19 @@ function enterApp() {
   if(data && data.vinted && data.vinted.memberId){
     setTimeout(()=>{ refreshVintedQuiet(); }, 800);
   }
+  // haal de versie van de server op (nieuwste van server/lokaal wint)
+  pullCloudState();
 }
 
 function logout() {
+  const tkn = authToken;
+  saveSessionToken(null);
   localStorage.removeItem(LS_SESSION);
   session = null;
+  cloudReady = false; cloudDirty = false;
   photos = [];
   lastResult = null;
+  if(tkn) api("/api/auth/logout", { token: tkn }).catch(()=>{});
   goLanding();
   toast("Uitgelogd. Tot snel! 👋");
 }
@@ -2680,7 +2816,7 @@ function authError(msg) {
   el.classList.add("show");
 }
 function normalizeSecAnswer(s){ return String(s||"").trim().toLowerCase().replace(/\s+/g," "); }
-function doRegister(ev) {
+async function doRegister(ev) {
   ev.preventDefault();
   const name = document.getElementById("regName").value.trim();
   const email = document.getElementById("regEmail").value.trim().toLowerCase();
@@ -2688,31 +2824,55 @@ function doRegister(ev) {
   const secQ = (document.getElementById("regSecQ")?.value||"").trim();
   const secAraw = (document.getElementById("regSecA")?.value||"").trim();
   const secA = normalizeSecAnswer(secAraw);
+  if(!name){ authError("Vul je naam in."); return; }
+  if(!email.includes("@")){ authError(AUTH_MSG.ongeldig_email); return; }
+  if(pass.length<4){ authError(AUTH_MSG.wachtwoord_te_kort); return; }
   if(!secQ){ authError("Kies een beveiligingsvraag."); return; }
   if(!secA || secA.length<2){ authError("Vul een antwoord in op je beveiligingsvraag (min. 2 tekens)."); return; }
-  if (users[email]) { authError("Er bestaat al een account met dit e-mailadres."); return; }
-  users[email] = { name, pass, secQ, secA };
-  saveUsers();
-  session = email;
-  localStorage.setItem(LS_SESSION, email);
-  enterApp();
-  toast("Welkom bij Guidsell, " + name + "! 🎉");
+  setAuthBusy(true);
+  try{
+    const r = await api("/api/auth/register", { name, email, pass, secQ, secA });
+    if(!r.ok){ authError(authMsg(r.error)); return; }
+    saveSessionToken(r.token);
+    users[email] = { name: (r.user && r.user.name) || name };   // lokale cache, zonder wachtwoord
+    saveUsers();
+    startSession(email);
+    toast("Welkom bij Guidsell, " + name + "! 🎉");
+  }catch(e){
+    authError(AUTH_MSG.offline);
+  }finally{ setAuthBusy(false); }
 }
-function doLogin(ev) {
+async function doLogin(ev) {
   ev.preventDefault();
   const email = document.getElementById("loginEmail").value.trim().toLowerCase();
   const pass = document.getElementById("loginPass").value;
-  const user = users[email];
-  if (!user || user.pass !== pass) { authError("Onjuist e-mailadres of wachtwoord."); return; }
-  session = email;
-  localStorage.setItem(LS_SESSION, email);
-  enterApp();
-  toast("Welkom terug, " + user.name + "!");
+  if(!email || !pass){ authError("Vul je e-mailadres en wachtwoord in."); return; }
+  setAuthBusy(true);
+  try{
+    let r = await api("/api/auth/login", { email, pass });
+    // account bestaat alleen nog op dit apparaat (van vóór de update)? → verhuizen
+    if(!r.ok && (r.error === "onjuist" || r.error === "geen_account") && users[email] && users[email].pass === pass){
+      const imp = await migrateLocalAccounts();
+      if(imp && imp.tokens && imp.tokens[email]) r = { ok: true, token: imp.tokens[email], user: { name: (users[email] && users[email].name) || "" } };
+    }
+    if(!r.ok){ authError(authMsg(r.error)); return; }
+    saveSessionToken(r.token);
+    users[email] = { name: (r.user && r.user.name) || (users[email] && users[email].name) || "Gebruiker" };
+    saveUsers();
+    startSession(email);
+    toast("Welkom terug, " + users[email].name + "!");
+  }catch(e){
+    authError(AUTH_MSG.offline);
+  }finally{ setAuthBusy(false); }
+}
+function setAuthBusy(on){
+  ["btnLogin","btnRegister"].forEach(id=>{ const b=document.getElementById(id); if(b){ b.disabled=!!on; b.style.opacity = on? .6 : 1; } });
 }
 /* ---------- WACHTWOORD VERGETEN — met beveiligingsvraag (3-staps) ---------- */
 let forgotEmailCache = "";
 let forgotVerified = false;
 let forgotAttempts = 0;
+let forgotResetToken = "";
 function openForgotModal(){
   const pre = (document.getElementById("loginEmail").value || "").trim().toLowerCase();
   document.getElementById("forgotEmail").value = pre;
@@ -2724,7 +2884,7 @@ function openForgotModal(){
   document.getElementById("forgotStepEmail").hidden=false;
   const q=document.getElementById("forgotStepQuestion"); if(q) q.hidden=true;
   document.getElementById("forgotStepReset").hidden=true;
-  forgotEmailCache=""; forgotVerified=false; forgotAttempts=0;
+  forgotEmailCache=""; forgotVerified=false; forgotAttempts=0; forgotResetToken="";
   const tr=document.getElementById("forgotTries"); if(tr) tr.textContent="";
   document.getElementById("forgotModal").classList.add("show");
   setTimeout(()=>document.getElementById("forgotEmail").focus(), 60);
@@ -2736,71 +2896,86 @@ function forgotErr(msg){
   el.style.background="#fef2f2"; el.style.border="1px solid #fecaca"; el.style.color="#dc2626";
   el.style.borderRadius="10px"; el.style.padding="10px 14px"; el.style.marginBottom="12px"; el.style.fontSize="13px";
 }
-function forgotCheckEmail(){
+async function forgotCheckEmail(){
   const email=(document.getElementById("forgotEmail").value||"").trim().toLowerCase();
   if(!email || !email.includes("@")){ forgotErr("Vul een geldig e-mailadres in."); return; }
-  const u = users[email];
-  if(!u){
-    forgotErr("Geen account gevonden met dit e-mailadres op dit apparaat. Controleer je e-mail of maak een account aan.");
-    return;
-  }
-  // oud account zonder beveiligingsvraag → migratie: vraag alsnog aanmaken
-  if(!u.secQ || !u.secA){
-    forgotErr("Dit account heeft nog geen beveiligingsvraag (aangemaakt vóór deze update). Log in met je huidige wachtwoord of maak een nieuw account — bij registratie kies je nu wél een vraag.");
-    return;
-  }
-  forgotEmailCache=email; forgotVerified=false; forgotAttempts=0;
-  document.getElementById("forgotFoundEmail").textContent=email;
-  document.getElementById("forgotQuestion").textContent=u.secQ;
-  document.getElementById("forgotAnswer").value="";
-  document.getElementById("forgotErr").style.display="none";
-  const tr=document.getElementById("forgotTries"); if(tr) tr.textContent="";
-  document.getElementById("forgotStepEmail").hidden=true;
-  document.getElementById("forgotStepQuestion").hidden=false;
-  document.getElementById("forgotStepReset").hidden=true;
-  setTimeout(()=>document.getElementById("forgotAnswer").focus(), 60);
-}
-function forgotCheckAnswer(){
-  if(!forgotEmailCache || !users[forgotEmailCache]){ forgotErr("Sessie verlopen — zoek je account opnieuw."); document.getElementById("forgotStepEmail").hidden=false; document.getElementById("forgotStepQuestion").hidden=true; return; }
-  const given = normalizeSecAnswer(document.getElementById("forgotAnswer").value);
-  const expected = users[forgotEmailCache].secA;
-  if(!given){ forgotErr("Vul je antwoord in."); return; }
-  if(given !== expected){
-    forgotAttempts++;
-    const left = Math.max(0, 3 - forgotAttempts);
+  try{
+    const r = await api("/api/auth/forgot/question", { email });
+    if(!r.ok){ forgotErr(authMsg(r.error)); return; }
+    forgotEmailCache=email; forgotVerified=false; forgotAttempts=0;
+    document.getElementById("forgotFoundEmail").textContent=email;
+    document.getElementById("forgotQuestion").textContent=r.secQ;
+    document.getElementById("forgotAnswer").value="";
     document.getElementById("forgotErr").style.display="none";
-    const tr=document.getElementById("forgotTries");
-    if(tr) tr.textContent = left>0 ? `Onjuist antwoord — nog ${left} poging${left===1?"":"en"} over.` : "";
-    if(forgotAttempts>=3){
-      forgotErr("Te vaak fout — begin opnieuw (3 pogingen bereikt).");
-      document.getElementById("forgotStepQuestion").hidden=true;
-      document.getElementById("forgotStepEmail").hidden=false;
-      forgotEmailCache=""; forgotVerified=false; forgotAttempts=0;
+    const tr=document.getElementById("forgotTries"); if(tr) tr.textContent="";
+    document.getElementById("forgotStepEmail").hidden=true;
+    document.getElementById("forgotStepQuestion").hidden=false;
+    document.getElementById("forgotStepReset").hidden=true;
+    setTimeout(()=>document.getElementById("forgotAnswer").focus(), 60);
+  }catch(e){ forgotErr(AUTH_MSG.offline); }
+}
+async function forgotCheckAnswer(){
+  if(!forgotEmailCache){ forgotErr("Sessie verlopen — zoek je account opnieuw."); document.getElementById("forgotStepEmail").hidden=false; document.getElementById("forgotStepQuestion").hidden=true; return; }
+  const given = document.getElementById("forgotAnswer").value;
+  if(!given || !given.trim()){ forgotErr("Vul je antwoord in."); return; }
+  try{
+    const r = await api("/api/auth/forgot/verify", { email: forgotEmailCache, answer: given });
+    if(!r.ok){
+      if(r.error === "verlopen"){
+        forgotErr("Sessie verlopen — zoek je account opnieuw.");
+        document.getElementById("forgotStepEmail").hidden=false;
+        document.getElementById("forgotStepQuestion").hidden=true;
+        forgotEmailCache="";
+        return;
+      }
+      const left = (typeof r.left === "number") ? r.left : Math.max(0, 3 - (++forgotAttempts));
+      document.getElementById("forgotErr").style.display="none";
+      const tr=document.getElementById("forgotTries");
+      if(tr) tr.textContent = left>0 ? `Onjuist antwoord — nog ${left} poging${left===1?"":"en"} over.` : "";
+      if(r.error === "te_vaak" || left === 0){
+        forgotErr("Te vaak fout — begin opnieuw (3 pogingen bereikt).");
+        document.getElementById("forgotStepQuestion").hidden=true;
+        document.getElementById("forgotStepEmail").hidden=false;
+        forgotEmailCache=""; forgotVerified=false; forgotAttempts=0;
+        return;
+      }
+      forgotErr("Onjuist antwoord — probeer opnieuw.");
       return;
     }
-    forgotErr("Onjuist antwoord — probeer opnieuw.");
-    return;
-  }
-  forgotVerified=true;
-  document.getElementById("forgotErr").style.display="none";
-  document.getElementById("forgotStepQuestion").hidden=true;
-  document.getElementById("forgotStepReset").hidden=false;
-  setTimeout(()=>document.getElementById("forgotNewPass").focus(), 60);
+    forgotResetToken = r.resetToken;
+    forgotVerified=true;
+    document.getElementById("forgotErr").style.display="none";
+    document.getElementById("forgotStepQuestion").hidden=true;
+    document.getElementById("forgotStepReset").hidden=false;
+    setTimeout(()=>document.getElementById("forgotNewPass").focus(), 60);
+  }catch(e){ forgotErr(AUTH_MSG.offline); }
 }
-function forgotDoReset(){
-  if(!forgotVerified){ forgotErr("Beantwoord eerst je beveiligingsvraag correct."); document.getElementById("forgotStepQuestion").hidden=false; document.getElementById("forgotStepReset").hidden=true; return; }
+async function forgotDoReset(){
+  if(!forgotVerified || !forgotResetToken){ forgotErr("Beantwoord eerst je beveiligingsvraag correct."); document.getElementById("forgotStepQuestion").hidden=false; document.getElementById("forgotStepReset").hidden=true; return; }
   const a=(document.getElementById("forgotNewPass").value||"");
   const b=(document.getElementById("forgotNewPass2").value||"");
   if(a.length<4){ forgotErr("Kies een wachtwoord van minimaal 4 tekens."); return; }
   if(a!==b){ forgotErr("Wachtwoorden komen niet overeen."); return; }
-  if(!forgotEmailCache || !users[forgotEmailCache]){ forgotErr("Sessie verlopen — zoek je account opnieuw."); document.getElementById("forgotStepEmail").hidden=false; document.getElementById("forgotStepReset").hidden=true; document.getElementById("forgotStepQuestion").hidden=true; return; }
-  users[forgotEmailCache].pass = a;
-  saveUsers();
-  session = forgotEmailCache;
-  localStorage.setItem(LS_SESSION, session);
-  closeForgotModal();
-  enterApp();
-  toast("Wachtwoord opnieuw ingesteld — welkom terug! 🔑");
+  const email = forgotEmailCache;
+  try{
+    const r = await api("/api/auth/forgot/reset", { resetToken: forgotResetToken, newPass: a });
+    if(!r.ok){
+      forgotErr(authMsg(r.error));
+      if(r.error === "verlopen"){
+        forgotVerified=false; forgotResetToken=""; forgotEmailCache="";
+        document.getElementById("forgotStepEmail").hidden=false;
+        document.getElementById("forgotStepQuestion").hidden=true;
+        document.getElementById("forgotStepReset").hidden=true;
+      }
+      return;
+    }
+    saveSessionToken(r.token);
+    if(email) users[email] = { name: (r.user && r.user.name) || (users[email] && users[email].name) || "Gebruiker" };
+    saveUsers();
+    closeForgotModal();
+    startSession(email || session);
+    toast("Wachtwoord opnieuw ingesteld — welkom terug! 🔑");
+  }catch(e){ forgotErr(AUTH_MSG.offline); }
 }
 function seedDemoData() {
   const c = placeholderImg("Nike hoodie", "#6366f1");
@@ -3182,6 +3357,9 @@ function wipeMyData(){
   if(!confirm(t("wipeConfirm"))) return;
   try{
     const prefsLS=prefsRaw(); const keepLang=prefsLS.lang;
+    // ook op de server wissen, anders komt de account bij de volgende login terug
+    if(authToken) api("/api/auth/wipe", { token: authToken }).catch(()=>{});
+    saveSessionToken(null);
     if(session){
       localStorage.removeItem("guidsell_data_"+session);
       if(users[session]){ delete users[session]; saveUsers(); }
@@ -5140,12 +5318,42 @@ shipInitUI();
   try{ if(getPrefs().compact) document.body.classList.add("pref-compact"); }catch(e){}
   try{ applyI18n(); }catch(e){}
 })();
-/* init: ingelogd? → app, anders landing */
-if (session && users[session]) {
-  enterApp();
-} else {
+/* init: geldige server-sessie? → app, anders landing */
+(async function boot(){
+  if(session){
+    let serverReachable = true;
+    let valid = false;
+    if(authToken){
+      try{
+        const r = await api("/api/auth/me", { token: authToken });
+        if(r.ok){
+          valid = true;
+          users[session] = { name: (r.user && r.user.name) || (users[session] && users[session].name) || "Gebruiker" };
+          saveUsers();
+        }
+      }catch(e){ serverReachable = false; }
+    }
+    // account dat alleen op dit apparaat bestaat (van vóór de update) → eenmalig verhuizen
+    if(!valid && serverReachable && users[session] && users[session].pass){
+      try{
+        const imp = await migrateLocalAccounts();
+        if(imp && imp.tokens && imp.tokens[session]){ saveSessionToken(imp.tokens[session]); valid = true; }
+      }catch(e){}
+    }
+    if(valid){ enterApp(); return; }
+    if(serverReachable){
+      // geen geldige sessie meer → schone login (accounts staan nu op de server)
+      saveSessionToken(null);
+      try{ localStorage.removeItem(LS_SESSION); }catch(e){}
+      session = null;
+      showPage("page-landing");
+      return;
+    }
+    // server onbereikbaar → lokaal verder met de cache op dit apparaat
+    if(users[session]){ enterApp(); return; }
+  }
   showPage("page-landing");
-}
+})();
 refreshServerAi().then(()=>{ try{ syncSettingsUI(); }catch(e){} });
 setTimeout(()=>{ try{ syncSettingsUI(); }catch(e){} }, 300);
 </script>

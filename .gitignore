@@ -3,9 +3,14 @@ ai-key.txt
 .env
 .env.*
 
+# Accounts + app-data van gebruikers (nooit naar GitHub)
+guidsell-accounts.json
+*.tmp
+
 # Logs en tijdelijke bestanden
 *.log
 proxy.log
 proxy_new.log
 _tmp_check*.js
+_tmp_auth*/
 _g.json
