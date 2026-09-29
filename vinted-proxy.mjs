@@ -1534,7 +1534,31 @@ const server = http.createServer(async (req, res) => {
       out.login = { status: p.status, body: String(p.raw || "").replace(/\s+/g, " ").slice(0, 300) };
       const a = vintedFetch({ ua: UA, cookies: "" }, "/api/v2/users/me", { timeoutMs: 15000 });
       out.api = { status: a.status, body: String(a.raw || "").replace(/\s+/g, " ").slice(0, 200) };
-      console.log(`[vinted] probe ${email}: login=${p.status} api=${a.status} cookies=[${out.cookies.join(",")}]`);
+      // hoe diep gaat de blokkade? test ook de paden die de rest van de app gebruikt
+      out.paden = [
+        "/api/v2/catalog/items?search_text=nike&per_page=3",
+        "/api/v2/items/1",
+        "/catalog?search_text=nike",
+      ].map(die => {
+        const isHtml = die.indexOf("?") === 0 || die[0] !== "/" || die.indexOf("/catalog") === 0;
+        let st = 0, blok = false;
+        if (isHtml) {
+          try {
+            const html = curl(["-b", JAR, "-c", JAR, "-A", UA,
+              "-H", "Accept: text/html,application/xhtml+xml",
+              "-H", "Accept-Language: nl-NL,nl;q=0.9",
+              VINTED_HOST + die], 20000).toString("utf8");
+            st = 200;
+            blok = /datadome|captcha-delivery|geo\.captcha/i.test(html);
+          } catch (e) { st = 0; }
+        } else {
+          const r = vintedFetch({ ua: UA, cookies: "" }, die, { timeoutMs: 15000 });
+          st = r.status;
+          blok = /datadome|captcha-delivery|geo\.captcha/i.test(String(r.raw || ""));
+        }
+        return { pad: die, status: st, geblokkeerd: blok };
+      });
+      console.log(`[vinted] probe ${email}: login=${p.status} api=${a.status} cookies=[${out.cookies.join(",")}] paden=${out.paden.map(x => x.status).join("/")}`);
       return sendJson(res, 200, { ok: true, probe: out }, false);
     }
 
