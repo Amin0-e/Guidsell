@@ -318,7 +318,23 @@ function warmSession() {
   }
 }
 
+/* Na een botcontrole even helemaal stil: doorgaan met hameren verlengt de
+   blokkade van Vinted (DataDome). Vandaar een korte pauze waarin we meteen
+   eerlijk "geblokkeerd" teruggeven. */
+let vintedBlockedUntil = 0;
+function markVintedBlocked(ms = 5 * 60 * 1000) {
+  if (Date.now() < vintedBlockedUntil) return;
+  vintedBlockedUntil = Date.now() + ms;
+  console.log(`[vinted] botcontrole gezien — ${Math.round(ms / 60000)} min geen Vinted-verzoeken`);
+}
+function vintedIsBlocked() { return Date.now() < vintedBlockedUntil; }
+
 function fetchCatalogHtml(query) {
+  if (vintedIsBlocked()) {
+    const e = new Error("vinted_bot_controle");
+    e.blocked = true;
+    throw e;
+  }
   // nette 1,2s tussenruimte tussen Vinted-verzoeken
   const wait = 1200 - (Date.now() - lastFetchAt);
   if (wait > 0) Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, wait);
@@ -345,10 +361,12 @@ function fetchCatalogHtml(query) {
   const challenge = html.length < 30000 || /geo\.captcha-delivery|captcha-delivery\.com/i.test(html);
   console.log(`[vinted-catalog] "${query}": ${html.length} bytes, ${linkCount} item-links${challenge ? " · CHALLENGE" : ""}`);
   if (challenge || html.length < 30000) {
+    markVintedBlocked();
     const err = new Error("vinted_bot_controle");
     err.blocked = true;
     throw err;
   }
+  vintedBlockedUntil = 0;
   return html;
 }
 
@@ -1430,7 +1448,8 @@ const server = http.createServer(async (req, res) => {
         const userM = profHtml.match(/data-testid="profile-username"[^>]*>([^<]+)<\/h1>/);
         username = (userM ? userM[1].trim() : (ogTitle || titleTag.replace(/\s*[|·—-]\s*Vinted.*$/i, "")).trim()) || "";
         if (!username || /^vinted$/i.test(username)) {
-          const blok = /datadome|captcha-delivery|geo\.captcha|just a moment/i.test(profHtml);
+          const blok = /captcha-delivery|geo\.captcha|just a moment|attention required/i.test(profHtml);
+          if (blok || profStatus === "403" || profStatus === "429") markVintedBlocked();
           console.log(`[vinted-closet] profiel ${memberId}: status=${profStatus} lengte=${profHtml.length} blok=${blok} begin="${profHtml.replace(/\s+/g," ").slice(0,120)}"`);
           throw new Error(`profielpagina onleesbaar (status ${profStatus}, ${profHtml.length} bytes${blok?" · botcontrole":""})`);
         }

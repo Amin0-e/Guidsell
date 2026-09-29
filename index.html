@@ -4593,19 +4593,29 @@ async function vintedConnect(){
 async function vintedFetchCloset(showToast){
   const v=vintedStored(); if(!v || (!v.memberId && !v.username)) return;
   const status=document.getElementById("vintedStatus");
+  let laatStatusStaan=false;
   if(status){ status.style.display="block"; status.textContent="⏳ Kast ophalen…"; }
   try{
     const r=await fetch("/api/vinted/closet?id="+encodeURIComponent(v.memberId||"")+"&limit=18"+(v.username? "&username="+encodeURIComponent(v.username):""), { signal:AbortSignal.timeout(25000)});
     const j=await r.json();
-    if(!j || !j.ok) throw new Error(j && j.error || j && j.reason || "kast niet bereikbaar");
+    if(!j || !j.ok){
+      if(j && j.reason === "geblokkeerd_door_vinted") throw new Error("vinted_blokkeert");
+      throw new Error(j && (j.error || j.reason) || "kast niet bereikbaar");
+    }
     data.vinted.closet = Array.isArray(j.items)? j.items:[];
     data.vinted.closetAt = Date.now();
     saveData(); renderVintedCard();
     if(showToast!==false) toast(data.vinted.closet.length? (data.vinted.closet.length+" items uit je kast geladen 👗") : "Kast is leeg of nog niet zichtbaar");
   }catch(e){
+    if(String(e.message||e) === "vinted_blokkeert"){
+      laatStatusStaan=true;
+      toast("Vinted houdt onze server even tegen (botcontrole) — probeer het over een paar minuten opnieuw", true);
+      if(status){ status.style.display="block"; status.textContent = "⚠️ Vinted blokkeert onze server tijdelijk. Probeer het over ±5 minuten nog eens — of draai Guidsell op je eigen pc, daar lukt het altijd."; }
+      return;
+    }
     toast("Kast ophalen mislukt: "+String(e.message||e).slice(0,100), true);
   }finally{
-    if(status) setTimeout(()=>{ status.style.display="none"; }, 1500);
+    if(status && !laatStatusStaan) setTimeout(()=>{ status.style.display="none"; }, 1500);
   }
 }
 async function refreshVintedQuiet(){
