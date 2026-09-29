@@ -1,0 +1,34 @@
+# ============================================================
+#  Render Blueprint — zet Guidsell in één klik online.
+#
+#  In Render:  New +  →  Blueprint  →  kies de repo Amin0-e/Guidsell
+#              →  Apply.  Render maakt de service aan met de
+#              instellingen hieronder en vraagt om de secrets.
+#
+#  Let op: de gratis instance heeft GEEN persistente schijf. Daarom
+#  staan accounts in een externe key-value store (KV_REST_URL /
+#  KV_REST_TOKEN). Zonder die twee variabelen werken login en de app
+#  wél, maar raak je accounts kwijt zodra de service opnieuw start.
+# ============================================================
+services:
+  - type: web
+    name: guidsell
+    runtime: node
+    plan: free
+    region: frankfurt
+    branch: main
+    startCommand: node vinted-proxy.mjs
+    autoDeploy: true
+    healthCheckPath: /
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      # Je Google Gemini-sleutel (nodig voor de AI-waardecheck)
+      - key: GEMINI_API_KEY
+        sync: false
+      # Gratis Upstash-Redis REST-API → accounts + app-data blijven bewaard
+      # (Upstash → database aanmaken → REST API URL + token kopiëren)
+      - key: KV_REST_URL
+        sync: false
+      - key: KV_REST_TOKEN
+        sync: false

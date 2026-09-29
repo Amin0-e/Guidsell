@@ -43,27 +43,119 @@ const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
    JSON-bestand naast de server. Wachtwoorden worden gehasht met scrypt en
    van de beveiligingsvraag bewaren we alleen een hash.
 
-   Bestand: DATA_DIR/guidsell-accounts.json  (DATA_DIR = env var, anders de
-   map van de server). LET OP op Render: het gratis bestandssysteem is
-   vluchtig — koppel een persistent disk en zet DATA_DIR naar die mount
-   (bijv. /var/data), anders ben je accounts kwijt na een redeploy.
+   Bestand: DATA_DIR/guidsell-accounts.json.
+   DATA_DIR komt uit de env var; staat die niet ingesteld, dan kijken we of er
+   een persistente mount bestaat (/var/data e.d.). Zo niet, dan gebruiken we de
+   map van de server. Zonder persistente mount is het bestandssysteem op Render
+   vluchtig: accounts overleven dan geen redeploy. Daarom loggen we dat expliciet
+   bij het opstarten en geven we het door aan de app (/api/auth/me → persistent).
 ===================================================== */
-const DATA_DIR = process.env.DATA_DIR || __dirname;
+function pickDataDir() {
+  const env = String(process.env.DATA_DIR || "").trim();
+  if (env) return env;
+  for (const p of ["/var/data", "/data", "/var/guidsell", path.join(os.homedir(), ".guidsell")]) {
+    try {
+      if (fs.existsSync(p) && fs.statSync(p).isDirectory()) {
+        fs.accessSync(p, fs.constants.W_OK);
+        return p;
+      }
+    } catch (e) { /* niet bruikbaar */ }
+  }
+  return __dirname;
+}
+const DATA_DIR = pickDataDir();
+const PERSISTENT_DATA = path.resolve(DATA_DIR) !== path.resolve(__dirname);
 const ACCOUNTS_FILE = path.join(DATA_DIR, "guidsell-accounts.json");
 const SESSION_TTL = 90 * 24 * 60 * 60 * 1000;   // sessie 90 dagen geldig
 const MAX_STATE_BYTES = 8 * 1024 * 1024;         // max app-data per account
 
+/* ---------------- Optionele externe opslag ----------------
+   Render's gratis web services hebben GEEN persistente schijf: bij elke
+   spin-down (15 min zonder bezoek!), restart of redeploy raakt de schijf leeg.
+   Daarom kan de store ook in een externe key-value store staan die je via HTTP
+   benadert — Upstash Redis heeft een gratis REST-API (geen account-kosten, geen
+   verloopdatum). Zet daarvoor twee env vars:
+
+     KV_REST_URL   = https://xxx.upstash.io
+     KV_REST_TOKEN = de REST-token
+
+   Zonder die vars werkt alles precies zoals eerst (bestand naast de server). */
+const KV_URL = String(process.env.KV_REST_URL || "").replace(/\/+$/, "");
+const KV_TOKEN = String(process.env.KV_REST_TOKEN || "");
+const KV_KEY = String(process.env.KV_KEY || "guidsell-accounts").replace(/[^0-9a-zA-Z_\-]/g, "");
+const KV_ENABLED = !!(KV_URL && KV_TOKEN);
+let kvLastPayload = null;
+
+// één commando naar de KV-REST-API; geeft de JSON-respons of null
+function kvCall(method, kvPath, body) {
+  const args = [
+    "-X", method,
+    "-H", "Authorization: Bearer " + KV_TOKEN,
+    "-w", "\n__GS_STATUS__%{http_code}",
+  ];
+  if (body != null) args.push("--data-binary", body);
+  args.push(KV_URL + kvPath);
+  let out = "";
+  try { out = curl(args, 30000).toString("utf8"); }
+  catch (e) { console.log("[kv] verzoek mislukt:", e.message); return null; }
+  const m = out.match(/\n__GS_STATUS__(\d+)\s*$/);
+  const status = m ? Number(m[1]) : 0;
+  if (status < 200 || status > 299) { console.log("[kv] HTTP " + status); return null; }
+  try { return JSON.parse(m ? out.slice(0, m.index) : out); } catch (e) { return null; }
+}
+
+function kvLoad() {
+  if (!KV_ENABLED) return null;
+  const r = kvCall("GET", "/get/" + KV_KEY);
+  if (!r || typeof r.result !== "string") return null;
+  try { return JSON.parse(r.result); } catch (e) { return null; }
+}
+
+function kvSave(payload) {
+  if (!KV_ENABLED) return false;
+  if (payload === kvLastPayload) return true;                 // niets veranderd
+  if (Buffer.byteLength(payload, "utf8") > MAX_STATE_BYTES) { console.log("[kv] store te groot — niet opgeslagen"); return false; }
+  const r = kvCall("POST", "/set/" + KV_KEY, payload);
+  if (r && r.result === "OK") { kvLastPayload = payload; return true; }
+  console.log("[kv] opslaan mislukt");
+  return false;
+}
+
+/* lees een JSON-store veilig van schijf */
+function readLocalStore() {
+  try {
+    const parsed = JSON.parse(fs.readFileSync(ACCOUNTS_FILE, "utf8"));
+    if (parsed && typeof parsed === "object") return { users: parsed.users || {}, sessions: parsed.sessions || {} };
+  } catch (e) {
+    if (e.code !== "ENOENT") console.log("[auth] accounts laden mislukt:", e.message);
+  }
+  return null;
+}
+
+/* b vult aan waar a niets heeft — zo raak je nooit accounts kwijt als één van
+   de twee opslagplekken even niet bereikbaar was */
+function mergeStores(a, b) {
+  const out = { users: {}, sessions: {} };
+  for (const src of [b, a]) {
+    if (!src) continue;
+    for (const [k, v] of Object.entries(src.users || {})) if (!out.users[k]) out.users[k] = v;
+    for (const [k, v] of Object.entries(src.sessions || {})) if (!out.sessions[k]) out.sessions[k] = v;
+  }
+  return out;
+}
+
+const STORE_BACKEND = KV_ENABLED ? "kv" : (PERSISTENT_DATA ? "disk" : "file");
+
 let store = { users: {}, sessions: {} };
 
 function loadStore() {
-  try {
-    const parsed = JSON.parse(fs.readFileSync(ACCOUNTS_FILE, "utf8"));
-    if (parsed && typeof parsed === "object") {
-      store = { users: parsed.users || {}, sessions: parsed.sessions || {} };
-      console.log(`[auth] ${Object.keys(store.users).length} account(s) geladen uit ${ACCOUNTS_FILE}`);
-    }
-  } catch (e) {
-    if (e.code !== "ENOENT") console.log("[auth] accounts laden mislukt:", e.message);
+  const local = readLocalStore();
+  const remote = kvLoad();
+  if (remote || local) {
+    store = mergeStores(local, remote);                      // externe store leidend
+    const n = Object.keys(store.users).length;
+    if (remote) console.log(`[auth] ${n} account(s) geladen uit de externe store${local ? " (aangevuld met het lokale bestand)" : ""}`);
+    else console.log(`[auth] ${n} account(s) geladen uit ${ACCOUNTS_FILE}`);
   }
 }
 
@@ -71,14 +163,16 @@ let storeTimer = null;
 function saveStore(immediate) {
   const write = () => {
     storeTimer = null;
+    const payload = JSON.stringify(store);
     try {
       if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
       const tmp = ACCOUNTS_FILE + ".tmp";
-      fs.writeFileSync(tmp, JSON.stringify(store), "utf8");
+      fs.writeFileSync(tmp, payload, "utf8");
       fs.renameSync(tmp, ACCOUNTS_FILE);
     } catch (e) {
       console.log("[auth] accounts opslaan mislukt:", e.message);
     }
+    kvSave(payload);                                        // externe store bijwerken
   };
   if (immediate) {
     if (storeTimer) clearTimeout(storeTimer);
@@ -160,6 +254,17 @@ function useReset(token) {
 }
 
 loadStore();
+
+if (KV_ENABLED) {
+  console.log("[auth] accounts staan in de externe store (KV_REST_URL) — ze overleven een redeploy, restart én spin-down ✔");
+} else if (PERSISTENT_DATA) {
+  console.log(`[auth] accounts worden bewaard op ${DATA_DIR} (blijft staan na een herstart/redeploy)`);
+} else {
+  console.log(`[auth] LET OP: accounts staan in ${DATA_DIR} — dat is geen persistente opslag.`);
+  console.log("[auth] Op een gratis Render-service verdwijnen accounts dan bij elke restart/spin-down.");
+  console.log("[auth] Twee oplossingen: (1) zet KV_REST_URL + KV_REST_TOKEN naar een gratis Upstash-Redis,");
+  console.log("[auth] of (2) betaal een instance + koppel een Disk (mount bijv. /var/data) en zet DATA_DIR.");
+}
 
 /* ---------------- curl-gebaseerde Vinted client ---------------- */
 
@@ -327,19 +432,20 @@ async function callGeminiServer(prompt, imagesBase64) {
 /* =====================================================
    VINTED-ACCOUNT KOPPELEN — kast (inventaris), biedingen, berichten
    -----------------------------------------------------
-   Vinted heeft géén publieke koppel-API (geen OAuth zoals Google/Stripe),
-   dus "inloggen bij Vinted" kan alleen in de browser van de gebruiker zelf.
-   Wat wél werkt — en wat deze code doet:
+   Vinted heeft géén publieke koppel-API voor derden, maar wél een gewoon
+   inlog-endpoint (POST /oauth/token, grant_type=password). Daarom kan de
+   gebruiker gewoon zijn Vinted-e-mail + wachtwoord invullen:
 
-     1. Gebruiker logt in op vinted.nl (de app opent die pagina voor hem).
-     2. Hij plakt één keer zijn Vinted-sessie: de cookie-regel uit DevTools
-        of de volledige "Copy as cURL" van een Vinted-verzoek.
-     3. Wij bewaren die sessie ALLEEN op deze server, bij zijn Guidsell-
-        account (nooit in de browser), en gebruiken hem om zijn eigen kast,
-        inbox/biedingen en gesprekken op te halen en te antwoorden.
+     1. Wij loggen daarmee server-side in bij Vinted (/api/vinted/me/login).
+     2. We bewaren het access_token + refresh_token ALLEEN op deze server,
+        bij zijn Guidsell-account (het wachtwoord bewaren we niet).
+     3. De refresh_token houdt de toegang automatisch vers, dus zijn kast,
+        biedingen en gesprekken blijven werken.
 
-   De sessie verloopt bij Vinted na verloop van tijd (of bij uitloggen) →
-   dan geeft /api/vinted/me/diagnose exact terug wat er misgaat.
+   Valt het inloggen bij Vinted toch dicht (tweestapsverificatie, botcontrole),
+   dan blijft /api/vinted/me/link bestaan als terugvaloptie: één keer een
+   cookie-regel of 'Copy as cURL' uit de browser plakken.
+   /api/vinted/me/diagnose laat precies zien wat Vinted wel/niet teruggeeft.
 ===================================================== */
 
 function parseVintedSession(raw, uaOverride) {
@@ -416,6 +522,89 @@ function vintedErrMsg(r) {
   if (r.status === 404) return "Dit endpoint bestaat niet (meer) bij Vinted (404).";
   if (r.status === 429) return "Te veel verzoeken — wacht even en probeer opnieuw.";
   return "Vinted gaf status " + r.status;
+}
+
+/* ---- inloggen met je Vinted-account zelf (e-mail + wachtwoord) ----
+   Vinted heeft geen OAuth voor derden, maar het web-login-endpoint
+   (POST /oauth/token met grant_type=password) accepteert gewone Vinted-
+   inloggegevens. Daarmee halen we een access_token + refresh_token op,
+   zodat de gebruiker alleen nog e-mail + wachtwoord hoeft in te vullen.
+   Het wachtwoord wordt NIET opgeslagen. */
+function vintedOauth(params) {
+  const body = Object.keys(params)
+    .filter(k => params[k] != null)
+    .map(k => k + "=" + encodeURIComponent(params[k]))
+    .join("&");
+  const args = [
+    "-X", "POST",
+    "-A", UA,
+    "-H", "Content-Type: application/x-www-form-urlencoded",
+    "-H", "Accept: application/json, text/plain, */*",
+    "-H", "Accept-Language: nl-NL,nl;q=0.9,en;q=0.8",
+    "-H", "X-Requested-With: XMLHttpRequest",
+    "-H", "Origin: " + VINTED_HOST,
+    "-H", "Referer: " + VINTED_HOST + "/login",
+    "-d", body,
+    "-w", "\n__GS_STATUS__%{http_code}",
+    VINTED_HOST + "/oauth/token",
+  ];
+  let out = "";
+  try { out = curl(args, 25000).toString("utf8"); }
+  catch (e) { return { status: 0, raw: "", json: null, error: e.message }; }
+  const m = out.match(/\n__GS_STATUS__(\d+)\s*$/);
+  const status = m ? Number(m[1]) : 0;
+  const raw = m ? out.slice(0, m.index) : out;
+  let json = null;
+  try { json = JSON.parse(raw); } catch (e) {}
+  return { status, raw, json };
+}
+
+function vintedLoginWithCredentials(username, password) {
+  throttleVinted();
+  const r = vintedOauth({ grant_type: "password", username, password, client_id: "web", scope: "default" });
+  if (r.status === 200 && r.json && r.json.access_token) {
+    return {
+      ok: true,
+      token: r.json.access_token,
+      refreshToken: r.json.refresh_token || "",
+      expiresIn: Number(r.json.expires_in) || 3600,
+    };
+  }
+  if (r.status === 0) return { ok: false, error: "onbereikbaar", message: "Geen antwoord van Vinted (" + (r.error || "timeout") + "). Probeer het opnieuw." };
+  if (r.status === 403 || r.status === 429) return { ok: false, error: "geblokkeerd", message: "Vinted blokkeert inloggen vanaf onze server (botcontrole). Wacht een paar minuten en probeer opnieuw." };
+  const desc = String((r.json && r.json.error_description) || "");
+  if (/two.?factor|verification|verificatie|2fa|sms|code/i.test(desc)) {
+    return { ok: false, error: "2fa", message: "Dit Vinted-account gebruikt tweestapsverificatie. Zet die even uit tijdens het koppelen, of gebruik de andere manier hieronder." };
+  }
+  if (r.status === 400 || r.status === 401) {
+    return { ok: false, error: "verkeerde_gegevens", message: "Vinted-login mislukt — controleer je e-mailadres en wachtwoord van Vinted." };
+  }
+  return { ok: false, error: "onbekend", message: "Vinted gaf status " + r.status + ((r.json && r.json.error) ? " (" + r.json.error + ")" : "") };
+}
+
+/* verlopen access_token stil vernieuwen met de refresh_token */
+function vintedRefresh(sess) {
+  if (!sess || !sess.refreshToken) return false;
+  const r = vintedOauth({ grant_type: "refresh_token", refresh_token: sess.refreshToken, client_id: "web" });
+  if (r.status !== 200 || !r.json || !r.json.access_token) return false;
+  sess.token = r.json.access_token;
+  if (r.json.refresh_token) sess.refreshToken = r.json.refresh_token;
+  sess.tokenExpiresAt = Date.now() + (Number(r.json.expires_in) || 3600) * 1000;
+  sess.cookies = "access_token_web=" + sess.token;
+  sess.lastStatus = "ok";
+  return true;
+}
+
+// houdt de Vinted-toegang vers zolang de refresh_token geldig is
+function vintedEnsureFresh(sess) {
+  if (!sess || !sess.refreshToken || !sess.tokenExpiresAt) return sess;
+  if (Date.now() > sess.tokenExpiresAt - 120000) {
+    const ok = vintedRefresh(sess);
+    console.log("[vinted] token vernieuwen:", ok ? "ok" : "mislukt");
+    if (ok) saveStore();
+    else sess.lastStatus = "verlopen";
+  }
+  return sess;
 }
 
 function vintedValidate(sess) {
@@ -634,7 +823,16 @@ const server = http.createServer(async (req, res) => {
     if (action === "me") {
       const email = tokenEmail(token);
       if (!email) return sendJson(res, 200, { ok: false, error: "geen_sessie" }, false);
-      return sendJson(res, 200, { ok: true, user: publicUser(store.users[email]), dataUpdatedAt: store.users[email].dataUpdatedAt || 0 }, false);
+      return sendJson(res, 200, {
+        ok: true,
+        user: publicUser(store.users[email]),
+        dataUpdatedAt: store.users[email].dataUpdatedAt || 0,
+        // overleeft de accountopslag een restart/redeploy/spin-down?
+        persistent: KV_ENABLED || PERSISTENT_DATA,
+        storeBackend: STORE_BACKEND,
+        storeDir: KV_ENABLED ? "(externe store)" : DATA_DIR,
+        accounts: Object.keys(store.users).length,
+      }, false);
     }
 
     // ---- uitloggen ----
@@ -1238,6 +1436,39 @@ const server = http.createServer(async (req, res) => {
     const sub = u.pathname.slice("/api/vinted/me/".length).replace(/\/$/, "");
     const sess = gu.vinted || null;
     const notLinked = () => sendJson(res, 200, { ok: false, error: "niet_gekoppeld", message: "Koppel eerst je Vinted-account." }, false);
+    // toegang stil verversen voordat we iets bij Vinted opvragen
+    if (sess) vintedEnsureFresh(sess);
+
+    // ---- koppelen met het Vinted-account zelf (e-mail + wachtwoord) ----
+    if (sub === "login" && req.method === "POST") {
+      const vEmail = String(vb.vintedEmail || vb.email || "").trim();
+      const vPass = String(vb.vintedPassword || vb.pass || "");
+      if (!vEmail || !vEmail.includes("@")) return sendJson(res, 200, { ok: false, error: "geen_email", message: "Vul het e-mailadres van je Vinted-account in." }, false);
+      if (!vPass) return sendJson(res, 200, { ok: false, error: "geen_wachtwoord", message: "Vul je Vinted-wachtwoord in." }, false);
+      const lg = vintedLoginWithCredentials(vEmail, vPass);
+      if (!lg.ok) {
+        console.log(`[vinted] inloggen ${email} mislukt: ${lg.error}`);
+        return sendJson(res, 200, { ok: false, error: lg.error, message: lg.message }, false);
+      }
+      const candidate = {
+        cookies: "access_token_web=" + lg.token,
+        token: lg.token,
+        refreshToken: lg.refreshToken,
+        tokenExpiresAt: Date.now() + lg.expiresIn * 1000,
+        ua: UA,
+        csrf: "",
+        method: "login",
+      };
+      const check = vintedValidate(candidate);
+      if (!check.ok) {
+        return sendJson(res, 200, { ok: false, error: "koppelen_mislukt", message: "Vinted-login lukte, maar het account uitlezen niet: " + check.error, detail: check.error, status: check.status }, false);
+      }
+      const prof = mapVintedUser(check.user);
+      gu.vinted = { ...candidate, ...prof, linkedAt: Date.now(), lastCheck: Date.now(), lastStatus: "ok" };
+      saveStore(true);
+      console.log(`[vinted] ${email} gekoppeld via Vinted-login als @${prof.username} (id ${prof.memberId})`);
+      return sendJson(res, 200, { ok: true, profile: prof, method: "login" }, false);
+    }
 
     // ---- koppelen: cookie / 'Copy as cURL' plakken en valideren ----
     if (sub === "link" && req.method === "POST") {
@@ -1253,7 +1484,8 @@ const server = http.createServer(async (req, res) => {
         return sendJson(res, 200, { ok: false, error: "koppelen_mislukt", message: hint, detail: check.error, status: check.status }, false);
       }
       const prof = mapVintedUser(check.user);
-      gu.vinted = { cookies: parsed.cookies, token: parsed.token, ua: parsed.ua, csrf: "", ...prof, linkedAt: Date.now(), lastCheck: Date.now(), lastStatus: "ok" };
+      const oldRefresh = (gu.vinted && gu.vinted.refreshToken) || "";
+      gu.vinted = { cookies: parsed.cookies, token: parsed.token, refreshToken: oldRefresh, ua: parsed.ua, csrf: "", method: "paste", ...prof, linkedAt: Date.now(), lastCheck: Date.now(), lastStatus: "ok" };
       saveStore(true);
       console.log(`[vinted] ${email} gekoppeld als @${prof.username} (id ${prof.memberId})`);
       return sendJson(res, 200, { ok: true, profile: prof }, false);
@@ -1266,6 +1498,8 @@ const server = http.createServer(async (req, res) => {
         linked: !!sess,
         linkedAt: sess ? sess.linkedAt : null,
         lastStatus: sess ? sess.lastStatus || "" : "",
+        method: sess ? (sess.method || "paste") : "",
+        refresh: !!(sess && sess.refreshToken),
         profile: sess ? { memberId: sess.memberId, username: sess.username, avatar: sess.avatar, rating: sess.rating, reviews: sess.reviews, location: sess.location, itemCount: sess.itemCount, balance: sess.balance, profileUrl: sess.profileUrl } : null,
       }, false);
     }

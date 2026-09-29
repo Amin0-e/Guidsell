@@ -1281,6 +1281,10 @@
         <button class="btn btn-lg" style="width:100%" type="submit">Account aanmaken</button>
       </form>
 
+      <p style="font-size:11.5px;color:var(--muted);text-align:center;line-height:1.5;margin:2px 0 12px">
+        🔐 Je account staat op onze server (niet in deze browser). Daarom blijft je registratie bewaard en kun je op elk apparaat inloggen.
+      </p>
+
       <div class="auth-back">
         <button class="btn-ghost" onclick="goLanding()">← Terug naar home</button>
       </div>
@@ -1372,20 +1376,27 @@
         <div class="vinted-main" style="flex:1;min-width:280px">
           <div style="font-weight:800;font-size:14px">Koppel je Vinted-account <span class="vinted-badge" id="vintedLinkedBadge" hidden>GEKOPPELD</span></div>
           <div id="vintedSessionHelp" style="font-size:12.5px;color:var(--muted);margin-top:4px;line-height:1.5">
-            Zo werkt het — eenmalig, ±1 minuut:
-            <ol style="margin:6px 0 0 18px;padding:0">
-              <li>Klik hieronder op <b>Open Vinted-login</b> en log in bij Vinted.</li>
-              <li>Op die pagina: <b>F12</b> → tab <b>Network</b> → klik één verzoek naar <span class="vt-code">vinted.nl</span> → rechtermuisklik → <b>Copy</b> → <b>Copy as cURL</b>.</li>
-              <li>Plak dat hieronder en klik op <b>Koppelen</b>. Je sessie blijft alleen op onze server — nooit in je browser.</li>
-            </ol>
+            Log hieronder één keer in met je Vinted-account. Daarna zie je in Guidsell je eigen kast, wie een bod deed en je berichten — en kun je gewoon antwoorden.
           </div>
           <div id="vintedSessionForm" style="margin-top:10px">
-            <textarea id="vintedSessionInput" rows="3" placeholder="Plak hier je 'Copy as cURL' of je cookie-regel (bv. access_token_web=...)" style="width:100%;font-size:12px;font-family:ui-monospace,monospace;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text)"></textarea>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;align-items:center">
-              <button class="btn" onclick="vintedLinkSession()" id="vintedLinkBtn">🔗 Koppelen</button>
-              <button class="btn btn-outline" onclick="vintedOpenLogin()">Open Vinted-login ↗</button>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+              <input id="vintedLoginEmail" type="email" autocomplete="username" placeholder="E-mailadres van je Vinted-account" onkeydown="if(event.key==='Enter'){event.preventDefault();vintedLoginLink();}" style="flex:1;min-width:190px;font-size:13px;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text)">
+              <input id="vintedLoginPass" type="password" autocomplete="current-password" placeholder="Vinted-wachtwoord" onkeydown="if(event.key==='Enter'){event.preventDefault();vintedLoginLink();}" style="flex:1;min-width:150px;font-size:13px;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text)">
+              <button class="btn" onclick="vintedLoginLink()" id="vintedLinkBtn">🔗 Koppel mijn Vinted</button>
+            </div>
+            <div style="font-size:11.5px;color:var(--muted);margin-top:7px;line-height:1.45">🔒 Je wachtwoord gebruiken we alleen om één keer in te loggen bij Vinted — daarna wordt het <b>niet</b> bewaard. Alleen de Vinted-toegangssleutel blijft op onze server.</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:9px;align-items:center">
+              <button class="btn btn-outline" onclick="vintedOpenLogin()">Open vinted.nl ↗</button>
               <span id="vintedSessionMsg" style="font-size:12px;color:var(--muted)"></span>
             </div>
+            <details style="margin-top:10px">
+              <summary style="cursor:pointer;font-size:12.5px;color:var(--muted);font-weight:600">Lukt het inloggen niet? Andere manier (zelf een sessie plakken)</summary>
+              <div style="font-size:12.5px;color:var(--muted);margin:8px 0;line-height:1.5">
+                Handig als je Vinted-account tweestapsverificatie heeft: log in bij Vinted in een nieuw tabblad → <b>F12</b> → tab <b>Network</b> → klik één verzoek naar <span class="vt-code">vinted.nl</span> → rechtermuisklik → <b>Copy</b> → <b>Copy as cURL</b>.
+              </div>
+              <textarea id="vintedSessionInput" rows="3" placeholder="Plak hier je 'Copy as cURL' of je cookie-regel (bv. access_token_web=...)" style="width:100%;font-size:12px;font-family:ui-monospace,monospace;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text)"></textarea>
+              <div style="margin-top:8px"><button class="btn btn-outline" onclick="vintedLinkSession()" id="vintedLinkBtn2">🔗 Sessie koppelen</button></div>
+            </details>
           </div>
           <div id="vintedSessionDone" hidden style="margin-top:10px">
             <div style="font-size:12.5px;color:var(--muted);line-height:1.5">Gekoppeld als <b id="vintedSessionUser" style="color:var(--text)">—</b><span id="vintedSessionMeta"></span>. Je kast, biedingen en berichten komen nu rechtstreeks uit je eigen Vinted-account.</div>
@@ -2663,7 +2674,7 @@ const AUTH_MSG = {
   bestaat_al: "Er bestaat al een account met dit e-mailadres. Log in.",
   onjuist: "Onjuist e-mailadres of wachtwoord.",
   te_vaak: "Te veel pogingen — probeer het over een paar minuten opnieuw.",
-  geen_account: "Geen account gevonden met dit e-mailadres. Maak een account aan — of log één keer in op het apparaat waar je je eerder registreerde; je account verhuist dan automatisch naar de server.",
+  geen_account: "Geen account met dit e-mailadres op de server. Registreer opnieuw met hetzelfde e-mailadres en wachtwoord — je items die nog op dit apparaat staan, worden dan automatisch weer aan je account gekoppeld.",
   geen_vraag: "Dit account heeft nog geen beveiligingsvraag. Neem contact op met de beheerder om je wachtwoord te resetten.",
   onjuist_antwoord: "Onjuist antwoord — probeer opnieuw.",
   verlopen: "Sessie verlopen — begin opnieuw.",
@@ -2925,7 +2936,7 @@ async function doRegister(ev) {
     users[email] = { name: (r.user && r.user.name) || name };   // lokale cache, zonder wachtwoord
     saveUsers();
     startSession(email);
-    toast("Welkom bij Guidsell, " + name + "! 🎉");
+    toast("Welkom bij Guidsell, " + name + "! Je account staat op de server — inloggen werkt nu op elk apparaat ✅");
   }catch(e){
     authError(AUTH_MSG.offline);
   }finally{ setAuthBusy(false); }
@@ -4768,7 +4779,7 @@ function fmtTs(ts){ return ts? new Date(ts).toLocaleString("nl-NL",{day:"numeric
 
 function vintedOpenLogin(){
   try{ window.open(VINTED_LOGIN_URL, "_blank", "noopener"); }catch(e){}
-  toast("Log in bij Vinted → F12 → Network → Copy as cURL → hieronder plakken");
+  toast("Log bij Vinted in en koppel daarna hier met je Vinted-e-mailadres + wachtwoord");
 }
 async function vintedApi(path, body){
   const r = await fetch(path, {
@@ -4826,14 +4837,62 @@ async function vintedLinkSession(){
     saveData(); renderVintedAccount();
     if(msg) msg.textContent="";
     if(box) box.value="";
-    toast("Vinted gekoppeld als @"+((r.profile&&r.profile.username)||"?")+" ✅");
-    vintedLoadInventory(false);
-    vintedLoadInbox(false);
+    vintedAfterLink();
   }catch(e){
     if(msg) msg.textContent="⚠️ Server onbereikbaar";
     toast("Koppelen mislukt — server onbereikbaar", true);
   }finally{
     if(btn){ btn.disabled=false; btn.textContent="🔗 Koppelen"; }
+  }
+}
+
+/* na een geslaagde koppeling: meteen kast + inbox laden (PRO) of vertellen dat
+   dat PRO is — de gebruiker blijft altijd op het dashboard staan. */
+function vintedAfterLink(){
+  const s=vintedSession();
+  const who=(s&&s.username)? "@"+s.username : "je Vinted-account";
+  if(isPro()){
+    toast("Vinted gekoppeld als "+who+" ✅");
+    vintedLoadInventory(false);
+    vintedLoadInbox(false);
+  } else {
+    toast("Vinted gekoppeld als "+who+" ✅ — je kast, biedingen en berichten bekijken is PRO");
+  }
+}
+
+/* koppelen door zelf bij Vinted in te loggen (e-mailadres + wachtwoord) —
+   de makkelijkste weg: geen DevTools, geen geplak. */
+async function vintedLoginLink(){
+  const em=document.getElementById("vintedLoginEmail");
+  const pw=document.getElementById("vintedLoginPass");
+  const msg=document.getElementById("vintedSessionMsg");
+  const btn=document.getElementById("vintedLinkBtn");
+  const vintedEmail=(em?em.value:"").trim();
+  const vintedPassword=(pw?pw.value:"");
+  if(!authToken){ toast("Log eerst in bij Guidsell", true); return; }
+  if(!vintedEmail || !vintedEmail.includes("@")){ if(msg) msg.textContent="⚠️ Vul het e-mailadres van je Vinted-account in."; toast("Vul je Vinted-e-mailadres in", true); return; }
+  if(!vintedPassword){ if(msg) msg.textContent="⚠️ Vul je Vinted-wachtwoord in."; toast("Vul je Vinted-wachtwoord in", true); return; }
+  if(btn){ btn.disabled=true; btn.textContent="⏳ Inloggen bij Vinted…"; }
+  if(msg) msg.textContent="⏳ Inloggen bij Vinted…";
+  try{
+    const r = await vintedApi("/api/vinted/me/login", { vintedEmail: vintedEmail, vintedPassword: vintedPassword });
+    if(pw) pw.value="";   // wachtwoord nooit in de browser laten staan
+    if(!r.ok){
+      const m = r.message || "Koppelen mislukt";
+      if(msg) msg.textContent="⚠️ "+m;
+      toast("Vinted koppelen mislukt — "+m, true);
+      return;
+    }
+    data.vintedSession = Object.assign({}, r.profile||{}, { linked:true, linkedAt:Date.now(), lastStatus:"ok", method:"login", refresh:true });
+    saveData(); renderVintedAccount();
+    if(msg) msg.textContent="";
+    if(em) em.value="";
+    vintedAfterLink();
+  }catch(e){
+    if(msg) msg.textContent="⚠️ Server onbereikbaar — probeer het opnieuw.";
+    toast("Koppelen mislukt — server onbereikbaar", true);
+  }finally{
+    if(btn){ btn.disabled=false; btn.textContent="🔗 Koppel mijn Vinted"; }
   }
 }
 

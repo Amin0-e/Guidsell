@@ -7,6 +7,9 @@ ai-key.txt
 guidsell-accounts.json
 *.tmp
 
+# Editor/agent-mappen
+.freebuff/
+
 # Logs en tijdelijke bestanden
 *.log
 proxy.log
