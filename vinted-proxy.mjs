@@ -80,8 +80,10 @@ const MAX_STATE_BYTES = 8 * 1024 * 1024;         // max app-data per account
      KV_REST_TOKEN = de REST-token
 
    Zonder die vars werkt alles precies zoals eerst (bestand naast de server). */
-const KV_URL = String(process.env.KV_REST_URL || "").replace(/\/+$/, "");
-const KV_TOKEN = String(process.env.KV_REST_TOKEN || "");
+// Accepteer ook de namen die Upstash zelf aanraadt, zodat je de variabelen uit
+// het Upstash-dashboard één op één kunt overnemen zonder ze te hernoemen.
+const KV_URL = String(process.env.KV_REST_URL || process.env.UPSTASH_REDIS_REST_URL || "").replace(/\/+$/, "");
+const KV_TOKEN = String(process.env.KV_REST_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN || "");
 const KV_KEY = String(process.env.KV_KEY || "guidsell-accounts").replace(/[^0-9a-zA-Z_\-]/g, "");
 const KV_ENABLED = !!(KV_URL && KV_TOKEN);
 let kvLastPayload = null;
