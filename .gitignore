@@ -13,4 +13,5 @@ proxy.log
 proxy_new.log
 _tmp_check*.js
 _tmp_auth*/
+_tmp_*
 _g.json

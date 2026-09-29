@@ -324,6 +324,199 @@ async function callGeminiServer(prompt, imagesBase64) {
   throw new Error("ai_onbereikbaar");
 }
 
+/* =====================================================
+   VINTED-ACCOUNT KOPPELEN — kast (inventaris), biedingen, berichten
+   -----------------------------------------------------
+   Vinted heeft géén publieke koppel-API (geen OAuth zoals Google/Stripe),
+   dus "inloggen bij Vinted" kan alleen in de browser van de gebruiker zelf.
+   Wat wél werkt — en wat deze code doet:
+
+     1. Gebruiker logt in op vinted.nl (de app opent die pagina voor hem).
+     2. Hij plakt één keer zijn Vinted-sessie: de cookie-regel uit DevTools
+        of de volledige "Copy as cURL" van een Vinted-verzoek.
+     3. Wij bewaren die sessie ALLEEN op deze server, bij zijn Guidsell-
+        account (nooit in de browser), en gebruiken hem om zijn eigen kast,
+        inbox/biedingen en gesprekken op te halen en te antwoorden.
+
+   De sessie verloopt bij Vinted na verloop van tijd (of bij uitloggen) →
+   dan geeft /api/vinted/me/diagnose exact terug wat er misgaat.
+===================================================== */
+
+function parseVintedSession(raw, uaOverride) {
+  const text = String(raw || "").trim();
+  const out = { cookies: "", token: "", ua: String(uaOverride || "").trim() };
+  if (!text) return out;
+  // "Copy as cURL" van een Vinted-verzoek (Network-tab → rechtermuis → Copy as cURL)
+  const curlCookie = text.match(/-H\s+(['"])cookie:\s*([\s\S]*?)\1/i) || text.match(/--header\s+(['"])cookie:\s*([\s\S]*?)\1/i);
+  if (curlCookie) out.cookies = curlCookie[2].replace(/\\"/g, '"').trim();
+  const curlB = text.match(/\s-b\s+(['"])([^'"]+)\1/);
+  if (!out.cookies && curlB) out.cookies = curlB[2].trim();
+  const curlUa = text.match(/-H\s+['"]user-agent:\s*([^'"]+)['"]/i) || text.match(/-A\s+['"]([^'"]+)['"]/i);
+  if (curlUa) out.ua = curlUa[1].trim();
+  const bearer = text.match(/authorization:\s*bearer\s+([A-Za-z0-9._\-]+)/i);
+  if (bearer) out.token = bearer[1];
+  if (!out.cookies) {
+    if (text.includes("access_token_web=")) out.cookies = text.replace(/^cookie:\s*/i, "").trim();
+    else if (/^[A-Za-z0-9._\-]{20,}$/.test(text)) out.cookies = "access_token_web=" + text;   // alleen de token-waarde
+    else if (text.includes("=")) out.cookies = text;
+  }
+  if (/\.vinted\./.test(out.cookies) && out.cookies.split("=").length === 2) out.cookies = "access_token_web=" + out.cookies;
+  if (/^https?:\/\//i.test(out.cookies)) out.cookies = "";   // geplakte URL is geen cookie
+  if (!out.token) {
+    const m = out.cookies.match(/access_token_web=([^;\s]+)/);
+    if (m) out.token = m[1];
+  }
+  out.cookies = out.cookies.replace(/[\r\n]+/g, " ").slice(0, 4000);
+  out.ua = out.ua.slice(0, 300);
+  return out;
+}
+
+function throttleVinted() {
+  const wait = 1200 - (Date.now() - lastFetchAt);
+  if (wait > 0) Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, wait);
+  lastFetchAt = Date.now();
+}
+
+// één Vinted API-call met de sessie van de gebruiker; geeft status + json terug
+function vintedFetch(sess, apiPath, opts = {}) {
+  const method = opts.method || "GET";
+  const timeoutMs = opts.timeoutMs || 20000;
+  throttleVinted();
+  const args = ["-s", "-m", String(Math.ceil(timeoutMs / 1000))];
+  if (method !== "GET") args.push("-X", method);
+  args.push(
+    "-A", (sess && sess.ua) || UA,
+    "-H", "Accept: application/json, text/plain, */*",
+    "-H", "Accept-Language: nl-NL,nl;q=0.9,en;q=0.8",
+    "-H", "X-Requested-With: XMLHttpRequest",
+    "-H", "Referer: " + VINTED_HOST + "/",
+  );
+  if (sess && sess.cookies) args.push("-H", "Cookie: " + sess.cookies);
+  if (sess && sess.token) args.push("-H", "Authorization: Bearer " + sess.token);
+  if (sess && sess.csrf) args.push("-H", "X-CSRF-Token: " + sess.csrf);
+  if (opts.json) args.push("-H", "Content-Type: application/json", "-d", JSON.stringify(opts.json));
+  args.push("-w", "\n__GS_STATUS__%{http_code}", VINTED_HOST + apiPath);
+  let out = "";
+  try { out = curl(args, timeoutMs).toString("utf8"); }
+  catch (e) { return { status: 0, raw: "", json: null, error: e.message }; }
+  const m = out.match(/\n__GS_STATUS__(\d+)\s*$/);
+  const status = m ? Number(m[1]) : 0;
+  const raw = m ? out.slice(0, m.index) : out;
+  let json = null;
+  try { json = JSON.parse(raw); } catch (e) {}
+  return { status, raw, json };
+}
+
+function vintedErrMsg(r) {
+  if (!r) return "onbekende fout";
+  if (r.status === 0) return "Geen antwoord van Vinted (" + (r.error || "timeout") + ")";
+  if (r.json && r.json.message) return "Vinted " + r.status + ": " + r.json.message;
+  if (r.status === 401 || r.status === 400) return "Vinted-sessie ongeldig of verlopen — koppel opnieuw.";
+  if (r.status === 403) return "Vinted blokkeert dit verzoek (botcontrole) — probeer het later opnieuw.";
+  if (r.status === 404) return "Dit endpoint bestaat niet (meer) bij Vinted (404).";
+  if (r.status === 429) return "Te veel verzoeken — wacht even en probeer opnieuw.";
+  return "Vinted gaf status " + r.status;
+}
+
+function vintedValidate(sess) {
+  const r = vintedFetch(sess, "/api/v2/users/me", { timeoutMs: 20000 });
+  if (r.status !== 200 || !r.json) return { ok: false, error: vintedErrMsg(r), status: r.status };
+  const u = r.json.user || r.json.current_user || r.json;
+  if (!u || !u.id) return { ok: false, error: "Vinted-antwoord zonder gebruiker", status: r.status };
+  return { ok: true, user: u };
+}
+
+function mapVintedUser(u) {
+  const photo = u.photo || u.avatar || null;
+  const avatar = (photo && (photo.url || photo.full_size_url || photo.thumb_url)) || u.avatar_url || "";
+  const feedbackCount = u.feedback_count != null ? Number(u.feedback_count) : null;
+  const positive = u.positive_feedback_count != null ? Number(u.positive_feedback_count) : null;
+  return {
+    memberId: String(u.id || ""),
+    username: u.login || u.username || u.name || "",
+    avatar: String(avatar).slice(0, 300),
+    rating: (feedbackCount && positive != null) ? Math.round((positive / feedbackCount) * 50) / 10 : null,
+    reviews: feedbackCount,
+    followers: u.follower_count != null ? u.follower_count : null,
+    following: u.following_count != null ? u.following_count : null,
+    location: u.city || u.country_title || u.location || "",
+    itemCount: u.item_count != null ? u.item_count : null,
+    balance: (u.balance && (u.balance.available || u.balance.amount)) || null,
+    profileUrl: "https://www.vinted.nl/member/" + (u.id || ""),
+    session: true,
+  };
+}
+
+// zoekt in een Vinted-antwoord de lijst die we zoeken (API-vormen verschillen per versie)
+function firstArray(obj, keys) {
+  if (!obj || typeof obj !== "object") return [];
+  for (const k of keys) if (Array.isArray(obj[k])) return obj[k];
+  for (const k of keys) if (obj[k] && typeof obj[k] === "object") {
+    for (const kk of keys) if (Array.isArray(obj[k][kk])) return obj[k][kk];
+  }
+  return [];
+}
+function mapVintedItem(it) {
+  const photo = (Array.isArray(it.photos) && it.photos[0]) || it.photo || null;
+  const image = photo ? (photo.url || photo.full_size_url || photo.thumb_url || photo.dominant_color_url || "") : "";
+  const price = (it.price && (it.price.amount || it.price)) || it.total_item_price || null;
+  return {
+    id: String(it.id || it.item_id || ""),
+    title: String(it.title || it.name || "").slice(0, 120),
+    brand: String(it.brand || it.brand_title || (it.brand_dto && it.brand_dto.title) || "").slice(0, 60),
+    size: String(it.size_title || it.size || "").slice(0, 20),
+    price: price != null && price !== "" ? Number(price) : null,
+    image: String(image).slice(0, 300),
+    url: it.url || it.path || (it.id ? "https://www.vinted.nl/items/" + it.id : ""),
+    views: it.view_count != null ? it.view_count : null,
+    favourites: it.favourite_count != null ? it.favourite_count : null,
+    status: it.status || it.state || "",
+    createdAt: it.created_at_ts ? it.created_at_ts * 1000 : (it.created_at ? Date.parse(it.created_at) : null),
+  };
+}
+function mapVintedThread(c, usersById) {
+  const withUser = c.user || c.other_user || (usersById && usersById[String(c.user_id || c.other_user_id)]) || null;
+  const last = c.last_message || c.latest_message || null;
+  const offer = c.offer || c.item_offer || (last && last.offer) || null;
+  return {
+    id: String(c.id || ""),
+    unread: !!c.unread || Number(c.unread_count || 0) > 0,
+    updatedAt: c.updated_at_ts ? c.updated_at_ts * 1000 : (c.updated_at ? Date.parse(c.updated_at) : null),
+    username: (withUser && (withUser.login || withUser.username)) || c.user_login || "",
+    avatar: (withUser && withUser.photo && (withUser.photo.url || withUser.photo.thumb_url)) || "",
+    itemId: c.item_id != null ? String(c.item_id) : (c.item && String(c.item.id)) || "",
+    itemTitle: (c.item && (c.item.title || c.item.name)) || "",
+    preview: String((last && (last.body || last.text)) || c.preview || "").slice(0, 160),
+    offer: offer ? { amount: Number(offer.amount || offer.price || 0) || null, status: offer.status || "" } : null,
+  };
+}
+function mapVintedMessage(m, usersById) {
+  const withUser = m.user || (usersById && usersById[String(m.user_id)]) || null;
+  return {
+    id: String(m.id || ""),
+    body: String(m.body || m.text || "").slice(0, 2000),
+    createdAt: m.created_at_ts ? m.created_at_ts * 1000 : (m.created_at ? Date.parse(m.created_at) : null),
+    mine: !!(m.is_mine || m.by_current_user || m.mine),
+    username: (withUser && (withUser.login || withUser.username)) || m.user_login || "",
+    offer: m.offer ? { amount: Number(m.offer.amount || m.offer.price || 0) || null, status: m.offer.status || "" } : null,
+  };
+}
+// CSRF-token ophalen (Vinted wil die bij POST's)
+function vintedCsrf(sess) {
+  try {
+    throttleVinted();
+    const html = curl([
+      "-s", "-m", "20", "-A", (sess && sess.ua) || UA,
+      "-H", "Accept: text/html,application/xhtml+xml",
+      "-H", "Accept-Language: nl-NL,nl;q=0.9",
+      "-H", "Cookie: " + ((sess && sess.cookies) || ""),
+      VINTED_HOST + "/",
+    ], 20000).toString("utf8");
+    const m = html.match(/name="csrf-token"\s+content="([^"]+)"/) || html.match(/content="([^"]+)"\s+name="csrf-token"/);
+    return m ? m[1] : "";
+  } catch (e) { return ""; }
+}
+
 /* ---------------- Utility ---------------- */
 
 function median(a) {
@@ -1029,6 +1222,180 @@ const server = http.createServer(async (req, res) => {
     } catch (e) {
       return sendJson(res, 200, { ok: false, reason: "onbereikbaar", error: e.message, host: parsed.hostname });
     }
+  }
+
+  /* ---- Mijn Vinted-account: koppelen, kast, biedingen, berichten ---- */
+  if (u.pathname.startsWith("/api/vinted/me/")) {
+    let vb = {};
+    if (req.method === "POST") {
+      try { vb = await readJsonBody(req, 512 * 1024); }
+      catch (e) { return sendJson(res, 400, { ok: false, error: "ongeldige_request" }, false); }
+    }
+    const gtok = String(vb.token || u.searchParams.get("token") || "");
+    const email = tokenEmail(gtok);
+    if (!email) return sendJson(res, 200, { ok: false, error: "geen_sessie" }, false);
+    const gu = store.users[email];
+    const sub = u.pathname.slice("/api/vinted/me/".length).replace(/\/$/, "");
+    const sess = gu.vinted || null;
+    const notLinked = () => sendJson(res, 200, { ok: false, error: "niet_gekoppeld", message: "Koppel eerst je Vinted-account." }, false);
+
+    // ---- koppelen: cookie / 'Copy as cURL' plakken en valideren ----
+    if (sub === "link" && req.method === "POST") {
+      const parsed = parseVintedSession(vb.session || vb.cookie || vb.curl || "", vb.ua);
+      if (!parsed.cookies && !parsed.token) {
+        return sendJson(res, 200, { ok: false, error: "geen_sessie_gevonden", message: "Geen Vinted-sessie gevonden. Plak de cookie-regel of de volledige 'Copy as cURL' van een Vinted-verzoek." }, false);
+      }
+      const check = vintedValidate(parsed);
+      if (!check.ok) {
+        const hint = (check.status === 400 || check.status === 401)
+          ? "Vinted accepteert deze sessie niet (401) — je bent daar niet (meer) ingelogd. Log opnieuw in bij Vinted en kopieer de 'Copy as cURL' van een vinted.nl-verzoek."
+          : check.error;
+        return sendJson(res, 200, { ok: false, error: "koppelen_mislukt", message: hint, detail: check.error, status: check.status }, false);
+      }
+      const prof = mapVintedUser(check.user);
+      gu.vinted = { cookies: parsed.cookies, token: parsed.token, ua: parsed.ua, csrf: "", ...prof, linkedAt: Date.now(), lastCheck: Date.now(), lastStatus: "ok" };
+      saveStore(true);
+      console.log(`[vinted] ${email} gekoppeld als @${prof.username} (id ${prof.memberId})`);
+      return sendJson(res, 200, { ok: true, profile: prof }, false);
+    }
+
+    // ---- status (nooit de sessie zelf terugsturen!) ----
+    if (sub === "status") {
+      return sendJson(res, 200, {
+        ok: true,
+        linked: !!sess,
+        linkedAt: sess ? sess.linkedAt : null,
+        lastStatus: sess ? sess.lastStatus || "" : "",
+        profile: sess ? { memberId: sess.memberId, username: sess.username, avatar: sess.avatar, rating: sess.rating, reviews: sess.reviews, location: sess.location, itemCount: sess.itemCount, balance: sess.balance, profileUrl: sess.profileUrl } : null,
+      }, false);
+    }
+
+    if (sub === "unlink" && req.method === "POST") {
+      delete gu.vinted;
+      saveStore(true);
+      return sendJson(res, 200, { ok: true }, false);
+    }
+
+    // ---- verbindingstest: laat precies zien wat Vinted wel/niet teruggeeft ----
+    if (sub === "diagnose") {
+      if (!sess) return notLinked();
+      const paths = [
+        "/api/v2/users/me",
+        "/api/v2/users/me/items?page=1&per_page=5",
+        "/api/v2/inbox?page=1&per_page=5",
+        "/api/v2/my_orders",
+        "/api/v2/users/currencies",
+      ];
+      const checks = [];
+      for (const p of paths) {
+        const r = vintedFetch(sess, p, { timeoutMs: 15000 });
+        let detail = "";
+        if (r.status === 200 && r.json) {
+          const items = firstArray(r.json, ["items", "wardrobe", "item_ids"]);
+          const convos = firstArray(r.json, ["conversations", "inbox", "threads"]);
+          const orders = firstArray(r.json, ["orders", "my_orders", "transactions"]);
+          if (r.json.user) detail = "gebruiker @" + (r.json.user.login || r.json.user.username || r.json.user.id);
+          else if (items.length) detail = items.length + " items";
+          else if (convos.length) detail = convos.length + " gesprekken";
+          else if (orders.length) detail = orders.length + " orders";
+          else detail = "data ontvangen (" + Object.keys(r.json).slice(0, 4).join(", ") + ")";
+        }
+        checks.push({ path: p, status: r.status, ok: r.status === 200, message: r.status === 200 ? detail : vintedErrMsg(r) });
+      }
+      const allOk = checks.length && checks.every(c => c.ok);
+      const userPathOk = checks[0] && checks[0].ok;
+      gu.vinted.lastCheck = Date.now();
+      gu.vinted.lastStatus = allOk ? "ok" : (userPathOk ? "deels" : "verlopen");
+      if (userPathOk) {
+        const me = vintedFetch(sess, "/api/v2/users/me", { timeoutMs: 15000 });
+        if (me.status === 200 && me.json && me.json.user) Object.assign(gu.vinted, mapVintedUser(me.json.user));
+      }
+      saveStore();
+      console.log(`[vinted] diagnose ${email}: ${checks.map(c => c.status).join("/")}`);
+      return sendJson(res, 200, { ok: true, checks, linkedAt: sess.linkedAt, lastStatus: gu.vinted.lastStatus }, false);
+    }
+
+    // ---- kast / inventaris ----
+    if (sub === "inventory") {
+      if (!sess) return notLinked();
+      const page = Math.max(1, Math.min(20, Number(u.searchParams.get("page")) || 1));
+      let r = vintedFetch(sess, `/api/v2/users/me/items?page=${page}&per_page=40`);
+      if (r.status === 404 && sess.memberId) r = vintedFetch(sess, `/api/v2/wardrobe/${sess.memberId}/items?page=${page}&per_page=40`);
+      if (!r.json && r.status === 200 && sess.memberId) r = { ...(vintedFetch(sess, `/api/v2/wardrobe/${sess.memberId}/items?page=${page}&per_page=40`)) };
+      if (r.status !== 200 || !r.json) {
+        if (r.status === 400 || r.status === 401) { gu.vinted.lastStatus = "verlopen"; saveStore(); }
+        return sendJson(res, 200, { ok: false, error: "vinted_fout", status: r.status, message: vintedErrMsg(r) }, false);
+      }
+      const items = firstArray(r.json, ["items", "wardrobe", "item_ids"]).map(mapVintedItem).filter(i => i.id);
+      const total = r.json.pagination ? (r.json.pagination.total_entries || r.json.pagination.total || null) : null;
+      console.log(`[vinted] kast ${email}: ${items.length} items`);
+      return sendJson(res, 200, { ok: true, items, total, page }, false);
+    }
+
+    // ---- inbox: biedingen + berichten ----
+    if (sub === "inbox") {
+      if (!sess) return notLinked();
+      const page = Math.max(1, Math.min(20, Number(u.searchParams.get("page")) || 1));
+      const r = vintedFetch(sess, `/api/v2/inbox?page=${page}&per_page=30`);
+      if (r.status !== 200 || !r.json) {
+        if (r.status === 400 || r.status === 401) { gu.vinted.lastStatus = "verlopen"; saveStore(); }
+        return sendJson(res, 200, { ok: false, error: "vinted_fout", status: r.status, message: vintedErrMsg(r) }, false);
+      }
+      const usersById = {};
+      firstArray(r.json, ["users"]).forEach(x => { if (x && x.id != null) usersById[String(x.id)] = x; });
+      const threads = firstArray(r.json, ["conversations", "inbox", "threads"]).map(c => mapVintedThread(c, usersById)).filter(t => t.id);
+      console.log(`[vinted] inbox ${email}: ${threads.length} gesprekken`);
+      return sendJson(res, 200, { ok: true, threads, page }, false);
+    }
+
+    // ---- één gesprek (met biedingen erin) ----
+    if (sub === "thread") {
+      if (!sess) return notLinked();
+      const id = String(vb.id || u.searchParams.get("id") || "").replace(/[^0-9a-zA-Z_\-]/g, "");
+      if (!id) return sendJson(res, 200, { ok: false, error: "geen_id", message: "Geen gesprek-id meegegeven." }, false);
+      let r = vintedFetch(sess, `/api/v2/conversations/${id}?per_page=50`);
+      if (r.status === 404) r = vintedFetch(sess, `/api/v2/inbox/${id}`);
+      if (r.status !== 200 || !r.json) return sendJson(res, 200, { ok: false, error: "vinted_fout", status: r.status, message: vintedErrMsg(r) }, false);
+      const usersById = {};
+      firstArray(r.json, ["users"]).forEach(x => { if (x && x.id != null) usersById[String(x.id)] = x; });
+      const convo = r.json.conversation || r.json.thread || null;
+      const messages = firstArray(r.json, ["messages", "conversation_messages"]).map(m => mapVintedMessage(m, usersById));
+      return sendJson(res, 200, {
+        ok: true,
+        id,
+        thread: convo ? mapVintedThread(convo, usersById) : null,
+        messages,
+      }, false);
+    }
+
+    // ---- antwoorden sturen ----
+    if (sub === "reply" && req.method === "POST") {
+      if (!sess) return notLinked();
+      const id = String(vb.conversationId || "").replace(/[^0-9a-zA-Z_\-]/g, "");
+      const text = String(vb.text || "").trim().slice(0, 1000);
+      if (!id) return sendJson(res, 200, { ok: false, error: "geen_id" }, false);
+      if (!text) return sendJson(res, 200, { ok: false, error: "leeg_bericht" }, false);
+      if (!sess.csrf) { sess.csrf = vintedCsrf(sess); saveStore(); }
+      const attempts = [
+        { path: `/api/v2/conversations/${id}/messages`, body: { message: { body: text } } },
+        { path: `/api/v2/inbox/${id}/messages`, body: { message: { body: text } } },
+        { path: `/api/v2/conversations/${id}/messages`, body: { message: { body: text, conversation_id: id } } },
+      ];
+      const tried = [];
+      for (const a of attempts) {
+        const r = vintedFetch(sess, a.path, { method: "POST", json: a.body, timeoutMs: 20000 });
+        tried.push({ path: a.path, status: r.status });
+        if (r.status === 200 || r.status === 201) {
+          console.log(`[vinted] antwoord verstuurd naar gesprek ${id} via ${a.path}`);
+          return sendJson(res, 200, { ok: true, via: a.path, status: r.status }, false);
+        }
+        if (r.status === 404) continue;                      // verkeerd pad → volgende proberen
+        return sendJson(res, 200, { ok: false, error: "vinted_fout", status: r.status, message: vintedErrMsg(r), tried }, false);
+      }
+      return sendJson(res, 200, { ok: false, error: "endpoint_onbekend", status: 404, message: "Vinted accepteert geen bericht via de bekende endpoints — meld dit, dan pas ik het pad aan.", tried }, false);
+    }
+
+    return sendJson(res, 404, { ok: false, error: "onbekend_endpoint", path: u.pathname }, false);
   }
 
   // ---- Statische bestanden ----
