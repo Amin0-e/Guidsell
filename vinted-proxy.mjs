@@ -334,9 +334,14 @@ function fetchCatalogHtml(query) {
     url,
   ], 25000).toString("utf8");
 
-  // DataDome-detectie: te klein of zonder item-links
+  /* DataDome-detectie.
+     Een gewone cataloguspagina is megabytes; een bot-controle is een klein
+     kaal paginaatje. Alleen als het echt op een challenge lijkt is het
+     "geblokkeerd" — een geldige zoekactie zonder resultaten mag geen fout zijn. */
   const linkCount = (html.match(/href="\/items\//g) || []).length;
-  if (html.length < 100000 || linkCount === 0) {
+  const challenge = /datadome|captcha-delivery|geo\.captcha|just a moment|attention required/i.test(html);
+  console.log(`[vinted-catalog] "${query}": ${html.length} bytes, ${linkCount} item-links${challenge ? " · CHALLENGE" : ""}`);
+  if (challenge || html.length < 30000) {
     const err = new Error("vinted_bot_controle");
     err.blocked = true;
     throw err;
@@ -1428,11 +1433,20 @@ const server = http.createServer(async (req, res) => {
         }
       }
       if (!username) throw new Error("geen gebruikersnaam — vul je Vinted-gebruikersnaam in");
-      // throttling voor catalog
-      const wait = 1200 - (Date.now() - lastFetchAt); if(wait>0) Atomics.wait(new Int32Array(new SharedArrayBuffer(4)),0,0,wait); lastFetchAt=Date.now();
-      const catUrl = `${VINTED_HOST}/catalog?search_text=${encodeURIComponent(username)}`;
-      const catHtml = curl(["-L","-A",UA,"-H","Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8","-H","Accept-Language: nl-NL,nl;q=0.9,en;q=0.8","-H",`Referer: ${VINTED_HOST}/`,catUrl],25000).toString("utf8");
+      /* Zelfde route als de live prijzen: de catalogus mét cookie-jar. Zonder
+         die jar krijgt een server-IP een lege bot-controlepagina (0 items),
+         terwijl het met de jar gewoon werkt. */
+      let catHtml = "";
+      try {
+        catHtml = fetchCatalogHtml(username);
+      } catch (e1) {
+        if (e1 && e1.blocked) {
+          warmSession();
+          catHtml = fetchCatalogHtml(username);
+        } else throw e1;
+      }
       let comps = parseCatalogHtml(catHtml);
+      console.log(`[vinted-closet] catalogus "${username}": ${catHtml.length} bytes, ${comps.length} items`);
       // beperk tot items die echt bij dit account lijken te horen: filter op username in titel is niet betrouwbaar,
       // Vinted toont via search_text=username alleen closet-items van die user
       // maar als zoekterm generiek is (bv. "shop123"), vallen er ruis-items tussen — extra guard: bewaar max 24.
