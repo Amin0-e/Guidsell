@@ -532,6 +532,34 @@ function vintedErrMsg(r) {
    inloggegevens. Daarmee halen we een access_token + refresh_token op,
    zodat de gebruiker alleen nog e-mail + wachtwoord hoeft in te vullen.
    Het wachtwoord wordt NIET opgeslagen. */
+/* Vinted zet bij het eerste bezoek een DataDome-cookie. Zonder die cookie ziet
+   hun botbeveiliging een kale POST naar het inlog-endpoint (zeker vanaf een
+   datacenter-IP) en blokkeert die met 403. Daarom warmen we eerst de cookies op
+   en sturen we ze mee met het inlogverzoek. */
+function vintedWarmCookies(paths) {
+  for (const p of paths) {
+    try {
+      curl([
+        "-b", JAR, "-c", JAR, "-A", UA,
+        "-H", "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "-H", "Accept-Language: nl-NL,nl;q=0.9,en;q=0.8",
+        "-H", "Referer: " + VINTED_HOST + "/",
+        VINTED_HOST + p,
+      ], 20000);
+    } catch (e) { /* volgende pad */ }
+  }
+}
+
+function jarCookieNames() {
+  try {
+    return fs.readFileSync(JAR, "utf8")
+      .split(/\r?\n/)
+      .filter(l => l && l[0] !== "#")
+      .map(l => (l.split("\t")[5] || "").trim())
+      .filter(Boolean);
+  } catch (e) { return []; }
+}
+
 function vintedOauth(params) {
   const body = Object.keys(params)
     .filter(k => params[k] != null)
@@ -539,6 +567,7 @@ function vintedOauth(params) {
     .join("&");
   const args = [
     "-X", "POST",
+    "-b", JAR, "-c", JAR,          // meenemen: DataDome- + sessiecookies
     "-A", UA,
     "-H", "Content-Type: application/x-www-form-urlencoded",
     "-H", "Accept: application/json, text/plain, */*",
@@ -563,7 +592,17 @@ function vintedOauth(params) {
 
 function vintedLoginWithCredentials(username, password) {
   throttleVinted();
-  const r = vintedOauth({ grant_type: "password", username, password, client_id: "web", scope: "default" });
+  // eerst de inlogpagina bezoeken zodat Vinted z'n DataDome-cookie zet
+  vintedWarmCookies(["/login", "/"]);
+  const params = { grant_type: "password", username, password, client_id: "web", scope: "default" };
+  let r = vintedOauth(params);
+  // geblokkeerd? cookies verversen en één keer opnieuw proberen
+  if (r.status === 403 || r.status === 429) {
+    console.log("[vinted] login geblokkeerd (" + r.status + ") — cookies verversen en opnieuw proberen");
+    vintedWarmCookies(["/", "/login"]);
+    throttleVinted();
+    r = vintedOauth(params);
+  }
   if (r.status === 200 && r.json && r.json.access_token) {
     return {
       ok: true,
@@ -572,8 +611,22 @@ function vintedLoginWithCredentials(username, password) {
       expiresIn: Number(r.json.expires_in) || 3600,
     };
   }
+  // altijd loggen wat Vinted teruggeeft: dit is precies waar het misgaat
+  console.log(`[vinted] login-antwoord: status=${r.status} cookies=[${jarCookieNames().join(",").slice(0, 90)}] body=${String(r.raw || "").replace(/\s+/g, " ").slice(0, 240)}`);
   if (r.status === 0) return { ok: false, error: "onbereikbaar", message: "Geen antwoord van Vinted (" + (r.error || "timeout") + "). Probeer het opnieuw." };
-  if (r.status === 403 || r.status === 429) return { ok: false, error: "geblokkeerd", message: "Vinted blokkeert inloggen vanaf onze server (botcontrole). Wacht een paar minuten en probeer opnieuw." };
+  if (r.status === 403 || r.status === 429) {
+    const body = String(r.raw || "");
+    const dataDome = /datadome|captcha-delivery|geo\.captcha/i.test(body);
+    return {
+      ok: false,
+      error: "geblokkeerd",
+      dataDome,
+      message: dataDome
+        ? "Vinted blokkeert inloggen vanaf onze server (botcontrole). Gebruik daarom de makkelijke koppeling via je eigen browser hieronder — die werkt altijd."
+        : "Vinted gaf een blokkade (" + r.status + "). Probeer het over een paar minuten opnieuw.",
+      detail: body.slice(0, 200),
+    };
+  }
   const desc = String((r.json && r.json.error_description) || "");
   if (/two.?factor|verification|verificatie|2fa|sms|code/i.test(desc)) {
     return { ok: false, error: "2fa", message: "Dit Vinted-account gebruikt tweestapsverificatie. Zet die even uit tijdens het koppelen, of gebruik de andere manier hieronder." };
@@ -1470,6 +1523,19 @@ const server = http.createServer(async (req, res) => {
       saveStore(true);
       console.log(`[vinted] ${email} gekoppeld via Vinted-login als @${prof.username} (id ${prof.memberId})`);
       return sendJson(res, 200, { ok: true, profile: prof, method: "login" }, false);
+    }
+
+    // ---- diagnose van de koppeling zelf (werkt ook zónder gekoppeld account) ----
+    if (sub === "probe") {
+      const out = { cookies: [], login: null, api: null };
+      vintedWarmCookies(["/", "/login"]);
+      out.cookies = jarCookieNames();
+      const p = vintedOauth({ grant_type: "password", username: "probe-" + Date.now() + "@example.com", password: "x", client_id: "web", scope: "default" });
+      out.login = { status: p.status, body: String(p.raw || "").replace(/\s+/g, " ").slice(0, 300) };
+      const a = vintedFetch({ ua: UA, cookies: "" }, "/api/v2/users/me", { timeoutMs: 15000 });
+      out.api = { status: a.status, body: String(a.raw || "").replace(/\s+/g, " ").slice(0, 200) };
+      console.log(`[vinted] probe ${email}: login=${p.status} api=${a.status} cookies=[${out.cookies.join(",")}]`);
+      return sendJson(res, 200, { ok: true, probe: out }, false);
     }
 
     // ---- koppelen: cookie / 'Copy as cURL' plakken en valideren ----
