@@ -295,11 +295,45 @@ let lastFetchAt = 0;
 
 function curl(args, timeoutMs = 25000) {
   const exe = process.platform === "win32" ? "curl.exe" : "curl";
-  return execFileSync(exe, ["-s", "-m", String(Math.ceil(timeoutMs / 1000)), ...args], {
+  return execFileSync(exe, ["-s", "-m", String(Math.ceil(timeoutMs / 1000)), "--compressed", ...args], {
     maxBuffer: 64 * 1024 * 1024,
     timeout: timeoutMs + 5000,
     windowsHide: true,
   });
+}
+
+/* Eén consistent set browser-headers voor alle Vinted-verzoeken.
+   Vinted's botcontrole (DataDome) kijkt naar hoe "echt" een verzoek eruitziet:
+   een UA zonder bijbehorende sec-ch-ua/sec-fetch-headers valt op. */
+function vintedHeaders(opts = {}) {
+  const h = [
+    "-A", UA,
+    "-H", "Accept-Language: nl-NL,nl;q=0.9,en;q=0.8",
+    "-H", "sec-ch-ua: \"Chromium\";v=\"126\", \"Google Chrome\";v=\"126\", \"Not)A;Brand\";v=\"24\"",
+    "-H", "sec-ch-ua-mobile: ?0",
+    "-H", "sec-ch-ua-platform: \"Windows\"",
+    "-H", "Sec-Fetch-Site: same-origin",
+    "-H", "Sec-Fetch-Mode: navigate",
+    "-H", "Sec-Fetch-Dest: document",
+    "-H", "Sec-Fetch-User: ?1",
+    "-H", "Upgrade-Insecure-Requests: 1",
+  ];
+  if (opts.json) {
+    h.push("-H", "Accept: application/json, text/plain, */*");
+    h.push("-H", "X-Requested-With: XMLHttpRequest");
+  } else {
+    h.push("-H", "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8");
+  }
+  return h;
+}
+
+/* Een vastgelopen sessie (cookie-jar) kan zelf het probleem zijn: gooi hem weg
+   en begin schoon. Dat is één van de weinige dingen die een blokkade kan
+   opheffen zonder dat de gebruiker iets hoeft te doen. */
+function resetVintedSession(reason) {
+  try { fs.unlinkSync(JAR); } catch { /* bestond niet */ }
+  console.log(`[vinted] verse sessie (${reason})`);
+  warmSession();
 }
 
 function warmSession() {
@@ -307,9 +341,7 @@ function warmSession() {
   try {
     curl([
       "-c", JAR, "-b", JAR,
-      "-A", UA,
-      "-H", "Accept: text/html,application/xhtml+xml",
-      "-H", "Accept-Language: nl-NL,nl;q=0.9",
+      ...vintedHeaders(),
       VINTED_HOST + "/",
     ], 20000);
     console.log("[vinted] sessie warm (cookies opgeslagen)");
@@ -328,6 +360,10 @@ function markVintedBlocked(ms = 5 * 60 * 1000) {
   console.log(`[vinted] botcontrole gezien — ${Math.round(ms / 60000)} min geen Vinted-verzoeken`);
 }
 function vintedIsBlocked() { return Date.now() < vintedBlockedUntil; }
+/* Een botcontrole-pagina is klein en/of komt van DataDome's captcha-domein. */
+function isChallenge(html) {
+  return String(html || "").length < 30000 || /geo\.captcha-delivery|captcha-delivery\.com/i.test(String(html || ""));
+}
 
 function fetchCatalogHtml(query) {
   if (vintedIsBlocked()) {
@@ -341,26 +377,27 @@ function fetchCatalogHtml(query) {
   lastFetchAt = Date.now();
 
   const url = `${VINTED_HOST}/catalog?search_text=${encodeURIComponent(query)}`;
-  const html = curl([
+  const haal = () => curl([
     "-b", JAR, "-c", JAR, // jar bijwerken (cookies roteren soms)
-    "-A", UA,
-    "-H", "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-    "-H", "Accept-Language: nl-NL,nl;q=0.9,en;q=0.8",
+    ...vintedHeaders(),
     "-H", `Referer: ${VINTED_HOST}/`,
     url,
   ], 25000).toString("utf8");
 
   /* DataDome-detectie.
      Een gewone cataloguspagina is megabytes; een bot-controle is een klein
-     kaal paginaatje. Alleen als het echt op een challenge lijkt is het
-     "geblokkeerd" — een geldige zoekactie zonder resultaten mag geen fout zijn. */
+     kaal paginaatje. Let op: een normale Vinted-pagina bevat óók het woord
+     "datadome" (hun beveiligingsscript) — dat is géén blokkade. */
+  let html = haal();
+  if (isChallenge(html)) {
+    // vaak zit het in de opgespaarde sessie: schone sessie, dan meteen opnieuw
+    resetVintedSession("catalogus gaf een controlepagina");
+    html = haal();
+  }
   const linkCount = (html.match(/href="\/items\//g) || []).length;
-  /* Let op: een normale Vinted-pagina bevat óók het woord "datadome" (hun
-     beveiligingsscript). Alleen een echte challenge telt: een verdacht kleine
-     pagina of de captcha-afleveringspagina zelf. */
-  const challenge = html.length < 30000 || /geo\.captcha-delivery|captcha-delivery\.com/i.test(html);
+  const challenge = isChallenge(html);
   console.log(`[vinted-catalog] "${query}": ${html.length} bytes, ${linkCount} item-links${challenge ? " · CHALLENGE" : ""}`);
-  if (challenge || html.length < 30000) {
+  if (challenge) {
     markVintedBlocked();
     const err = new Error("vinted_bot_controle");
     err.blocked = true;
@@ -412,6 +449,13 @@ function parseCatalogHtml(html) {
 // krijgen daarna automatisch AI — zonder ooit een sleutel te zien.
 
 function readApiKey() {
+  // 1) sleutel die in de app is opgeslagen → werkt op elk apparaat en blijft
+  //    ook staan na een redeploy (gaat mee in de accountopslag)
+  try {
+    const k = store && store.aiKey;
+    if (k && String(k).trim().length > 10) return String(k).trim();
+  } catch { /* store nog niet geladen */ }
+  // 2) lokaal bestand naast de server (ai-key.txt)
   try {
     const k = fs.readFileSync(path.join(__dirname, "ai-key.txt"), "utf8").trim();
     if (k) return k;
@@ -1069,6 +1113,28 @@ const server = http.createServer(async (req, res) => {
     return sendJson(res, 200, { aiReady: !!k });
   }
 
+  /* ---- AI-sleutel in de app opslaan ----------------------------------------
+     Waarom server-side: anders zit de sleutel alleen in de browser waar je hem
+     intypt (localStorage), en "werkt de AI niet" op je telefoon of na een
+     herstart. Nu één keer invullen en klaar. */
+  if (u.pathname === "/api/ai/key" && req.method === "POST") {
+    let vb = {};
+    try { vb = await readJsonBody(req, 8 * 1024); } catch (e) { /* leeg mag */ }
+    const email = tokenEmail(String(vb.token || ""));
+    if (!email) return sendJson(res, 200, { ok: false, error: "geen_sessie" }, false);
+    const key = String(vb.key || "").trim();
+    if (vb.clear === true || key === "") {
+      delete store.aiKey;
+      saveStore(true);
+      return sendJson(res, 200, { ok: true, aiReady: !!readApiKey(), cleared: true }, false);
+    }
+    if (key.length < 20) return sendJson(res, 200, { ok: false, error: "te_kort", message: "Dat lijkt geen geldige sleutel (te kort)." }, false);
+    store.aiKey = key.slice(0, 300);
+    saveStore(true);
+    console.log(`[ai] sleutel opgeslagen via de app (${email}) — AI staat nu aan voor alle apparaten`);
+    return sendJson(res, 200, { ok: true, aiReady: true }, false);
+  }
+
   // ---- AI foto-analyse ----
   if (u.pathname === "/api/analyze" && req.method === "POST") {
     let raw = "";
@@ -1376,7 +1442,7 @@ const server = http.createServer(async (req, res) => {
     try {
       // profiel als "gewone" GET — geen Vinted-jar (verse DataDome, anders session-refresh loop)
       // We gebruiken een aparte jar via -L zonder -b main JAR
-      const html = curl(["-L","-A",UA,"-H","Accept: text/html,application/xhtml+xml","-H","Accept-Language: nl-NL,nl;q=0.9,en;q=0.8",profileUrl],20000).toString("utf8");
+      const html = curl(["-L", ...vintedHeaders(), profileUrl],20000).toString("utf8");
       const ogTitle = (html.match(/<meta[^>]+property=["']og:title["'][^>]*content=["']([^"']+)["']/i)||[])[1] || "";
       const ogImage = (html.match(/<meta[^>]+property=["']og:image["'][^>]*content=["']([^"']+)["']/i)||[])[1] || "";
       // username uit <h1 data-testid="profile-username">
@@ -1439,7 +1505,7 @@ const server = http.createServer(async (req, res) => {
          datacenter-IP's), dan mag de gebruiker hem zelf opgeven. */
       let username = rawUser;
       if (!username && profileUrl) {
-        const profRaw = curl(["-L","-A",UA,"-H","Accept: text/html,application/xhtml+xml","-H","Accept-Language: nl-NL,nl;q=0.9,en;q=0.8","-w","\n__ST__%{http_code}",profileUrl],20000).toString("utf8");
+        const profRaw = curl(["-L", ...vintedHeaders(), "-w", "\n__ST__%{http_code}", profileUrl],20000).toString("utf8");
         const stM = profRaw.match(/__ST__(\d+)\s*$/);
         const profStatus = stM ? stM[1] : "?";
         const profHtml = profRaw.replace(/__ST__\d+\s*$/, "");

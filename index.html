@@ -3270,7 +3270,14 @@ function saveNewPassword(){
   if(a!==b){ toast("Wachtwoorden komen niet overeen", true); return; }
   users[session].pass=a; saveUsers(); closeChangePass(); toast(t("passSaved"));
 }
-function clearApiKey(){ localStorage.removeItem("guidsell_gemini_key"); syncSettingsUI(); renderKeyHint(); toast(t("keyRemoved")); }
+function clearApiKey(){
+  localStorage.removeItem("guidsell_gemini_key");
+  // ook van de server halen, anders blijft de AI daar aan staan
+  if(authToken){
+    api("/api/ai/key", { clear: true }).then(r=>{ if(r && r.ok) serverAiReady = !!r.aiReady; syncSettingsUI(); renderKeyHint(); }).catch(()=>{});
+  }
+  syncSettingsUI(); renderKeyHint(); toast(t("keyRemoved"));
+}
 function saveShipDefaults(){
   const ag=document.getElementById("setShipAgent")?.value, co=document.getElementById("setShipCountry")?.value, mo=document.getElementById("setShipMode")?.value, cu=document.getElementById("setShipCurr")?.value;
   if(ag) setPref("shipAgent", ag);
@@ -3336,6 +3343,14 @@ function saveAllSettings(){
     setPrefsBulk(obj);
     const k=document.getElementById("setKey")?.value?.trim();
     if(k && k.length>=20) { localStorage.setItem("guidsell_gemini_key", k); } else if(k===""){ localStorage.removeItem("guidsell_gemini_key"); }
+    /* Ook op de server zetten: dan werkt de AI op élk apparaat en na een
+       herstart, zonder dat je de sleutel opnieuw hoeft te plakken. */
+    if(k && k.length>=20 && authToken){
+      api("/api/ai/key", { key: k }).then(r=>{
+        if(r && r.ok){ serverAiReady = true; syncSettingsUI(); renderKeyHint(); toast("AI-sleutel opgeslagen — AI werkt nu op al je apparaten ✅"); }
+        else { toast("Lokaal bewaard, maar de server accepteerde de sleutel niet"+(r&&r.message?": "+r.message:""), true); }
+      }).catch(()=>{});
+    }
     saveShipDefaults();
     syncSettingsUI(); renderKeyHint(); toast(t("saveGreen")||"Saved");
   }catch(e){ toast("Opslaan mislukt", true); }
