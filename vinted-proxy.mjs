@@ -1356,7 +1356,8 @@ const server = http.createServer(async (req, res) => {
       // username uit <h1 data-testid="profile-username">
       const userM = html.match(/data-testid="profile-username"[^>]*>([^<]+)<\/h1>/);
       const username = (userM ? userM[1].trim() : ogTitle.trim()) || "";
-      if (!username && html.length < 50000) throw new Error("profiel niet bereikbaar");
+      // "Vinted" is de titel van een algemene/foutpagina — dan is er geen account gelezen
+      if (!username || /^vinted$/i.test(username)) throw new Error("profiel onleesbaar (geen gebruikersnaam)");
       // rating uit aria-label op rating-button
       const ratingM = html.match(/aria-label="Lid is beoordeeld met een\s*([0-9]+[.,][0-9]+)/);
       const rating = ratingM ? parseFloat(ratingM[1].replace(",",".")) : null;
@@ -1396,22 +1397,37 @@ const server = http.createServer(async (req, res) => {
   if (u.pathname === "/api/vinted/closet") {
     const rawUrl = (u.searchParams.get("url") || "").trim();
     const rawId = (u.searchParams.get("id") || "").trim();
+    const rawUser = (u.searchParams.get("username") || "").trim();
     const limit = Math.min(24, Math.max(1, parseInt(u.searchParams.get("limit")||"12",10)||12));
     let memberId = rawId;
     let profileUrl = rawUrl;
     if (!memberId && rawUrl) { const m=rawUrl.match(/\/member\/(\d{5,})/); if(m) memberId=m[1]; }
-    if (!memberId) return sendJson(res,400,{error:"Geef ?url=… (member-link) of ?id=… op"});
-    if (!profileUrl) profileUrl = `https://www.vinted.nl/member/${memberId}`;
-    const cKey = `vinted-closet:${memberId}:${limit}`;
+    if (!memberId && !rawUser) return sendJson(res,400,{error:"Geef ?url=… (member-link), ?id=… of ?username=… op"});
+    if (!profileUrl && memberId) profileUrl = `https://www.vinted.nl/member/${memberId}`;
+    const cKey = `vinted-closet:${memberId || "u:"+rawUser.toLowerCase()}:${limit}`;
     const cHit = cache.get(cKey);
     if (cHit && Date.now()-cHit.at < CACHE_TTL) return sendJson(res,200,{...cHit.body, cached:true});
     try{
-      // eerst profiel ophalen om username te kennen (vereist voor catalog zoek)
-      const profHtml = curl(["-L","-A",UA,"-H","Accept: text/html,application/xhtml+xml","-H","Accept-Language: nl-NL,nl;q=0.9,en;q=0.8",profileUrl],20000).toString("utf8");
-      const ogTitle = (profHtml.match(/<meta[^>]+property=["']og:title["'][^>]*content=["']([^"']+)["']/i)||[])[1] || "";
-      const userM = profHtml.match(/data-testid="profile-username"[^>]*>([^<]+)<\/h1>/);
-      const username = (userM ? userM[1].trim() : ogTitle.trim()) || "";
-      if (!username) throw new Error("kon gebruikersnaam niet bepalen");
+      /* Username is nodig voor de catalogus-zoek. Meestal halen we hem uit de
+         profielpagina; is die vanaf deze server niet leesbaar (Vinted blokkeert
+         datacenter-IP's), dan mag de gebruiker hem zelf opgeven. */
+      let username = rawUser;
+      if (!username && profileUrl) {
+        const profRaw = curl(["-L","-A",UA,"-H","Accept: text/html,application/xhtml+xml","-H","Accept-Language: nl-NL,nl;q=0.9,en;q=0.8","-w","\n__ST__%{http_code}",profileUrl],20000).toString("utf8");
+        const stM = profRaw.match(/__ST__(\d+)\s*$/);
+        const profStatus = stM ? stM[1] : "?";
+        const profHtml = profRaw.replace(/__ST__\d+\s*$/, "");
+        const ogTitle = (profHtml.match(/<meta[^>]+property=["']og:title["'][^>]*content=["']([^"']+)["']/i)||[])[1] || "";
+        const titleTag = (profHtml.match(/<title[^>]*>([^<]+)<\/title>/i)||[])[1] || "";
+        const userM = profHtml.match(/data-testid="profile-username"[^>]*>([^<]+)<\/h1>/);
+        username = (userM ? userM[1].trim() : (ogTitle || titleTag.replace(/\s*[|·—-]\s*Vinted.*$/i, "")).trim()) || "";
+        if (!username || /^vinted$/i.test(username)) {
+          const blok = /datadome|captcha-delivery|geo\.captcha|just a moment/i.test(profHtml);
+          console.log(`[vinted-closet] profiel ${memberId}: status=${profStatus} lengte=${profHtml.length} blok=${blok} begin="${profHtml.replace(/\s+/g," ").slice(0,120)}"`);
+          throw new Error(`profielpagina onleesbaar (status ${profStatus}, ${profHtml.length} bytes${blok?" · botcontrole":""})`);
+        }
+      }
+      if (!username) throw new Error("geen gebruikersnaam — vul je Vinted-gebruikersnaam in");
       // throttling voor catalog
       const wait = 1200 - (Date.now() - lastFetchAt); if(wait>0) Atomics.wait(new Int32Array(new SharedArrayBuffer(4)),0,0,wait); lastFetchAt=Date.now();
       const catUrl = `${VINTED_HOST}/catalog?search_text=${encodeURIComponent(username)}`;
@@ -1422,7 +1438,8 @@ const server = http.createServer(async (req, res) => {
       // maar als zoekterm generiek is (bv. "shop123"), vallen er ruis-items tussen — extra guard: bewaar max 24.
       const body = {
         ok: true,
-        memberId, username,
+        memberId: memberId || "",
+        username,
         count: comps.length,
         items: comps.slice(0, limit).map(c=>({
           id: c.id, title: c.title, brand: c.brand, status: c.status, size: c.size,
