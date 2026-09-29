@@ -45,6 +45,11 @@ Je server (`vinted-proxy.mjs`) moet online draaien, anders werken live Vinted-pr
 > KV_REST_TOKEN = de REST-token
 > ```
 >
+> Je mag ook de namen uit het Upstash-dashboard zelf overnemen
+> (`UPSTASH_REDIS_REST_URL` en `UPSTASH_REDIS_REST_TOKEN`) — de server accepteert
+> ze allebei. Op Render kun je een heel .env-blok in één keer plakken via
+> *Environment* → *Add variable* → **Import from .env**.
+>
 > Kies je toch voor een **betaalde** instance (Starter, $7/mnd), dan kan wél een
 > disk: *Disks* → *Add disk* met mount `/var/data`, plus `DATA_DIR` = `/var/data`.
 > De server zoekt zo'n persistente map trouwens ook zelf als `DATA_DIR` leeg is.
