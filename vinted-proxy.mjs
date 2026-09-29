@@ -339,7 +339,10 @@ function fetchCatalogHtml(query) {
      kaal paginaatje. Alleen als het echt op een challenge lijkt is het
      "geblokkeerd" — een geldige zoekactie zonder resultaten mag geen fout zijn. */
   const linkCount = (html.match(/href="\/items\//g) || []).length;
-  const challenge = /datadome|captcha-delivery|geo\.captcha|just a moment|attention required/i.test(html);
+  /* Let op: een normale Vinted-pagina bevat óók het woord "datadome" (hun
+     beveiligingsscript). Alleen een echte challenge telt: een verdacht kleine
+     pagina of de captcha-afleveringspagina zelf. */
+  const challenge = html.length < 30000 || /geo\.captcha-delivery|captcha-delivery\.com/i.test(html);
   console.log(`[vinted-catalog] "${query}": ${html.length} bytes, ${linkCount} item-links${challenge ? " · CHALLENGE" : ""}`);
   if (challenge || html.length < 30000) {
     const err = new Error("vinted_bot_controle");
