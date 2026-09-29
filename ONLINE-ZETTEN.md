@@ -117,31 +117,21 @@ Koop een domein bij [Namecheap](https://namecheap.com) (~€10/jaar) en verwijs 
 
 ---
 
-## DEEL 1B — Vinted-account koppelen (kast, biedingen, berichten)
+## DEEL 1B — Vinted-kast importeren
 
-In de app staat op het dashboard **Koppel je Vinted-account**. Daarmee haalt Guidsell je échte kast (inventaris met prijzen, views en favourites), je **biedingen/berichten** uit je Vinted-inbox en kun je **direct antwoorden**, ook op mensen die een bod deden.
+In de app staat op het dashboard **Koppel je publieke Vinted-profiel**. Je plakt je profiel-link (bijv. `https://www.vinted.nl/member/12345678`), de server leest je publieke kast en daarna zet je met één klik (**⬇ Importeer mijn kast naar voorraad**, PRO) al je items in **Mijn items** — met foto, titel, merk, maat, staat en prijs.
 
-### Eerst de waarheid: Vinted blokkeert servers
+**Wat bewust niet meer in de app zit:** inloggen op je Vinted-account, je inbox/biedingen en antwoorden sturen. Vinted zet server-IP's (zoals Render) op de zwarte lijst met DataDome: elk `vinted.nl/api/...`-verzoek geeft daar een **403**. Dat is niet met code op te lossen — de functionaliteit is er dus uit gehaald in plaats van half te blijven werken.
 
-Vinted zet datacenter-IP's (waaronder alles van Render) op de zwarte lijst met DataDome. Vanaf een gehoste server krijg je op **elk** `vinted.nl/api/...`-verzoek een **403** — dus niet alleen op inloggen. Daarom werkt koppelen vanaf de server principieel niet, hoe goed de code ook is.
+### Zo werkt het (en wanneer niet)
 
-**De oplossing:** de Vinted-verzoeken gebeuren in **jouw eigen browser** (jouw thuis-IP, niet geblokkeerd). Guidsell is dan alleen nog opslag.
+- De server haalt de **profielpagina** en de **catalogus** van Vinted op via `curl` met Chrome-headers en een cookie-jar, en parseert de HTML (Vinted's oude JSON-api is weg).
+- Lukt de profielpagina niet, dan vul je op het dashboard ook je **Vinted-gebruikersnaam** in — de kast wordt dan via de catalogus opgehaald (die route werkt vaker).
+- **Let op:** Vinted kan de server tijdelijk blokkeren (botcontrole). De app zegt dat dan eerlijk en pauzeert vijf minuten met Vinted-verzoeken, want blijven proberen verlengt de blokkade. Draai je Guidsell op **je eigen pc** (`start.bat`), dan gebeurt alles vanaf je thuis-IP en werkt het altijd.
+- Live prijzen (waardecheck) gebruiken dezelfde route en vallen bij een blokkade automatisch terug op AI-schattingen.
+- De opgehaalde kast staat in hetzelfde bestand als de accounts (`guidsell-accounts.json`) → zet dus echt een persistent disk of externe store (zie deel 1).
 
-### Zo koppel je — eenmalig een bladwijzer, daarna één klik
-
-1. Op het dashboard: **sleep** de knop **🔗 Guidsell × Vinted** naar je bladwijzerbalk.
-2. Open **vinted.nl** (waar je bent ingelogd) en **klik daar op die bladwijzer**.
-
-Klaar. Je browser haalt je kast, biedingen en berichten op en stuurt ze naar Guidsell; kom je terug, dan laadt Guidsell ze automatisch in. De knop bevat een **vaste koppelsleutel** per account, dus hij blijft werken — ook na opnieuw inloggen of na maanden. Je Vinted-wachtwoord komt er **niet** aan te pas.
-
-**Antwoorden sturen:** typ je antwoord in Guidsell → klik op **🔄 Verversen** nadat je op vinted.nl op de bladwijzer klikte. Het bericht gaat mee diezelfde klik naar Vinted.
-
-**Zo werkt het technisch:** de bladwijzer draait op vinted.nl zelf (zelfde domein, dus geen CORS/CSP-probleem), zoekt de gebruikte API-paden op uit de requests die de pagina al doet (blijft dus werken als Vinted iets hernoemt) en post het resultaat naar `POST /api/vinted/push` op dit adres. Die endpoint heeft bewust `Access-Control-Allow-Origin: *` en accepteert alleen de vaste koppelsleutel van jouw account.
-
-- **🩺 Status** in de app laat zien wat de laatste klik opleverde: account, items, gesprekken, wachtende antwoorden en — bij problemen — welke paden faalden.
-- Vragen de inklapbare **andere manieren** om een sessie te plakken (F12 → Copy as cURL), dan is dat alleen bedoeld voor als je Guidsell **op je eigen pc** draait; daar is de server niet geblokkeerd.
-- Koppelen is gratis; je live kast en de inbox/biedingen zitten in **PRO**.
-- De opgehaalde Vinted-gegevens staan in hetzelfde bestand als de accounts (`guidsell-accounts.json`) → zet dus echt een persistent disk of externe store (zie deel 1).
+**Enige écht robuuste oplossing** als je live Vinted-gegevens altijd wilt houden: een residentiële proxy (±€3–10/maand) achter de server. Zonder dat blijft het best effort.
 
 ---
 
@@ -208,7 +198,7 @@ Zelfde principe: [mollie.com](https://mollie.com) → "Payment links" → zelfde
 - [ ] Render/VPS deploy met `GEMINI_API_KEY` ingesteld
 - [ ] Persistent disk gekoppeld (bijv. mount `/var/data`) — check dat de serverlog *niet* "geen persistente mount" zegt
 - [ ] Account op 2 apparaten getest (registreren op A → inloggen op B)
-- [ ] Vinted-koppeling getest met je eigen account (e-mail + wachtwoord) → kast + inbox zichtbaar → **Test verbinding** is 5× groen
+- [ ] Vinted-kast importeren getest met je eigen profiel-link → kast zichtbaar → **Importeer mijn kast naar voorraad** vult Mijn items
 - [ ] Site getest: registreren → check doen → live Vinted-prijzen verschijnen
 - [ ] Stripe Payment Link gemaakt en in index.html gezet
 - [ ] Betaling getest (betaal jezelf €1 en refund het)
@@ -218,7 +208,7 @@ Zelfde principe: [mollie.com](https://mollie.com) → "Payment links" → zelfde
 
 ## DEEL 4 — Belangrijke kanttekeningen
 
-1. **Vinted blokkeert servers volledig** (DataDome op datacenter-IP's): live prijzen én de Vinted-koppeling werken daarom alleen vanuit **jouw eigen browser** (de bladwijzer). De app valt anders automatisch terug op AI-schattingen — de site blijft dan werken, alleen zonder live Vinted-gegevens. Volledig automatisch vanaf de server? Dan is een residentiële proxy nodig (±€3–10/maand).
+1. **Vinted blokkeert server-IP's vaak** (DataDome op datacenter-IP's): live prijzen en kast importeren werken vanaf Render meestal wel, maar Vinted kan de server tijdelijk blokkeren (botcontrole). De app zegt dat dan eerlijk, pauzeert vijf minuten met Vinted-verzoeken en valt bij de waardecheck terug op AI-schattingen. Draai Guidsell op je eigen pc (`start.bat`) en het werkt altijd. Volledig automatisch én altijd online? Dan is een residentiële proxy nodig (±€3–10/maand).
 
 2. **Accounts staan op de server** (`guidsell-accounts.json`): inloggen werkt op elk apparaat en de items/kasboek/quota reizen mee — een registratie verdwijnt dus niet meer met je browsergegevens. Wachtwoorden worden gehasht met scrypt; alleen de sessie-token staat in de browser (90 dagen geldig). Zorg dat het bestand op een **persistent disk** staat (de server zoekt die zelf, of zet `DATA_DIR` — zie deel 1). Raak je een account toch kwijt door een redeploy zonder disk: registreer opnieuw met hetzelfde e-mailadres en wachtwoord, dan zet de app de gegevens die nog op dat apparaat staan automatisch terug. Voor veel gebruikers (duizenden) is een echt database-systeem (bijv. Supabase) de volgende stap.
 
