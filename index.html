@@ -1165,7 +1165,6 @@
         <div class="what-card" role="button" tabindex="0" data-what="dashboard" onclick="openWhat('dashboard')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openWhat('dashboard')}"><div class="what-top"><span class="what-ico">▅</span><span class="what-badge pro" data-i18n="lp_badgePro">PRO</span></div><h3 data-i18n="lp_c4t">Winstcurve →</h3><p data-i18n="lp_c4p">Cumulatieve nettowinst als een koerslijn, één stap per verkoop, met piek en maximale daling zodat een verliesreeks opvalt vóór het einde van de maand.</p></div>
         <div class="what-card" role="button" tabindex="0" data-what="dashboard" onclick="openWhat('dashboard')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openWhat('dashboard')}"><div class="what-top"><span class="what-ico">▦</span><span class="what-badge pro" data-i18n="lp_badgePro">PRO</span></div><h3 data-i18n="lp_c5t">Echte nettowinst →</h3><p data-i18n="lp_c5p">Inkoop, verzending, platformkosten en je eigen uurtarief er per item vanaf. Wat je ziet is wat je overhoudt.</p></div>
         <div class="what-card" role="button" tabindex="0" data-what="bundles" onclick="openWhat('bundles')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openWhat('bundles')}"><div class="what-top"><span class="what-ico">⧉</span><span class="what-badge pro" data-i18n="lp_badgePro">PRO</span></div><h3 data-i18n="lp_c6t">Bundel-suggesties →</h3><p data-i18n="lp_c6p">Koppelt traag lopende voorraad aan een item dat wél verkoopt, 10 tot 20 procent onder de som, zodat blijven liggen verandert in samen vertrekken.</p></div>
-        <div class="what-card" role="button" tabindex="0" data-what="replies" onclick="openWhat('replies')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openWhat('replies')}"><div class="what-top"><span class="what-ico">◭</span><span class="what-badge pro" data-i18n="lp_badgePro">PRO</span></div><h3 data-i18n="lp_c7t">Koperreacties →</h3><p data-i18n="lp_c7p">Plak wat een koper schreef en krijg kant-en-klare antwoorden in hun taal. Het kent je ondergrens en zakt daar nooit onder.</p></div>
         <div class="what-card" role="button" tabindex="0" data-what="ledger" onclick="openWhat('ledger')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openWhat('ledger')}"><div class="what-top"><span class="what-ico">▌▌</span><span class="what-badge pro" data-i18n="lp_badgePro">PRO</span></div><h3 data-i18n="lp_c8t">Kasboek →</h3><p data-i18n="lp_c8p">Inkomsten en uitgaven in één boek, automatisch gevuld vanuit je verkopen. Importeer je bestaande spreadsheet, exporteer voor je boekhouder.</p></div>
       </div>
       <div style="text-align:center;margin-top:18px"><button class="btn btn-lg" onclick="openAuth('register')" style="background:#10b981;border:none" data-i18n="lp_whatCta">Probeer de listing-tool →</button></div>
@@ -1322,7 +1321,6 @@
       <button class="navlink" data-view="ship" onclick="switchView('ship')"><span class="nav-ico">📮</span> Verzending <span class="pro-tag">PRO</span></button>
       <button class="navlink" data-view="items" onclick="switchView('items')"><span class="nav-ico">⧉</span> Mijn items <span class="pro-tag">PRO</span></button>
       <button class="navlink" data-view="bundles" onclick="switchView('bundles')"><span class="nav-ico">⧉</span> Bundels <span class="pro-tag">PRO</span></button>
-      <button class="navlink" data-view="replies" onclick="switchView('replies')"><span class="nav-ico">◭</span> Reacties <span class="pro-tag">PRO</span></button>
       <button class="navlink" data-view="ledger" onclick="switchView('ledger')"><span class="nav-ico">▌▌</span> Kasboek <span class="pro-tag">PRO</span></button>
       <button class="navlink" data-view="upgrade" onclick="switchView('upgrade')"><span class="nav-ico">◆</span> Upgrade</button>
     </nav>
@@ -1348,7 +1346,7 @@
         <div style="font-size:22px">👗</div>
         <div class="vinted-main">
           <div style="font-weight:800;font-size:14px">Koppel je publieke Vinted-profiel <span style="font-weight:600;color:var(--muted)">(optioneel)</span></div>
-          <div style="font-size:12.5px;color:var(--muted);margin-top:2px;line-height:1.4">Alleen je profiel-link (bijv. <span style="color:var(--text);font-weight:600">vinted.nl/member/jouw-id</span>) voor je publieke kast. Voor je <b>echte</b> kast, biedingen en berichten gebruik je de login-koppeling hieronder.</div>
+          <div style="font-size:12.5px;color:var(--muted);margin-top:2px;line-height:1.4">Alleen je profiel-link (bijv. <span style="color:var(--text);font-weight:600">vinted.nl/member/jouw-id</span>). Daarmee halen we je publieke kast op — die kun je daarna met één klik in <b>Mijn items</b> zetten.</div>
           <div id="vintedStatus" style="font-size:12px;color:var(--muted);margin-top:6px;display:none"></div>
         </div>
         <div class="vinted-actions" style="flex:1;min-width:260px">
@@ -1368,67 +1366,6 @@
           </div>
         </div>
         <div class="vinted-actions"><button class="btn-ghost" onclick="vintedDisconnect()" title="Ontkoppelen">Ontkoppelen</button></div>
-      </div>
-
-      <!-- ---------- ECHTE VINTED-LOGIN KOPPELEN (sessie) ---------- -->
-      <div class="vinted-card" id="vintedSessionCard" style="margin-top:4px;align-items:flex-start;flex-wrap:wrap">
-        <div style="font-size:22px">🔐</div>
-        <div class="vinted-main" style="flex:1;min-width:280px">
-          <div style="font-weight:800;font-size:14px">Koppel je Vinted-account <span class="vinted-badge" id="vintedLinkedBadge" hidden>GEKOPPELD</span></div>
-          <div id="vintedSessionHelp" style="font-size:12.5px;color:var(--muted);margin-top:4px;line-height:1.5">
-            Dit gaat via je <b>eigen browser</b>, in twee stappen. Daarna haal je met één klik je kast, biedingen en berichten op — en stuur je antwoorden.
-          </div>
-          <div id="vintedSessionForm" style="margin-top:10px">
-            <ol style="margin:0 0 0 18px;padding:0;font-size:12.5px;color:var(--muted);line-height:1.7">
-              <li style="margin-bottom:8px">Sleep deze knop naar je <b>bladwijzerbalk</b>:<br>
-                <a id="vintedBookmarklet" href="#" onclick="return vintedBookmarkletClick(event)" draggable="true" title="Sleep mij naar je bladwijzerbalk" style="display:inline-block;margin-top:7px;padding:8px 14px;border-radius:10px;border:1px dashed var(--brand);color:var(--brand-dark);font-weight:700;font-size:12.5px;text-decoration:none;cursor:grab;user-select:none">🔗 Guidsell × Vinted</a>
-              </li>
-              <li style="margin-bottom:4px">Open <a href="https://www.vinted.nl/" target="_blank" rel="noopener" style="color:var(--brand-dark);font-weight:600">vinted.nl</a> (waar je ingelogd bent) en klik daar op die bladwijzer.</li>
-            </ol>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px">
-              <button class="btn" onclick="vintedRefreshFromServer()">🔄 Ik heb geklikt — inladen</button>
-              <span id="vintedSessionMsg" style="font-size:12px;color:var(--muted)"></span>
-            </div>
-            <div style="margin-top:8px;font-size:11.5px;color:var(--muted);line-height:1.5">
-              Slepen lukt niet (bijv. op je telefoon)? <button class="btn-ghost" style="font-size:11.5px;text-decoration:underline" onclick="vintedCopyBookmarklet()">Kopieer de code</button> en plak hem op vinted.nl in de adresbalk.
-              <br>Je Vinted-wachtwoord komt hier nooit in — je browser haalt de gegevens op, Guidsell bewaart alleen het resultaat.
-            </div>
-            <details id="vintedFallback" style="margin-top:12px">
-              <summary style="cursor:pointer;font-size:12.5px;color:var(--muted);font-weight:600">Lukt de bladwijzer niet? Andere manieren</summary>
-              <div style="font-size:12px;color:var(--muted);margin:10px 0 0;line-height:1.6">
-                <b>A. Zelf inloggen op onze server</b> — werkt alleen als Guidsell op je eigen computer draait (Vinted blokkeert datacenter-IP's als Render).
-              </div>
-              <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px">
-                <input id="vintedLoginEmail" type="email" autocomplete="username" placeholder="Vinted e-mailadres" style="flex:1;min-width:170px;font-size:12.5px;padding:9px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text)">
-                <input id="vintedLoginPass" type="password" autocomplete="current-password" placeholder="Vinted wachtwoord" style="flex:1;min-width:140px;font-size:12.5px;padding:9px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text)">
-                <button class="btn btn-outline" onclick="vintedLoginLink()" id="vintedLinkBtn">🔗 Inloggen bij Vinted</button>
-              </div>
-              <div style="font-size:12px;color:var(--muted);margin:14px 0 0;line-height:1.6">
-                <b>B. Een sessie plakken</b> — log in bij Vinted in een nieuw tabblad → <b>F12</b> → <b>Network</b> → één verzoek naar <span class="vt-code">vinted.nl</span> → <b>Copy as cURL</b>.
-              </div>
-              <textarea id="vintedSessionInput" rows="3" placeholder="Plak hier je 'Copy as cURL' of je cookie-regel" style="width:100%;margin-top:8px;font-size:12px;font-family:ui-monospace,monospace;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text)"></textarea>
-              <div style="margin-top:8px"><button class="btn btn-outline" onclick="vintedLinkSession()" id="vintedLinkBtn2">🔗 Sessie koppelen</button></div>
-            </details>
-          </div>
-          <div id="vintedSessionDone" hidden style="margin-top:10px">
-            <div style="font-size:12.5px;color:var(--muted);line-height:1.5">Gekoppeld als <b id="vintedSessionUser" style="color:var(--text)">—</b><span id="vintedSessionMeta"></span>. Je kast, biedingen en berichten komen uit je eigen Vinted-account.</div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
-              <button class="btn" onclick="vintedRefreshFromServer()" id="vintedInvBtn">🔄 Verversen</button>
-              <button class="btn btn-outline" onclick="vintedOpenVinted(true)">Open vinted.nl ↗</button>
-              <button class="btn btn-outline" onclick="vintedDiagnose()" id="vintedDiagBtn">🩺 Status</button>
-              <button class="btn-ghost" onclick="vintedUnlinkSession()">Ontkoppelen</button>
-            </div>
-            <div style="margin-top:9px;font-size:11.5px;color:var(--muted);line-height:1.55;background:var(--card-2,#f8f8fb);border-radius:10px;padding:9px 11px">
-              <b>Zo ververs je:</b> open <b>vinted.nl</b> → klik op je <b>🔗 Guidsell × Vinted</b>-bladwijzer → kom terug en klik op <b>Verversen</b>.
-              Antwoorden die je hieronder typt gaan mee met diezelfde klik.
-            </div>
-            <div id="vintedDiag" style="margin-top:10px;font-size:12px"></div>
-          </div>
-        </div>
-      </div>
-      <div id="vintedInvWrap" hidden style="margin-top:12px">
-        <div class="card-head" style="display:flex;gap:8px;align-items:baseline;flex-wrap:wrap">👗 JOUW VINTED-KAST <span id="vintedInvMeta" style="font-weight:600;text-transform:none;letter-spacing:0;color:var(--muted)"></span></div>
-        <div id="vintedInvGrid" class="vinted-closet-row" style="padding:4px 0"></div>
       </div>
 
       <div class="stats">
@@ -1851,70 +1788,6 @@
         <p class="page-sub">Groepen trage stock + een seller — 10–20% onder de som zodat liggers meebewegen.</p>
         <div class="bundle-grid" id="bundleGrid"></div>
         <div id="bundleEmpty" class="empty-state" hidden>Te weinig voorraad voor bundels — je hebt minstens 2 items nodig (1 traag, 1 verkopend).</div>
-      </div>
-    </section>
-
-    <!-- ---------- REACTIES ---------- -->
-    <section class="view" id="view-replies">
-      <div id="repliesLock" hidden>
-        <div class="pro-lock">
-          <div class="big-ico">💬🔒</div>
-          <h3>Reacties is PRO</h3>
-          <p>Plak wat een koper schreef — krijg kant-en-klare antwoorden in hun taal, met je vloerprijs in gedachten.</p>
-          <ul>
-            <li>Taal-detectie (NL/EN/DE/FR)</li>
-            <li>Vloer = kostprijs + min. netto (nooit eronder)</li>
-            <li>3 tonen: vriendelijk / stevig / beste bod</li>
-            <li>1-klik kopiëren</li>
-          </ul>
-          <button class="btn btn-lg" onclick="switchView('upgrade')">Ontgrendel met PRO — vanaf €3/week</button>
-        </div>
-      </div>
-      <div id="repliesContent" hidden>
-        <h1 class="page-title">Koperreacties</h1>
-        <p class="page-sub">Je echte biedingen en berichten uit je Vinted-inbox — plus AI-antwoorden in de taal van de koper.</p>
-
-        <!-- ---------- LIVE VINTED INBOX (biedingen + berichten) ---------- -->
-        <div class="card" style="margin-bottom:16px">
-          <div class="card-head" style="display:flex;gap:8px;align-items:baseline;flex-wrap:wrap">💬 BIEDINGEN &amp; BERICHTEN <span id="vintedInboxMeta" style="font-weight:600;text-transform:none;letter-spacing:0;color:var(--muted)"></span></div>
-          <div class="card-body">
-            <div id="vintedInboxHint" style="font-size:12.5px;color:var(--muted);line-height:1.5">
-              Koppel eerst je Vinted-account (dashboard → <b>Koppel je Vinted-account</b>). Daarna zie je hier je echte biedingen en berichten en kun je direct antwoorden.
-            </div>
-            <div id="vintedInboxBody" hidden>
-              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
-                <button class="btn btn-outline" style="font-size:12.5px;padding:7px 12px" onclick="vintedLoadInbox(true)">↻ Verversen</button>
-                <span id="vintedInboxStatus" style="font-size:12px;color:var(--muted);align-self:center"></span>
-              </div>
-              <div id="vintedInboxList" class="vt-list"></div>
-              <div id="vintedThreadWrap" hidden style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">
-                <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap">
-                  <div style="font-weight:800;font-size:13.5px" id="vintedThreadTitle">—</div>
-                  <button class="btn-ghost" onclick="closeVintedThread()">Sluiten</button>
-                </div>
-                <div id="vintedThreadMsgs" class="vt-msgs"></div>
-                <div style="display:flex;gap:8px;align-items:flex-start;margin-top:8px;flex-wrap:wrap">
-                  <textarea id="vintedReplyInput" rows="2" placeholder="Typ je antwoord aan de koper…" style="flex:1;min-width:220px;font-size:13px;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text)"></textarea>
-                  <button class="btn" onclick="vintedSendReply()" id="vintedReplyBtn">➤ Verstuur</button>
-                </div>
-                <div id="vintedReplyMsg" style="margin-top:6px;font-size:12px;color:var(--muted)"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-head">💬 PLAK BERICHT + VLOERPRIJS</div>
-          <div class="card-body">
-            <div class="field"><label>Bericht van koper</label><textarea id="replyInput" rows="3" placeholder="bv. Is €12 ook goed?"></textarea></div>
-            <div class="row2">
-              <div class="field" style="margin-bottom:0"><label>Item / bundel kiezen</label><select id="replyItemSel"></select></div>
-              <div class="field" style="margin-bottom:0"><label>Vloer (auto = kost + min.net)</label><input id="replyFloor" type="number" step="0.5" min="0" placeholder="auto"></div>
-            </div>
-            <button class="btn" style="margin-top:12px" onclick="genReplies()">✨ Maak antwoorden</button>
-            <div id="replyOut" style="margin-top:14px;display:grid;gap:10px"></div>
-          </div>
-        </div>
       </div>
     </section>
 
@@ -2712,9 +2585,6 @@ async function api(path, body, method){
 function saveSessionToken(t){
   authToken = t || null;
   try{ t ? localStorage.setItem(LS_TOKEN, t) : localStorage.removeItem(LS_TOKEN); }catch(e){}
-  /* de bladwijzer bevat de vaste koppelsleutel van dit account: meteen klaarzetten
-     zodra we ingelogd zijn, zodat hij ook klopt als je later inlogt */
-  if(t){ try{ vintedLoadLinkKey().then(()=>vintedSetupBookmarklet()).catch(()=>{}); }catch(e){} }
 }
 
 let cloudReady = false;   // pas syncen nadat we de server-versie hebben bekeken
@@ -2886,10 +2756,6 @@ function enterApp() {
   switchView("dashboard");
   setTimeout(()=>{ try{ renderVintedCard(); }catch(e){} }, 80);
   setTimeout(()=>{ try{ renderVintedAccount(); }catch(e){} }, 90);
-  /* vaste koppelsleutel + de klaargezette bladwijzer: nu `data` bestaat kunnen we
-     hem ook echt bewaren, zodat een gesleepte bladwijzer altijd het juiste
-     account aanwijst */
-  setTimeout(()=>{ try{ vintedLoadLinkKey().then(()=>vintedSetupBookmarklet()).catch(()=>{}); }catch(e){} }, 120);
   if(data && data.vinted && data.vinted.memberId){
     setTimeout(()=>{ refreshVintedQuiet(); }, 800);
   }
@@ -3117,9 +2983,12 @@ function seedDemoData() {
 ===================================================== */
 function switchView(name) {
   try{ closeMobileNav(); }catch(e){}
+  // de Reacties-tab bestaat niet meer — val terug op het dashboard als er nog
+  // ergens 'replies' vandaan komt (oude link, opgeslagen laatste view)
+  if(!document.getElementById("view-" + name)) name = "dashboard";
   checkProExpiry();
   const pro = isPro();
-  const proViews = new Set(["items","ledger","ship","bundles","replies"]);
+  const proViews = new Set(["items","ledger","ship","bundles"]);
   if (!pro && proViews.has(name)) {
     document.getElementById("itemsLock").hidden = name !== "items";
     document.getElementById("itemsContent").hidden = name === "items";
@@ -3129,8 +2998,6 @@ function switchView(name) {
     document.getElementById("shipContent").hidden = name === "ship";
     const bL=document.getElementById("bundlesLock"), bC=document.getElementById("bundlesContent");
     if(bL&&bC){ bL.hidden = name!=="bundles"; bC.hidden = name==="bundles"; }
-    const rL=document.getElementById("repliesLock"), rC=document.getElementById("repliesContent");
-    if(rL&&rC){ rL.hidden = name!=="replies"; rC.hidden = name==="replies"; }
     document.querySelectorAll("#appLinks .navlink").forEach(b => b.classList.toggle("active", b.dataset.view === name));
     document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
     document.getElementById("view-" + name).classList.add("active");
@@ -3145,8 +3012,6 @@ function switchView(name) {
   document.getElementById("shipContent").hidden = !pro;
   const bL2=document.getElementById("bundlesLock"), bC2=document.getElementById("bundlesContent");
   if(bL2&&bC2){ bL2.hidden = pro; bC2.hidden = !pro; }
-  const rL2=document.getElementById("repliesLock"), rC2=document.getElementById("repliesContent");
-  if(rL2&&rC2){ rL2.hidden = pro; rC2.hidden = !pro; }
   document.querySelectorAll("#appLinks .navlink").forEach(b => b.classList.toggle("active", b.dataset.view === name));
   document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
   document.getElementById("view-" + name).classList.add("active");
@@ -3155,7 +3020,6 @@ function switchView(name) {
   if (name === "ledger") renderLedger();
   if (name === "ship") shipRender();
   if (name === "bundles") renderBundles();
-  if (name === "replies") renderRepliesInit();
   if (name === "dashboard") { try{ renderProfitCurve(); renderRealProfit(); }catch(e){} }
 }
 
@@ -4354,6 +4218,9 @@ function copyBundleText(idx){
 }
 /* =====================================================
    REPLIES (taal-detectie + vloer-bewust)
+   -----------------------------------------------------
+   De Reacties-tab is uit de app gehaald: deze functies worden nergens meer
+   aangeroepen. Ze staan er alleen nog zodat oude links niets stukmaken.
 ===================================================== */
 function renderRepliesInit(){
   const sel=document.getElementById("replyItemSel");
@@ -4670,9 +4537,8 @@ function renderVintedCard(){
   if(bar){
     bar.hidden=false;
     const bn=document.getElementById("itemsVintedName"); if(bn) bn.textContent = v.username?"@"+v.username: "@"+v.memberId;
-    const bl=document.getElementById("itemsVintedLink"); if(bl) bl.href = v.profileUrl||("https://www.vinted.nl/member/"+v.memberId);
+    const bl=document.getElementById("itemsVintedLink");    if(bl) bl.href = v.profileUrl||("https://www.vinted.nl/member/"+v.memberId);
   }
-  try{ renderVintedSessionCard(); }catch(e){}
 }
 async function vintedConnect(){
   const inp=document.getElementById("vintedLinkInput");
@@ -4745,15 +4611,8 @@ function vintedDisconnect(){
 async function vintedImportCloset(){
   if(!isPro()){ switchView("upgrade"); toast("Kast importeren is PRO", true); return; }
   const v=vintedStored();
-  const sess=vintedSession();
-  // gekoppeld via login? → gebruik je echte live kast (met prijzen/views)
-  const live = (sess && sess.linked && sess.inventory && (sess.inventory.items||[]).length) ? sess.inventory.items : null;
-  if(!live && (!v || !v.memberId)){ toast("Koppel eerst je Vinted-account op het dashboard", true); switchView("dashboard"); return; }
-  if(live){
-    if(!data.vinted) data.vinted = { memberId: sess.memberId||"", username: sess.username||"", closet:[] };
-    data.vinted.closet = live.slice(0,80).map(it=>({ id:it.id, title:it.title, brand:it.brand, size:it.size, status:it.status, price:it.price, image:it.image, url:it.url }));
-    data.vinted.closetAt = Date.now();
-  } else if(!v.closet || !v.closet.length){
+  if(!v || !v.memberId){ toast("Koppel eerst je Vinted-profiel op het dashboard", true); switchView("dashboard"); return; }
+  if(!v.closet || !v.closet.length){
     await vintedFetchCloset(false);
     if(!data.vinted.closet || !data.vinted.closet.length){ toast("Geen items om te importeren", true); return; }
   }
@@ -4792,8 +4651,13 @@ async function vintedImportCloset(){
 
 
 /* =====================================================
-   MIJN VINTED-ACCOUNT (sessie) — kast, biedingen, berichten
-   De sessie zelf staat op de server; hier alleen status + resultaten.
+   NIET MEER GEBRUIKT — oude Vinted-accountkoppeling (sessie/bladwijzer)
+   -----------------------------------------------------
+   De kaart, de Reacties-tab, de inbox en het antwoorden zijn uit de app
+   gehaald (Vinted blokkeert dat vanaf een server, en dat kostte alleen maar
+   frustratie). Guidsell doet nu alleen nog de publieke kast: koppelen via je
+   profiel-link + importeren naar Mijn items. De functies hieronder staan er
+   nog omdat ze nergens meer worden aangeroepen — ze doen dus niets.
 ===================================================== */
 const VINTED_LOGIN_URL = "https://www.vinted.nl/login";
 function vintedSession(){ return (data && data.vintedSession) ? data.vintedSession : null; }
@@ -5084,16 +4948,6 @@ async function vintedRefreshFromServer(quiet){
     if(!quiet && msg) msg.textContent="⚠️ Server onbereikbaar";
   }finally{ if(btn){ btn.disabled=false; btn.textContent="🔄 Verversen"; } }
 }
-/* Kom je terug van het Vinted-tabblad (waar je net op de bladwijzer klikte)?
-   Dan halen we meteen op wat daar klaarstaat — geen extra klik nodig. */
-let vintedFocusAt = 0;
-document.addEventListener("visibilitychange", function(){
-  if(document.visibilityState !== "visible") return;
-  if(!authToken || !vintedSessionLinked()) return;
-  if(Date.now() - vintedFocusAt < 15000) return;
-  vintedFocusAt = Date.now();
-  try{ vintedRefreshFromServer(true); }catch(e){}
-});
 async function vintedLoadInventory(showToast){ return vintedRefreshFromServer(); }
 async function vintedLoadInbox(showToast){ return vintedRefreshFromServer(); }
 function vintedOpenVinted(vanafKlaar){
@@ -5271,10 +5125,10 @@ function renderVintedInbox(){
     </button>`).join("");
 }
 
+/* Vroeger tekende deze functie ook de accountkoppeling + inbox. Die zijn weg:
+   Guidsell doet nu alleen nog de publieke kast (koppelen + importeren). */
 function renderVintedAccount(){
-  try{ renderVintedSessionCard(); }catch(e){}
-  try{ renderVintedInventory(); }catch(e){}
-  try{ renderVintedInbox(); }catch(e){}
+  try{ renderVintedCard(); }catch(e){}
 }
 
 /* vul selects */
@@ -5974,13 +5828,11 @@ shipInitUI();
 refreshServerAi().then(()=>{ try{ syncSettingsUI(); }catch(e){} });
 setTimeout(()=>{ try{ syncSettingsUI(); }catch(e){} }, 300);
 
-/* Vinted-bladwijzer klaarzetten (die bevat je Guidsell-token, dus pas na inloggen)
-   en meteen de laatst opgehaalde Vinted-gegevens inladen. */
+/* Vinted: alleen de publieke kast wordt nog gebruikt (profiel koppelen +
+   kast importeren naar Mijn items). Even stil verversen bij het openen. */
 (async function vintedInit(){
   try{ await waitForAuth(12000); }catch(e){}
-  try{ await vintedLoadLinkKey(); }catch(e){}
-  try{ vintedSetupBookmarklet(); }catch(e){}
-  try{ if(vintedSessionLinked()) await vintedRefreshFromServer(); }catch(e){}
+  try{ const v = vintedStored(); if(v && v.memberId && !v.closetAt) await refreshVintedQuiet(); }catch(e){}
 })();
 </script>
 </body>
