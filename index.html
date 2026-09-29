@@ -2886,6 +2886,10 @@ function enterApp() {
   switchView("dashboard");
   setTimeout(()=>{ try{ renderVintedCard(); }catch(e){} }, 80);
   setTimeout(()=>{ try{ renderVintedAccount(); }catch(e){} }, 90);
+  /* vaste koppelsleutel + de klaargezette bladwijzer: nu `data` bestaat kunnen we
+     hem ook echt bewaren, zodat een gesleepte bladwijzer altijd het juiste
+     account aanwijst */
+  setTimeout(()=>{ try{ vintedLoadLinkKey().then(()=>vintedSetupBookmarklet()).catch(()=>{}); }catch(e){} }, 120);
   if(data && data.vinted && data.vinted.memberId){
     setTimeout(()=>{ refreshVintedQuiet(); }, 800);
   }

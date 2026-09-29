@@ -59,6 +59,6 @@ In de serverlog van Render zie je bij elke start waar de accounts vandaan komen 
 
 - **Gratis service slaapt** na 15 minuten zonder bezoek. Het eerste bezoek duurt dan ±50 seconden. Dat is normaal en kost niets.
 - **750 gratis instance-uren per maand** — ruim voldoende voor één service die de hele maand draait.
-- **Vinted kan de server blokkeren** (botcontrole) bij het inloggen vanaf een datacenter-IP. Gebeurt dat, dan werkt de terugvaloptie in de app (zelf een sessie plakken) nog steeds.
+- **Vinted blokkeert servers volledig** (DataDome op datacenter-IP's): álle `vinted.nl/api`-verzoeken geven vanaf Render een 403. Daarom verloopt de Vinted-koppeling via een bladwijzer die je **in je eigen browser** op vinted.nl klikt; deze server is dan alleen opslag. Zo staat het ook in deel 1B van ONLINE-ZETTEN.md.
 - **De GitHub-token** die ik gebruikte (`Guidsell-deploy`, alleen `public_repo`) kun je intrekken via github.com/settings/tokens — dat mag je gerust doen, ik heb hem niet meer nodig.
 - **Upstash** staat op $0 met 256 MB en 10 GB bandwidth per maand. Ruim genoeg; een accountbestand van 1000 gebruikers is een paar honderd kB.
