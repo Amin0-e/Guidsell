@@ -1376,51 +1376,51 @@
         <div class="vinted-main" style="flex:1;min-width:280px">
           <div style="font-weight:800;font-size:14px">Koppel je Vinted-account <span class="vinted-badge" id="vintedLinkedBadge" hidden>GEKOPPELD</span></div>
           <div id="vintedSessionHelp" style="font-size:12.5px;color:var(--muted);margin-top:4px;line-height:1.5">
-            Log hieronder één keer in met je Vinted-account. Daarna zie je in Guidsell je eigen kast, wie een bod deed en je berichten — en kun je gewoon antwoorden.
+            Dit gaat via je <b>eigen browser</b>, in twee stappen. Daarna haal je met één klik je kast, biedingen en berichten op — en stuur je antwoorden.
           </div>
           <div id="vintedSessionForm" style="margin-top:10px">
-            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-              <input id="vintedLoginEmail" type="email" autocomplete="username" placeholder="E-mailadres van je Vinted-account" onkeydown="if(event.key==='Enter'){event.preventDefault();vintedLoginLink();}" style="flex:1;min-width:190px;font-size:13px;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text)">
-              <input id="vintedLoginPass" type="password" autocomplete="current-password" placeholder="Vinted-wachtwoord" onkeydown="if(event.key==='Enter'){event.preventDefault();vintedLoginLink();}" style="flex:1;min-width:150px;font-size:13px;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text)">
-              <button class="btn" onclick="vintedLoginLink()" id="vintedLinkBtn">🔗 Koppel mijn Vinted</button>
-            </div>
-            <div style="font-size:11.5px;color:var(--muted);margin-top:7px;line-height:1.45">🔒 Je wachtwoord gebruiken we alleen om één keer in te loggen bij Vinted — daarna wordt het <b>niet</b> bewaard. Alleen de Vinted-toegangssleutel blijft op onze server.</div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:9px;align-items:center">
-              <button class="btn btn-outline" onclick="vintedOpenLogin()">Open vinted.nl ↗</button>
+            <ol style="margin:0 0 0 18px;padding:0;font-size:12.5px;color:var(--muted);line-height:1.7">
+              <li style="margin-bottom:8px">Sleep deze knop naar je <b>bladwijzerbalk</b>:<br>
+                <a id="vintedBookmarklet" href="#" onclick="return vintedBookmarkletClick(event)" draggable="true" title="Sleep mij naar je bladwijzerbalk" style="display:inline-block;margin-top:7px;padding:8px 14px;border-radius:10px;border:1px dashed var(--brand);color:var(--brand-dark);font-weight:700;font-size:12.5px;text-decoration:none;cursor:grab;user-select:none">🔗 Guidsell × Vinted</a>
+              </li>
+              <li style="margin-bottom:4px">Open <a href="https://www.vinted.nl/" target="_blank" rel="noopener" style="color:var(--brand-dark);font-weight:600">vinted.nl</a> (waar je ingelogd bent) en klik daar op die bladwijzer.</li>
+            </ol>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px">
+              <button class="btn" onclick="vintedRefreshFromServer()">🔄 Ik heb geklikt — inladen</button>
               <span id="vintedSessionMsg" style="font-size:12px;color:var(--muted)"></span>
             </div>
-            <details id="vintedFallback" style="margin-top:10px">
-              <summary style="cursor:pointer;font-size:12.5px;color:var(--muted);font-weight:600">Blokkeert Vinted het inloggen? Koppel in 1 klik via je eigen browser</summary>
-              <div style="font-size:12.5px;color:var(--muted);margin:10px 0 0;line-height:1.6">
-                Vinted blokkeert inloggen vanaf onze server soms als "bot". Via je eigen browser werkt het altijd:
-                <ol style="margin:8px 0 0 18px;padding:0">
-                  <li style="margin-bottom:6px">Sleep deze knop naar je <b>bladwijzerbalk</b>:<br>
-                    <a id="vintedBookmarklet" href="#" onclick="return false" draggable="true" title="Sleep mij naar je bladwijzerbalk" style="display:inline-block;margin-top:6px;padding:7px 12px;border-radius:10px;border:1px dashed var(--brand);color:var(--brand-dark);font-weight:700;font-size:12px;text-decoration:none;cursor:grab;user-select:none">🔗 Koppel aan Guidsell</a>
-                  </li>
-                  <li style="margin-bottom:6px">Ga naar <a href="https://www.vinted.nl/" target="_blank" rel="noopener" style="color:var(--brand-dark);font-weight:600">vinted.nl</a> (waar je ingelogd bent) en klik daar op die bladwijzer.</li>
-                  <li>Je komt vanzelf terug op Guidsell — klaar ✅</li>
-                </ol>
-                <div style="margin-top:8px;font-size:11.5px">
-                  Slepen lukt niet (bijv. op je telefoon)? <button class="btn-ghost" style="font-size:11.5px;text-decoration:underline" onclick="vintedCopyBookmarklet()">Kopieer de code</button> en plak hem op vinted.nl in de adresbalk.
-                </div>
+            <div style="margin-top:8px;font-size:11.5px;color:var(--muted);line-height:1.5">
+              Slepen lukt niet (bijv. op je telefoon)? <button class="btn-ghost" style="font-size:11.5px;text-decoration:underline" onclick="vintedCopyBookmarklet()">Kopieer de code</button> en plak hem op vinted.nl in de adresbalk.
+              <br>Je Vinted-wachtwoord komt hier nooit in — je browser haalt de gegevens op, Guidsell bewaart alleen het resultaat.
+            </div>
+            <details id="vintedFallback" style="margin-top:12px">
+              <summary style="cursor:pointer;font-size:12.5px;color:var(--muted);font-weight:600">Lukt de bladwijzer niet? Andere manieren</summary>
+              <div style="font-size:12px;color:var(--muted);margin:10px 0 0;line-height:1.6">
+                <b>A. Zelf inloggen op onze server</b> — werkt alleen als Guidsell op je eigen computer draait (Vinted blokkeert datacenter-IP's als Render).
               </div>
-              <details style="margin-top:10px">
-                <summary style="cursor:pointer;font-size:12px;color:var(--muted)">Of plak zelf een sessie (via DevTools)</summary>
-                <div style="font-size:12px;color:var(--muted);margin:8px 0;line-height:1.5">
-                  Log in bij Vinted in een nieuw tabblad → <b>F12</b> → tab <b>Network</b> → klik één verzoek naar <span class="vt-code">vinted.nl</span> → rechtermuisklik → <b>Copy</b> → <b>Copy as cURL</b>.
-                </div>
-                <textarea id="vintedSessionInput" rows="3" placeholder="Plak hier je 'Copy as cURL' of je cookie-regel (bv. access_token_web=...)" style="width:100%;font-size:12px;font-family:ui-monospace,monospace;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text)"></textarea>
-                <div style="margin-top:8px"><button class="btn btn-outline" onclick="vintedLinkSession()" id="vintedLinkBtn2">🔗 Sessie koppelen</button></div>
-              </details>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px">
+                <input id="vintedLoginEmail" type="email" autocomplete="username" placeholder="Vinted e-mailadres" style="flex:1;min-width:170px;font-size:12.5px;padding:9px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text)">
+                <input id="vintedLoginPass" type="password" autocomplete="current-password" placeholder="Vinted wachtwoord" style="flex:1;min-width:140px;font-size:12.5px;padding:9px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text)">
+                <button class="btn btn-outline" onclick="vintedLoginLink()" id="vintedLinkBtn">🔗 Inloggen bij Vinted</button>
+              </div>
+              <div style="font-size:12px;color:var(--muted);margin:14px 0 0;line-height:1.6">
+                <b>B. Een sessie plakken</b> — log in bij Vinted in een nieuw tabblad → <b>F12</b> → <b>Network</b> → één verzoek naar <span class="vt-code">vinted.nl</span> → <b>Copy as cURL</b>.
+              </div>
+              <textarea id="vintedSessionInput" rows="3" placeholder="Plak hier je 'Copy as cURL' of je cookie-regel" style="width:100%;margin-top:8px;font-size:12px;font-family:ui-monospace,monospace;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text)"></textarea>
+              <div style="margin-top:8px"><button class="btn btn-outline" onclick="vintedLinkSession()" id="vintedLinkBtn2">🔗 Sessie koppelen</button></div>
             </details>
           </div>
           <div id="vintedSessionDone" hidden style="margin-top:10px">
-            <div style="font-size:12.5px;color:var(--muted);line-height:1.5">Gekoppeld als <b id="vintedSessionUser" style="color:var(--text)">—</b><span id="vintedSessionMeta"></span>. Je kast, biedingen en berichten komen nu rechtstreeks uit je eigen Vinted-account.</div>
+            <div style="font-size:12.5px;color:var(--muted);line-height:1.5">Gekoppeld als <b id="vintedSessionUser" style="color:var(--text)">—</b><span id="vintedSessionMeta"></span>. Je kast, biedingen en berichten komen uit je eigen Vinted-account.</div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
-              <button class="btn" onclick="vintedLoadInventory()" id="vintedInvBtn">👗 Mijn kast laden</button>
-              <button class="btn" onclick="vintedLoadInbox()" id="vintedInboxBtn">💬 Biedingen &amp; berichten</button>
-              <button class="btn btn-outline" onclick="vintedDiagnose()" id="vintedDiagBtn">🩺 Test verbinding</button>
+              <button class="btn" onclick="vintedRefreshFromServer()" id="vintedInvBtn">🔄 Verversen</button>
+              <button class="btn btn-outline" onclick="vintedOpenVinted(true)">Open vinted.nl ↗</button>
+              <button class="btn btn-outline" onclick="vintedDiagnose()" id="vintedDiagBtn">🩺 Status</button>
               <button class="btn-ghost" onclick="vintedUnlinkSession()">Ontkoppelen</button>
+            </div>
+            <div style="margin-top:9px;font-size:11.5px;color:var(--muted);line-height:1.55;background:var(--card-2,#f8f8fb);border-radius:10px;padding:9px 11px">
+              <b>Zo ververs je:</b> open <b>vinted.nl</b> → klik op je <b>🔗 Guidsell × Vinted</b>-bladwijzer → kom terug en klik op <b>Verversen</b>.
+              Antwoorden die je hieronder typt gaan mee met diezelfde klik.
             </div>
             <div id="vintedDiag" style="margin-top:10px;font-size:12px"></div>
           </div>
@@ -2712,6 +2712,9 @@ async function api(path, body, method){
 function saveSessionToken(t){
   authToken = t || null;
   try{ t ? localStorage.setItem(LS_TOKEN, t) : localStorage.removeItem(LS_TOKEN); }catch(e){}
+  /* de bladwijzer bevat de vaste koppelsleutel van dit account: meteen klaarzetten
+     zodra we ingelogd zijn, zodat hij ook klopt als je later inlogt */
+  if(t){ try{ vintedLoadLinkKey().then(()=>vintedSetupBookmarklet()).catch(()=>{}); }catch(e){} }
 }
 
 let cloudReady = false;   // pas syncen nadat we de server-versie hebben bekeken
@@ -4871,21 +4874,59 @@ async function vintedLinkSession(){
   if(ok && box) box.value="";
 }
 
-/* ---- koppelen via een bladwijzer -------------------------------------------------
-   Waarom: Vinted blokkeert het inloggen vanaf onze server soms als "bot" (DataDome).
-   Dan doet je eigen browser het werk: je sleept één knop naar je bladwijzerbalk en
-   klikt hem op vinted.nl, waar je al ingelogd bent. Die knop stuurt je eigen
-   sessie-cookie hierheen. Geen DevTools, geen geplak. */
+/* ---- de bladwijzer --------------------------------------------------------------
+   Waarom dit zo werkt: Vinted blokkeert ALLE api-verzoeken vanaf datacenter-IP's
+   (DataDome) — vanaf Render kan deze server dus niets bij Vinted ophalen, ook niet
+   met een perfecte sessie. Je eigen browser zit op een gewoon thuis-IP en mag het
+   wél. Deze bladwijzer draait op vinted.nl, haalt daar je kast, biedingen en
+   berichten op (zelfde domein, dus gewoon toegestaan), verstuurt je klaargezette
+   antwoorden en stuurt alles hierheen. Zoek de echte API-paden op uit wat de
+   pagina zelf al aanriep, zodat het blijft werken als Vinted iets hernoemt. */
 function vintedBookmarkletCode(){
-  const app = location.origin + location.pathname;
-  return "javascript:(function(){" +
-    "var c=document.cookie||'';" +
-    "try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i),v=localStorage.getItem(k);" +
-    "if(v&&/token/i.test(k)&&v.length<600)c+='; '+k+'='+v;}}catch(e){}" +
-    "try{var s=sessionStorage.getItem('access_token_web');" +
-    "if(s&&c.indexOf('access_token_web=')<0)c+='; access_token_web='+s;}catch(e){}" +
-    "location.href='" + app + "#vinted='+encodeURIComponent(String(c).slice(0,4000));" +
-  "})()";
+  const B = location.origin;
+  /* de vaste koppelsleutel heeft voorrang: een sessietoken verloopt, en dan zou
+     een al gesleepte bladwijzer het niet meer doen. */
+  let T = authToken || "";
+  try{ if(vintedLinkKey) T = vintedLinkKey; else if(data && data.vintedLinkKey) T = data.vintedLinkKey; }catch(e){}
+  const src = `(async function(){
+var B=${JSON.stringify(B)},T=${JSON.stringify(T)},mislukt=[],gedaan=[];
+if(location.hostname.indexOf('vinted.')<0){alert('Deze knop werkt alleen op vinted.nl.\\nOpen vinted.nl (waar je bent ingelogd) en klik hem daar aan.');return;}
+function J(u,o){return fetch(u,Object.assign({credentials:'include',headers:{'Accept':'application/json, text/plain, */*'}},o||{}));}
+async function G(u){try{var r=await J(u);if(r.status!==200){mislukt.push(u.split('?')[0]+' '+r.status);return null;}return await r.json();}catch(e){mislukt.push(u.split('?')[0]+' onbereikbaar');return null;}}
+function paden(){try{return performance.getEntriesByType('resource').map(function(e){var u=e.name.split('?')[0],i=u.indexOf('/api/');return i>=0?u.substring(i):'';}).filter(Boolean);}catch(e){return [];}}
+var gezien=paden();
+var me=await G('/api/v2/users/me');
+if(!me||!me.user){me=await G('/api/v2/users/current');}
+var mid=(me&&((me.user&&me.user.id)||me.id))||null;
+var items=await G('/api/v2/users/me/items?page=1&per_page=40');
+if(!items&&mid){items=await G('/api/v2/wardrobe/'+mid+'/items?page=1&per_page=40');}
+var inbox=await G('/api/v2/inbox?page=1&per_page=30');
+if(!inbox){inbox=await G('/api/v2/conversations?page=1&per_page=30');}
+var wacht=[];
+try{var pr=await fetch(B+'/api/vinted/pending?token='+encodeURIComponent(T));wacht=((await pr.json()).replies)||[];}catch(e){mislukt.push('wachtrij ophalen');}
+for(var i=0;i<wacht.length;i++){
+  var r=wacht[i],body=JSON.stringify({message:{body:r.text}}),ok=false;
+  var kand=[];
+  paden().forEach(function(p){var b=p.indexOf('/messages');if(b>0){var seg=p.substring(0,b).split('/');if(seg.length>1){seg[seg.length-1]=String(r.conversationId);kand.push(seg.join('/')+'/messages');}}});
+  kand.push('/api/v2/conversations/'+r.conversationId+'/messages');
+  kand.push('/api/v2/inbox/'+r.conversationId+'/messages');
+  for(var k=0;k<kand.length&&!ok;k++){
+    try{var rr=await fetch(kand[k],{method:'POST',credentials:'include',headers:{'Content-Type':'application/json','Accept':'application/json'},body:body});
+      if(rr.ok||rr.status===201){ok=true;gedaan.push(r.id);}else{mislukt.push('antwoord versturen '+rr.status);}
+    }catch(e){}
+  }
+}
+var alle=gezien.concat(paden()).filter(function(p,i,a){return a.indexOf(p)===i;}).slice(0,40);
+try{
+  var out=await fetch(B+'/api/vinted/push',{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({token:T,me:me,items:items,inbox:inbox,paden:alle,mislukt:mislukt,replied:gedaan})});
+  var oj=await out.json();
+  if(!oj||!oj.ok){alert('Guidsell: opslaan mislukt ('+((oj&&oj.error)||'?')+'). Ben je ingelogd bij Guidsell?');return;}
+}catch(e){alert('Guidsell is niet bereikbaar. Open de site en probeer opnieuw.');return;}
+var it=(items&&(items.items||items.wardrobe))?((items.items||items.wardrobe).length):0;
+var th=(inbox&&(inbox.conversations||inbox.inbox))?((inbox.conversations||inbox.inbox).length):0;
+var NL=String.fromCharCode(10);alert('Guidsell bijgewerkt!'+NL+'Kast: '+it+' items'+NL+'Gesprekken: '+th+(gedaan.length?NL+'Antwoorden verstuurd: '+gedaan.length:'')+(mislukt.length?NL+NL+'Let op: '+mislukt.slice(0,4).join(', '):''));
+})()`;
+  return "javascript:" + src.split("\n").map(s => s.trim()).filter(Boolean).join("");
 }
 function vintedSetupBookmarklet(){
   const a=document.getElementById("vintedBookmarklet");
@@ -4900,38 +4941,37 @@ function vintedCopyBookmarklet(){
   try{ navigator.clipboard.writeText(code); toast("Code gekopieerd — plak hem op vinted.nl in de adresbalk"); }
   catch(e){ toast("Kopiëren lukte niet — sleep de knop naar je bladwijzerbalk", true); }
 }
+/* De bladwijzer kan alleen op vinted.nl draaien. Klikt iemand er hier op (in
+   plaats van hem te slepen), dan gebeurt er niets — dus leggen we het uit en
+   zetten we de code alvast op het klembord. */
+function vintedBookmarkletClick(ev){
+  if(ev && ev.preventDefault) ev.preventDefault();
+  vintedCopyBookmarklet();
+  toast("Sleep deze knop naar je bladwijzerbalk en klik hem dáár op vinted.nl", true);
+  return false;
+}
+/* de vaste koppelsleutel ophalen waarmee de bladwijzer jouw account herkent.
+   Bewaren we ook buiten `data`, want bij het inloggen kan `data` nog leeg zijn. */
+let vintedLinkKey = null;
+async function vintedLoadLinkKey(){
+  if(!authToken) return vintedLinkKey;
+  try{
+    const r = await vintedApi("/api/vinted/me/key");
+    if(r && r.ok && r.key){
+      vintedLinkKey = r.key;
+      try{ if(data){ data.vintedLinkKey = r.key; saveData(); } }catch(e){}
+    }
+  }catch(e){}
+  if(!vintedLinkKey){ try{ if(data && data.vintedLinkKey) vintedLinkKey = data.vintedLinkKey; }catch(e){} }
+  return vintedLinkKey;
+}
 function waitForAuth(ms){
   return new Promise(resolve=>{
     const t0=Date.now();
     (function loop(){ if(authToken || Date.now()-t0>ms) return resolve(!!authToken); setTimeout(loop,200); })();
   });
 }
-/* de bladwijzer komt terug als .../#vinted=<sessie> — die koppelen we meteen */
-async function vintedFromHash(){
-  const m=(location.hash||"").match(/#vinted=(.+)$/);
-  if(!m) return false;
-  const raw=decodeURIComponent(m[1]).slice(0,4000);
-  try{ history.replaceState(null,"",location.pathname+location.search); }catch(e){}
-  const ok=await waitForAuth(12000);
-  if(!ok){
-    try{ sessionStorage.setItem("guidsell_pending_vinted", raw); }catch(e){}
-    toast("Sessie ontvangen — log in bij Guidsell, dan koppel ik hem automatisch");
-    openAuth("login");
-    return true;
-  }
-  toast("Vinted-sessie ontvangen — koppelen…");
-  try{ switchView("dashboard"); }catch(e){}
-  await vintedLinkWith(raw, { btn: document.getElementById("vintedLinkBtn2"), label: "🔗 Sessie koppelen" });
-  return true;
-}
-/* sessie die binnenkwam toen je nog niet ingelogd was, alsnog koppelen */
-async function vintedResumePending(){
-  let raw=null;
-  try{ raw=sessionStorage.getItem("guidsell_pending_vinted"); }catch(e){}
-  if(!raw) return;
-  try{ sessionStorage.removeItem("guidsell_pending_vinted"); }catch(e){}
-  if(await waitForAuth(12000)) await vintedLinkWith(raw, { btn: document.getElementById("vintedLinkBtn2"), label: "🔗 Sessie koppelen" });
-}
+
 
 /* na een geslaagde koppeling: meteen kast + inbox laden (PRO) of vertellen dat
    dat PRO is — de gebruiker blijft altijd op het dashboard staan. */
@@ -4999,33 +5039,62 @@ async function vintedUnlinkSession(){
   toast("Vinted-account ontkoppeld");
 }
 
-async function vintedLoadInventory(showToast){
-  if(!vintedSessionLinked()){ toast("Koppel eerst je Vinted-account (dashboard)", true); return; }
-  if(!isPro()){ switchView("upgrade"); toast("Live Vinted-kast is PRO", true); return; }
+/* Haalt op wat de bladwijzer bij Vinted heeft opgehaald. De server praat zelf
+   nooit met Vinted (dat blokkeert hij vanaf een datacenter-IP). */
+async function vintedRefreshFromServer(quiet){
+  const msg=document.getElementById("vintedSessionMsg");
   const btn=document.getElementById("vintedInvBtn");
-  if(btn){ btn.disabled=true; btn.textContent="⏳ Laden…"; }
-  try{
-    const r = await vintedApi("/api/vinted/me/inventory", { page: 1 });
-    if(!r.ok){ vintedMarkFail(r); toast("Kast laden mislukt: "+(r.message||"onbekend"), true); return; }
-    data.vintedSession.inventory = { at: Date.now(), items: r.items||[], total: r.total||null };
-    saveData(); renderVintedInventory();
-    if(showToast) toast((r.items||[]).length+" items uit je Vinted-kast geladen");
-  }catch(e){ toast("Kast laden mislukt — server onbereikbaar", true); }
-  finally{ if(btn){ btn.disabled=false; btn.textContent="👗 Mijn kast laden"; } }
-}
-
-async function vintedLoadInbox(showToast){
-  if(!vintedSessionLinked()){ toast("Koppel eerst je Vinted-account (dashboard)", true); switchView("dashboard"); return; }
-  if(!isPro()){ switchView("upgrade"); toast("Biedingen & berichten is PRO", true); return; }
   const st=document.getElementById("vintedInboxStatus");
-  if(st) st.textContent="⏳ Ophalen…";
+  if(!authToken){ if(!quiet) toast("Log eerst in bij Guidsell", true); return; }
+  if(btn){ btn.disabled=true; btn.textContent="⏳ Inladen…"; }
+  if(!quiet && msg) msg.textContent="⏳ Ophalen…";
+  if(!quiet && st) st.textContent="⏳ Ophalen…";
   try{
-    const r = await vintedApi("/api/vinted/me/inbox", { page: 1 });
-    if(!r.ok){ vintedMarkFail(r); if(st) st.textContent="⚠️ "+(r.message||"mislukt"); if(showToast) toast("Inbox laden mislukt: "+(r.message||"onbekend"), true); return; }
-    data.vintedSession.inbox = { at: Date.now(), threads: r.threads||[] };
-    saveData(); renderVintedInbox();
-    if(showToast) toast((r.threads||[]).length+" gesprekken uit je Vinted-inbox");
-  }catch(e){ if(st) st.textContent="⚠️ Server onbereikbaar"; }
+    const r = await vintedApi("/api/vinted/me/pushed");
+    if(!r.ok){ if(!quiet){ if(msg) msg.textContent="⚠️ "+(r.message||"mislukt"); toast("Ophalen mislukt", true); } return; }
+    if(!r.push){
+      if(quiet) return;
+      if(msg) msg.textContent="⚠️ Nog niets ontvangen — klik eerst op je bladwijzer op vinted.nl.";
+      toast("Nog geen gegevens: open vinted.nl en klik daar op je Guidsell-bladwijzer", true);
+      if(st) st.textContent="";
+      return;
+    }
+    const p = r.push;
+    const oud = vintedSession() || {};
+    const veranderd = !(oud.inventory && oud.inventory.at === p.at);
+    if(quiet && !veranderd) return;
+    data.vintedSession = Object.assign({}, oud, p.me||{}, {
+      linked: true, linkedAt: p.at, lastStatus: "ok", method: "browser",
+      inventory: { at: p.at, items: p.items||[], total: p.itemTotal!=null? p.itemTotal : null },
+      inbox: { at: p.at, threads: p.threads||[] },
+    });
+    saveData();
+    renderVintedSessionCard(); renderVintedInventory(); renderVintedInbox(); renderVintedAccount();
+    if(msg) msg.textContent="";
+    if(st && !quiet) st.textContent="";
+    const n=(p.items||[]).length, t=(p.threads||[]).length;
+    if((p.mislukt||[]).length) toast("Ingelezen: "+n+" items en "+t+" gesprekken, maar: "+p.mislukt.join(", "), true);
+    else toast("Bijgewerkt: "+n+" items en "+t+" gesprekken uit je Vinted ✅");
+  }catch(e){
+    if(!quiet) toast("Ophalen mislukt — server onbereikbaar", true);
+    if(!quiet && msg) msg.textContent="⚠️ Server onbereikbaar";
+  }finally{ if(btn){ btn.disabled=false; btn.textContent="🔄 Verversen"; } }
+}
+/* Kom je terug van het Vinted-tabblad (waar je net op de bladwijzer klikte)?
+   Dan halen we meteen op wat daar klaarstaat — geen extra klik nodig. */
+let vintedFocusAt = 0;
+document.addEventListener("visibilitychange", function(){
+  if(document.visibilityState !== "visible") return;
+  if(!authToken || !vintedSessionLinked()) return;
+  if(Date.now() - vintedFocusAt < 15000) return;
+  vintedFocusAt = Date.now();
+  try{ vintedRefreshFromServer(true); }catch(e){}
+});
+async function vintedLoadInventory(showToast){ return vintedRefreshFromServer(); }
+async function vintedLoadInbox(showToast){ return vintedRefreshFromServer(); }
+function vintedOpenVinted(vanafKlaar){
+  try{ window.open(VINTED_LOGIN_URL, "_blank", "noopener"); }catch(e){}
+  toast(vanafKlaar? "Klik daar op je 🔗 Guidsell × Vinted-bladwijzer en kom terug" : "Log in bij Vinted en klik op je Guidsell-bladwijzer");
 }
 
 let vintedThreadId = null;
@@ -5067,20 +5136,17 @@ async function vintedSendReply(){
   const btn=document.getElementById("vintedReplyBtn");
   const text=(box?box.value:"").trim();
   if(!text){ toast("Typ eerst een bericht", true); return; }
-  if(btn){ btn.disabled=true; btn.textContent="⏳ Versturen…"; }
-  if(out) out.textContent="⏳ Versturen naar Vinted…";
+  if(btn){ btn.disabled=true; btn.textContent="⏳ Klaarzetten…"; }
   try{
-    const r = await vintedApi("/api/vinted/me/reply", { conversationId: vintedThreadId, text: text });
+    // niet direct versturen: dat doet de bladwijzer op vinted.nl (jouw eigen IP)
+    const r = await vintedApi("/api/vinted/me/queue-reply", { conversationId: vintedThreadId, text: text });
     if(!r.ok){
-      vintedMarkFail(r);
-      if(out) out.innerHTML="<span style=\"color:#dc2626\">⚠️ Versturen mislukt: "+esc(r.message||"onbekend")+"</span>";
+      if(out) out.innerHTML="<span style=\"color:#dc2626\">⚠️ "+esc(r.message||"Klaarzetten mislukt")+"</span>";
       return;
     }
     if(box) box.value="";
-    if(out) out.innerHTML="<span style=\"color:#059669\">✅ Verstuurd via Vinted</span>";
-    const id=vintedThreadId;
-    await vintedOpenThread(id);
-    vintedLoadInbox(false);
+    if(out) out.innerHTML="<span style=\"color:#b45309\">🕓 Klaargezet. Open <b>vinted.nl</b> en klik op je <b>🔗 Guidsell × Vinted</b>-bladwijzer — dan gaat dit bericht naar Vinted.</span>";
+    toast("Antwoord klaargezet — verstuur het met één klik op je Guidsell-bladwijzer");
   }catch(e){
     if(out) out.innerHTML="<span style=\"color:#dc2626\">⚠️ Server onbereikbaar</span>";
   }finally{
@@ -5088,25 +5154,35 @@ async function vintedSendReply(){
   }
 }
 
+/* laat zien wat de laatste bladwijzer-klik heeft opgeleverd — inclusief de
+   Vinted-API-paden die de pagina gebruikte, zodat fouten te herleiden zijn */
 async function vintedDiagnose(){
   const box=document.getElementById("vintedDiag");
   const btn=document.getElementById("vintedDiagBtn");
-  if(!vintedSessionLinked()){ toast("Koppel eerst je Vinted-account", true); return; }
-  if(btn){ btn.disabled=true; btn.textContent="⏳ Testen…"; }
-  if(box) box.innerHTML="<div style='color:var(--muted)'>⏳ Verbinding testen (kan ±10 sec duren)…</div>";
+  if(!authToken){ toast("Log eerst in bij Guidsell", true); return; }
+  if(btn){ btn.disabled=true; btn.textContent="⏳ Ophalen…"; }
   try{
-    const r = await vintedApi("/api/vinted/me/diagnose");
-    if(!r.ok){ if(box) box.innerHTML="<div style='color:#dc2626'>⚠️ "+esc(r.message||"onbekende fout")+"</div>"; return; }
-    const s=vintedSession(); if(s){ s.lastStatus = r.lastStatus||s.lastStatus; saveData(); renderVintedSessionCard(); }
-    if(box) box.innerHTML = (r.checks||[]).map(c=>`
-      <div class="vt-check">
-        <span>${c.ok?"✅":"⚠️"}</span>
-        <span style="flex:1;min-width:0"><span class="vt-code">${esc(c.path)}</span><br><span style="color:var(--muted)">${esc(c.ok? c.message : ("HTTP "+c.status+" — "+c.message))}</span></span>
-      </div>`).join("") + `<div style="margin-top:8px;color:var(--muted)">Laatste test: ${new Date().toLocaleTimeString("nl-NL")}</div>`;
+    const r = await vintedApi("/api/vinted/me/pushed");
+    if(!r.ok){ if(box) box.innerHTML="<div style='color:#dc2626'>⚠️ "+esc(r.message||"onbekend")+"</div>"; return; }
+    const p=r.push;
+    if(!p){
+      if(box) box.innerHTML="<div style='color:var(--muted);line-height:1.5'>Nog niets ontvangen.<br>Open <b>vinted.nl</b>, klik op je <b>🔗 Guidsell × Vinted</b>-bladwijzer en kom terug.</div>";
+      return;
+    }
+    const rijen = [
+      ["Laatst bijgewerkt", fmtTs(p.at)],
+      ["Vinted-account", (p.me && p.me.username)? "@"+p.me.username : "onbekend"],
+      ["Items in je kast", (p.items||[]).length + (p.itemTotal!=null? " van "+p.itemTotal : "")],
+      ["Gesprekken", String((p.threads||[]).length)],
+      ["Antwoorden in wachtrij", String(r.pendingReplies||0)],
+    ];
+    if((p.mislukt||[]).length) rijen.push(["Mislukt", p.mislukt.join(", ")]);
+    if((p.pages||[]).length) rijen.push(["Gebruikte API-paden", p.pages.slice(0,10).join("  ·  ")]);
+    if(box) box.innerHTML = rijen.map(r2=>`<div class="vt-check"><span style="min-width:170px;color:var(--muted)">${esc(r2[0])}</span><span style="flex:1;min-width:0">${esc(String(r2[1]))}</span></div>`).join("");
   }catch(e){
     if(box) box.innerHTML="<div style='color:#dc2626'>⚠️ Server onbereikbaar</div>";
   }finally{
-    if(btn){ btn.disabled=false; btn.textContent="🩺 Test verbinding"; }
+    if(btn){ btn.disabled=false; btn.textContent="🩺 Status"; }
   }
 }
 
@@ -5894,11 +5970,13 @@ shipInitUI();
 refreshServerAi().then(()=>{ try{ syncSettingsUI(); }catch(e){} });
 setTimeout(()=>{ try{ syncSettingsUI(); }catch(e){} }, 300);
 
-/* Vinted-koppeling via de bladwijzer klaarzetten en een binnenkomende sessie koppelen */
+/* Vinted-bladwijzer klaarzetten (die bevat je Guidsell-token, dus pas na inloggen)
+   en meteen de laatst opgehaalde Vinted-gegevens inladen. */
 (async function vintedInit(){
+  try{ await waitForAuth(12000); }catch(e){}
+  try{ await vintedLoadLinkKey(); }catch(e){}
   try{ vintedSetupBookmarklet(); }catch(e){}
-  try{ await vintedFromHash(); }catch(e){}
-  try{ await vintedResumePending(); }catch(e){}
+  try{ if(vintedSessionLinked()) await vintedRefreshFromServer(); }catch(e){}
 })();
 </script>
 </body>

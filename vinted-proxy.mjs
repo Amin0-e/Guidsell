@@ -219,6 +219,25 @@ function tokenEmail(token) {
 }
 function publicUser(u) { return { email: u.email, name: u.name, hasSec: !!(u.secQ && u.secHash) }; }
 
+/* Vaste koppelsleutel voor de Vinted-bladwijzer.
+   De bladwijzer wordt één keer gesleept en bevat deze sleutel. Daarom mag hij
+   nooit verlopen of veranderen: een sessietoken van 90 dagen zou betekenen dat
+   je de bladwijzer opnieuw moet slepen — en dat is precies waar het misging. */
+function ensureVintedKey(user) {
+  if (!user.vintedKey) user.vintedKey = crypto.randomBytes(24).toString("hex");
+  return user.vintedKey;
+}
+function vintedKeyEmail(key) {
+  const k = String(key || "").trim();
+  if (k.length < 20) return null;
+  for (const email of Object.keys(store.users)) {
+    if (store.users[email] && store.users[email].vintedKey === k) return email;
+  }
+  return null;
+}
+/* de bladwijzer mag zowel de vaste sleutel als een gewone sessietoken sturen */
+function vintedPushEmail(t) { return tokenEmail(t) || vintedKeyEmail(t); }
+
 // zeer lichte rem op wachtwoord-raden (per ip+e-mail)
 const loginFails = new Map();
 function clientIp(req) {
@@ -1477,6 +1496,83 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
+  /* =====================================================
+     VINTED VIA DE BROWSER VAN DE GEBRUIKER (bladwijzer)
+     -----------------------------------------------------
+     Vinted blokkeert alle /api/v2-verzoeken vanaf datacenter-IP's (DataDome),
+     dus deze server kan zelf niets bij Vinted ophalen. De browser van de
+     gebruiker staat op een gewoon thuis-IP en mag het wél: daarom doet een
+     bladwijzer op vinted.nl de verzoeken en stuurt de uitkomst hierheen.
+     Deze server is daarvoor alleen nog opslag.
+  ===================================================== */
+  if (u.pathname === "/api/vinted/push" || u.pathname === "/api/vinted/pending") {
+    // CORS staat bewust open: de bladwijzer draait op vinted.nl en moet het
+    // antwoord kunnen lezen. Zonder geldig Guidsell-token gebeurt er niets.
+    const corsJson = (status, body) => {
+      const data = JSON.stringify(body);
+      res.writeHead(status, {
+        "Content-Type": "application/json; charset=utf-8",
+        "Cache-Control": "no-store",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type",
+      });
+      res.end(data);
+    };
+
+    let vb = {};
+    if (req.method === "POST") {
+      try { vb = await readJsonBody(req, 2 * 1024 * 1024); }
+      catch (e) { return corsJson(400, { ok: false, error: "ongeldige_request" }); }
+    }
+    const gtok = String(vb.token || u.searchParams.get("token") || "");
+    const email = vintedPushEmail(gtok);
+    if (!email) return corsJson(200, { ok: false, error: "geen_sessie" });
+    const gu = store.users[email];
+
+    // ---- wachtende antwoorden ophalen (die stuurt de bladwijzer naar Vinted) ----
+    if (u.pathname === "/api/vinted/pending") {
+      return corsJson(200, { ok: true, replies: gu.replyQueue || [] });
+    }
+
+    // ---- resultaat van de bladwijzer opslaan ----
+    const eerste = (obj, keys) => {
+      if (!obj || typeof obj !== "object") return null;
+      for (const k of keys) if (obj[k]) return obj[k];
+      return null;
+    };
+    const me = vb.me && (vb.me.user || vb.me.current_user || vb.me);
+    if (me && me.id) {
+      const prof = mapVintedUser(me);
+      gu.vinted = { ...(gu.vinted || {}), ...prof, method: "browser", linkedAt: (gu.vinted && gu.vinted.linkedAt) || Date.now(), lastStatus: "ok" };
+      delete gu.vinted.cookies;
+      delete gu.vinted.token;
+    }
+
+    const itemsRaw = eerste(vb.items, ["items", "wardrobe", "item_ids"]);
+    const convosRaw = eerste(vb.inbox, ["conversations", "inbox", "threads"]);
+    const usersById = {};
+    firstArray(vb.inbox || {}, ["users"]).forEach(x => { if (x && x.id != null) usersById[String(x.id)] = x; });
+
+    gu.vintedPush = {
+      at: Date.now(),
+      me: me ? mapVintedUser(me) : null,
+      items: Array.isArray(itemsRaw) ? itemsRaw.map(mapVintedItem).filter(i => i.id).slice(0, 120) : [],
+      itemTotal: (vb.items && vb.items.pagination && (vb.items.pagination.total_entries || vb.items.pagination.total)) || null,
+      threads: Array.isArray(convosRaw) ? convosRaw.map(c => mapVintedThread(c, usersById)).filter(t => t.id).slice(0, 60) : [],
+      pages: Array.isArray(vb.paden) ? vb.paden.slice(0, 40).map(String) : [],
+      mislukt: Array.isArray(vb.mislukt) ? vb.mislukt.slice(0, 10).map(String) : [],
+      uitkomst: vb.uitkomst && typeof vb.uitkomst === "object" ? vb.uitkomst : null,
+    };
+    // verstuurde antwoorden uit de wachtrij halen
+    if (Array.isArray(vb.replied)) {
+      const klaar = new Set(vb.replied.map(String));
+      gu.replyQueue = (gu.replyQueue || []).filter(r => !klaar.has(String(r.id)));
+    }
+    saveStore(true);
+    console.log(`[vinted] browser-sync ${email}: ${gu.vintedPush.items.length} items, ${gu.vintedPush.threads.length} gesprekken, paden=${gu.vintedPush.pages.length}, mislukt=${gu.vintedPush.mislukt.join("|")}`);
+    return corsJson(200, { ok: true, replies: gu.replyQueue || [] });
+  }
+
   /* ---- Mijn Vinted-account: koppelen, kast, biedingen, berichten ---- */
   if (u.pathname.startsWith("/api/vinted/me/")) {
     let vb = {};
@@ -1581,6 +1677,34 @@ const server = http.createServer(async (req, res) => {
       saveStore(true);
       console.log(`[vinted] ${email} gekoppeld als @${prof.username} (id ${prof.memberId})`);
       return sendJson(res, 200, { ok: true, profile: prof }, false);
+    }
+
+    // ---- koppelsleutel voor de bladwijzer (verandert nooit) ----
+    if (sub === "key") {
+      const k = ensureVintedKey(gu);
+      saveStore(true);
+      return sendJson(res, 200, { ok: true, key: k }, false);
+    }
+
+    // ---- wat de bladwijzer heeft opgehaald (kast, biedingen, berichten) ----
+    if (sub === "pushed") {
+      const p = gu.vintedPush || null;
+      return sendJson(res, 200, { ok: true, push: p, pendingReplies: (gu.replyQueue || []).length }, false);
+    }
+
+    // ---- antwoord klaarzetten: de bladwijzer verstuurt het naar Vinted ----
+    if (sub === "queue-reply" && req.method === "POST") {
+      const cid = String(vb.conversationId || "").replace(/[^0-9a-zA-Z_\-]/g, "");
+      const text = String(vb.text || "").trim().slice(0, 1000);
+      if (!cid) return sendJson(res, 200, { ok: false, error: "geen_id" }, false);
+      if (!text) return sendJson(res, 200, { ok: false, error: "leeg_bericht", message: "Typ eerst een bericht." }, false);
+      gu.replyQueue = gu.replyQueue || [];
+      if (gu.replyQueue.length >= 25) gu.replyQueue.shift();
+      const rid = "r" + Date.now() + Math.random().toString(36).slice(2, 6);
+      gu.replyQueue.push({ id: rid, conversationId: cid, text, at: Date.now() });
+      saveStore(true);
+      console.log(`[vinted] antwoord in wachtrij voor gesprek ${cid} (${email})`);
+      return sendJson(res, 200, { ok: true, id: rid, inWachtrij: gu.replyQueue.length }, false);
     }
 
     // ---- status (nooit de sessie zelf terugsturen!) ----
